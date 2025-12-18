@@ -1,6 +1,6 @@
 ---
 name: session-memory
-description: Use when starting or ending sessions to maintain context across conversations - loads previous decisions at session start, offers to persist learnings at session end
+description: Use when beginning a new conversation, resuming after a break, switching contexts, completing tasks, taking breaks, or ending conversations
 ---
 
 # Session Memory
@@ -289,10 +289,12 @@ session-memory (start) → [any workflow] → session-memory (end)
 - **SessionStart**: Trigger memory load
 - **SessionEnd**: Trigger save offer
 
-### Commands
+### Commands (Planned - Phase 6)
 - `/tc:memory load` - Load and display context
 - `/tc:memory save` - Save current context
 - `/tc:memory clear` - Clear with confirmation
+
+*Commands will be implemented in Phase 6: Commands*
 
 ## Example: Session Flow
 
@@ -368,29 +370,14 @@ Can't check all boxes? Session context may be lost.
 
 ## File Initialization
 
-When `.turbocharge/memory/` doesn't exist:
+When `.turbocharge/memory/` doesn't exist, create the directory and initialize empty files:
 
-```javascript
-// Initialize memory structure
-const initMemory = {
-  session: {
-    project: "",
-    lastUpdated: new Date().toISOString(),
-    currentPhase: "",
-    activeTask: "",
-    blockers: [],
-    nextSteps: []
-  },
-  decisions: { decisions: [] },
-  learnings: { learnings: [] },
-  projectContext: {
-    name: "",
-    type: "",
-    structure: {},
-    conventions: {},
-    dependencies: {}
-  }
-};
+```
+.turbocharge/memory/
+├── session.json         # {"project": "", "lastUpdated": "", ...}
+├── decisions.json       # {"decisions": []}
+├── learnings.json       # {"learnings": []}
+└── project-context.json # {"name": "", "type": "", ...}
 ```
 
 Prompt user to fill in project details on first initialization.

@@ -1,6 +1,6 @@
 ---
 name: story-breakdown
-description: Use when transforming requirements, PRDs, or feature descriptions into actionable user stories with INVEST criteria and acceptance criteria
+description: Use when you have requirements, PRDs, feature descriptions, or backlog items that need to become implementable work - includes epic breakdown, story refinement, sprint planning, and requirements handoff
 ---
 
 # Story Breakdown
@@ -191,11 +191,11 @@ For each story:
 
 | Points | Meaning | Example |
 |--------|---------|---------|
-| **1** | Trivial, <2 hours | Copy change, config toggle |
-| **2** | Simple, half day | Add field, simple validation |
-| **3** | Moderate, 1 day | New form, basic CRUD |
-| **5** | Complex, 2-3 days | Multi-step flow, integration |
-| **8** | Large, needs split | Too big - break it down |
+| **1** | Trivial | Copy change, config toggle |
+| **2** | Simple | Add field, simple validation |
+| **3** | Moderate | New form, basic CRUD |
+| **5** | Complex | Multi-step flow, integration |
+| **8** | Too large | Needs to be split |
 
 **If >5 points, split the story.**
 
