@@ -17,7 +17,7 @@ This is not negotiable. This is not optional. You cannot rationalize your way ou
 
 **Check for skills BEFORE ANY RESPONSE.** This includes clarifying questions. Even 1% chance means invoke the Skill tool first.
 
-```dot
+```graphviz
 digraph skill_flow {
     "User message received" [shape=doublecircle];
     "Might any skill apply?" [shape=diamond];
@@ -96,6 +96,7 @@ Turbocharge includes these skills (invoke with `/tc:` commands or Skill tool):
 - **finishing-a-development-branch** - Structured options for merge, PR, or cleanup
 
 ### Meta Skills
+- **using-turbocharge** - Foundational skill for discovering and using all other skills
 - **writing-skills** - Create and test skills using TDD principles
 - **session-memory** - Maintain context across sessions via `.turbocharge/memory/`
 
