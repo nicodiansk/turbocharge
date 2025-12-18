@@ -4,10 +4,10 @@
   "version": "1.0.0",
   "author": {
     "name": "Nicholas",
-    "email": "nicholas@example.com"
+    "email": "nicholasprevitali96@gmail.com"
   },
-  "homepage": "https://github.com/yourusername/turbocharge",
-  "repository": "https://github.com/yourusername/turbocharge",
+  "homepage": "https://github.com/nicodiansk/turbocharge",
+  "repository": "https://github.com/nicodiansk/turbocharge",
   "license": "MIT",
   "keywords": ["skills", "tdd", "debugging", "collaboration", "epics", "stories", "product-development", "workflows"]
 }
