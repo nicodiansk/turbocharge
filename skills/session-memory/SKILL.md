@@ -105,7 +105,7 @@ Before ending any significant session, offer to save context.
       "date": "2025-12-18",
       "category": "workflow",
       "learning": "Always copy skills before adapting them",
-      "context": "Discovered while implementing turbocharge from superpowers",
+      "context": "Discovered while implementing turbocharge plugin",
       "applies_to": ["similar migrations", "framework adoption"]
     }
   ]
@@ -128,7 +128,6 @@ Before ending any significant session, offer to save context.
     "pr_workflow": "branch → PR → Claude review → merge"
   },
   "dependencies": {
-    "reference": "superpowers plugin",
     "target": "Claude Code plugin system"
   }
 }
