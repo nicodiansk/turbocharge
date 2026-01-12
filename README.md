@@ -46,14 +46,14 @@ Turbocharge provides 16 skills organized by workflow:
 
 | Command | Description |
 |---------|-------------|
-| `/tc:brainstorm` | Interactive requirements discovery |
-| `/tc:write-plan` | Create implementation plan |
-| `/tc:execute-plan` | Execute plan with checkpoints |
-| `/tc:epic` | Generate epic from requirements |
-| `/tc:story` | Generate user stories |
-| `/tc:memory` | Manage session memory |
-| `/tc:review` | Request code review |
-| `/tc:session-wrap` | Wrap up session with handoff |
+| `/brainstorm` | Interactive requirements discovery |
+| `/write-plan` | Create implementation plan |
+| `/execute-plan` | Execute plan with checkpoints |
+| `/epic` | Generate epic from requirements |
+| `/story` | Generate user stories |
+| `/review` | Request code review |
+| `/debug` | Systematic debugging |
+| `/tdd` | Test-driven development |
 
 ### Agents (7 total)
 
@@ -113,12 +113,14 @@ Skill   directly
 
 ### Session Memory
 
-Turbocharge maintains context across sessions via `.turbocharge/memory/`:
+The `session-memory` skill provides cross-session context persistence via `.turbocharge/memory/`:
 
 - Decisions and rationale
 - Architectural choices
 - User preferences
 - In-progress work state
+
+*Note: Memory directory is created on first use when the session-memory skill saves context.*
 
 ## Directory Structure
 
