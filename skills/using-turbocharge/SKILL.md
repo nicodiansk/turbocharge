@@ -72,7 +72,7 @@ When multiple skills could apply, use this order:
 
 ## Available Skills
 
-Turbocharge includes these skills (invoke with `/tc:` commands or Skill tool):
+Turbocharge includes these skills (invoke with slash commands like `/brainstorm`, `/story`, etc. or Skill tool):
 
 ### Process Skills
 - **brainstorming** - Interactive design refinement through Socratic dialogue
