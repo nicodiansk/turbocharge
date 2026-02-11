@@ -288,12 +288,10 @@ session-memory (start) → [any workflow] → session-memory (end)
 - **SessionStart**: Trigger memory load
 - **SessionEnd**: Trigger save offer
 
-### Commands (Planned - Phase 6)
-- `/tc:memory load` - Load and display context
-- `/tc:memory save` - Save current context
-- `/tc:memory clear` - Clear with confirmation
-
-*Commands will be implemented in Phase 6: Commands*
+### Commands
+- `/memory load` - Load and display context
+- `/memory save` - Save current context
+- `/memory clear` - Clear with confirmation
 
 ## Example: Session Flow
 
