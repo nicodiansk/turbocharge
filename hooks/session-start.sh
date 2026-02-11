@@ -26,6 +26,9 @@ escape_for_json() {
 
 using_turbocharge_escaped=$(escape_for_json "$using_turbocharge_content")
 
+# Create .turbocharge/memory/ in the project working directory if it doesn't exist
+mkdir -p ".turbocharge/memory" 2>/dev/null || true
+
 # Output context injection as JSON
 cat <<EOF
 {

@@ -57,6 +57,26 @@ These thoughts mean STOP—you're rationalizing:
 | "I'll just do this one thing first" | Check BEFORE doing anything. |
 | "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
 
+## Anti-Bypass Rules
+
+**NEVER dispatch built-in Task tool agents directly.** Turbocharge skills are the ONLY authorized way to orchestrate work.
+
+**Prohibited bypasses:**
+
+| Bypass | Required Instead |
+|--------|-----------------|
+| Task tool with `code-reviewer` agent | Use **requesting-code-review** skill |
+| Task tool with `plan` agent | Use **writing-plans** skill |
+| Task tool with `general-purpose` for implementation | Use **subagent-driven-development** skill |
+| Task tool with `quality-engineer` agent | Use **subagent-driven-development** skill (dispatches quality-reviewer) |
+| Task tool with `refactoring-expert` agent | Use **subagent-driven-development** skill |
+| Task tool with `root-cause-analyst` agent | Use **systematic-debugging** skill |
+| EnterPlanMode tool directly | Use **writing-plans** skill |
+
+**Why this matters:** Skills enforce discipline. They include checklists, verification steps, handoff protocols, and review gates. Direct agent dispatch skips all of these.
+
+**The test:** If you're about to use the Task tool, ask: "Is there a turbocharge skill for this?" If yes (even partially), use the skill.
+
 ## Skill Priority
 
 When multiple skills could apply, use this order:
@@ -111,3 +131,117 @@ The skill itself tells you which.
 ## User Instructions
 
 Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+## Commands Reference
+
+Users invoke these slash commands directly. Each dispatches the corresponding skill:
+
+| Command | Skill Invoked | Purpose |
+|---------|---------------|---------|
+| `/brainstorm` | brainstorming | Explore requirements through collaborative dialogue |
+| `/write-plan` | writing-plans | Create implementation plan with verifiable tasks |
+| `/execute-plan` | executing-plans | Execute plan in batches with review checkpoints |
+| `/review` | requesting-code-review | Dispatch code reviewer before merging |
+| `/debug` | systematic-debugging | Four-phase debugging with root cause analysis |
+| `/tdd` | test-driven-development | Red/green/refactor cycle |
+| `/epic` | story-breakdown | Break requirements into epic with child stories |
+| `/story` | story-breakdown | Transform requirement into INVEST-compliant story |
+| `/memory` | session-memory | Load, save, or clear session context |
+| `/finish` | finishing-a-development-branch | Verify tests, present merge/PR/cleanup options |
+
+**When a user types a command, the corresponding skill governs all behavior.** Do not deviate from the skill's protocol.
+
+## Decision Trees
+
+### "Build a feature"
+```
+User wants feature →
+  1. brainstorming (clarify requirements)
+  2. story-breakdown (if epic-scale, create stories)
+  3. writing-plans (create implementation plan)
+  4. subagent-driven-development (execute plan)
+  5. requesting-code-review (before merge)
+  6. finishing-a-development-branch (merge/PR)
+```
+
+### "Fix a bug"
+```
+User reports bug →
+  1. systematic-debugging (investigate root cause)
+  2. test-driven-development (write failing test for bug)
+  3. verification-before-completion (confirm fix)
+  4. requesting-code-review (if significant change)
+```
+
+### "Create epics/stories"
+```
+User wants requirements breakdown →
+  1. brainstorming (if requirements are vague)
+  2. story-breakdown (create INVEST-compliant stories)
+  3. writing-plans (turn stories into implementation plans)
+```
+
+### "Review code"
+```
+User wants review →
+  1. requesting-code-review (dispatch code-reviewer agent)
+  2. receiving-code-review (handle feedback)
+  3. verification-before-completion (verify fixes)
+```
+
+### "Continue previous work"
+```
+User resuming session →
+  1. session-memory (load context)
+  2. executing-plans (if plan exists)
+  3. subagent-driven-development (if tasks remain)
+```
+
+### "Refactor code"
+```
+User wants refactoring →
+  1. brainstorming (clarify goals and scope)
+  2. writing-plans (plan the refactoring)
+  3. test-driven-development (ensure tests exist first)
+  4. subagent-driven-development (execute refactoring)
+  5. requesting-code-review (before merge)
+```
+
+## Workflow Chains
+
+Skills hand off to each other. Each skill's output becomes the next skill's input.
+
+### Feature Development Chain
+```
+brainstorming → writing-plans → subagent-driven-development → requesting-code-review → finishing-a-development-branch
+     │                │                    │                           │
+  requirements     plan doc         implemented code            review feedback
+```
+
+### Bug Fix Chain
+```
+systematic-debugging → test-driven-development → verification-before-completion
+         │                      │                           │
+    root cause           failing test + fix            confirmed fix
+```
+
+### Story/Epic Chain
+```
+brainstorming → story-breakdown → writing-plans → subagent-driven-development
+      │                │                │                    │
+  raw ideas     epics/stories      plan per story     implemented stories
+```
+
+### Subagent Review Loop (within subagent-driven-development)
+```
+implementer → spec-reviewer → quality-reviewer ──→ next task
+                                    │
+                              issues found? → implementer (fix loop)
+```
+
+### Session Lifecycle
+```
+session-memory (load) → [any chain above] → session-memory (save)
+```
+
+**Handoff rule:** When a skill completes, check if the next skill in the chain applies. Suggest it to the user — don't silently skip ahead or silently stop.

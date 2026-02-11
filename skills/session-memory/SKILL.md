@@ -377,4 +377,13 @@ When `.turbocharge/memory/` doesn't exist, create the directory and initialize e
 └── project-context.json # {"name": "", "type": "", ...}
 ```
 
+**Gitignore:** On first initialization, check if `.turbocharge/memory/` is excluded from version control. If not, add it:
+
+```
+# Append to .gitignore if not already present
+.turbocharge/memory/
+```
+
+Memory is personal session context. It must never be committed to a shared repository.
+
 Prompt user to fill in project details on first initialization.
