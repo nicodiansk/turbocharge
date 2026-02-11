@@ -102,4 +102,26 @@ You: [Fix progress indicators]
 - Show code/tests that prove it works
 - Request clarification
 
-See template at: requesting-code-review/code-reviewer.md
+See dispatch template at: `requesting-code-review/code-reviewer.md` (thin wrapper providing task-specific context; behavioral instructions live in `agents/code-reviewer.md`)
+
+## Common Rationalizations
+
+| Excuse | Reality |
+|--------|---------|
+| "It's simple, no review needed" | Simple changes break things. Review catches surprises. |
+| "Tests pass, that's enough" | Tests verify behavior. Review catches design issues, security, maintainability. |
+| "I'll review before merge" | Pre-merge review misses issues caught during development. Review early. |
+| "Review slows me down" | Review catches issues early. Cheaper than debugging later. |
+| "I reviewed my own code" | Self-review is partial. Fresh eyes catch different things. |
+
+## Verification Checklist
+
+Before declaring code review complete:
+
+- [ ] Git SHAs identified (base and head)
+- [ ] Code reviewer subagent dispatched with template
+- [ ] All Critical issues fixed
+- [ ] All Important issues fixed before proceeding
+- [ ] Minor issues noted for later
+- [ ] Pushback provided where reviewer is wrong (with reasoning)
+- [ ] Fixes verified after implementation

@@ -1,20 +1,34 @@
-# Code Quality Reviewer Prompt Template
+# Code Quality Reviewer Dispatch Template
 
-Use this template when dispatching a code quality reviewer subagent.
+Dispatch a `turbocharge:code-reviewer` agent after spec compliance passes.
 
-**Purpose:** Verify implementation is well-built (clean, tested, maintainable)
+**Only dispatch after spec compliance review passes.** The code-reviewer assesses HOW it was built, not WHETHER it matches spec.
 
-**Only dispatch after spec compliance review passes.**
+The agent's behavioral instructions (quality checklist, severity categorization, output format) are defined in `agents/code-reviewer.md`. This template provides only the task-specific context.
 
 ```
-Task tool (turbocharge:code-reviewer):
-  Use template at requesting-code-review/code-reviewer.md
+Task tool:
+  subagent_type: turbocharge:code-reviewer
+  description: "Review code quality for Task {N}"
+  prompt: |
+    Review the code changes for Task {N}.
 
-  WHAT_WAS_IMPLEMENTED: [from implementer's report]
-  PLAN_OR_REQUIREMENTS: Task N from [plan-file]
-  BASE_SHA: [commit before task]
-  HEAD_SHA: [current commit]
-  DESCRIPTION: [task summary]
+    {WHAT_WAS_IMPLEMENTED}
+
+    Requirements: {PLAN_OR_REQUIREMENTS}
+    Base SHA: {BASE_SHA}
+    Head SHA: {HEAD_SHA}
+
+    {DESCRIPTION}
 ```
 
-**Code reviewer returns:** Strengths, Issues (Critical/Important/Minor), Assessment
+## Placeholders
+
+| Placeholder | Source | Notes |
+|---|---|---|
+| `{N}` | Plan task number | e.g. "3" |
+| `{WHAT_WAS_IMPLEMENTED}` | From implementer's report | Summary of changes |
+| `{PLAN_OR_REQUIREMENTS}` | Task reference from plan | e.g. "Task 3 from docs/plans/feature-plan.md" |
+| `{BASE_SHA}` | Commit before task started | `git rev-parse HEAD~N` or pre-task SHA |
+| `{HEAD_SHA}` | Current commit after task | `git rev-parse HEAD` |
+| `{DESCRIPTION}` | Brief task summary | One-line description |

@@ -170,6 +170,17 @@ After agents return:
 3. **Run full suite** - Verify all fixes work together
 4. **Spot check** - Agents can make systematic errors
 
+## Integration
+
+**Workflow position:** Tactical skill used within other workflows when independent parallel work is identified.
+
+**Chains from:**
+- **systematic-debugging** - Multiple independent failures identified during investigation
+- **subagent-driven-development** - Independent tasks that don't share state
+
+**Chains to:**
+- Depends on domain - each agent may use **test-driven-development**, **systematic-debugging**, etc.
+
 ## Real-World Impact
 
 From debugging session (2025-10-03):

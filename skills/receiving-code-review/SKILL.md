@@ -200,6 +200,32 @@ You understand 1,2,3,6. Unclear on 4,5.
 ✅ "Understand 1,2,3,6. Need clarification on 4 and 5 before implementing."
 ```
 
+## Integration
+
+**Workflow position:**
+```
+requesting-code-review → [reviewer responds] → receiving-code-review → [fixes] → verification-before-completion
+```
+
+**Chains from:**
+- **requesting-code-review** - Code review dispatched, feedback received
+
+**Chains to:**
+- **test-driven-development** - For implementing fixes from review feedback
+- **verification-before-completion** - After applying fixes, verify before claiming done
+
+## Verification Checklist
+
+Before declaring review feedback fully addressed:
+
+- [ ] All feedback items understood (or clarified)
+- [ ] Critical issues fixed immediately
+- [ ] Important issues fixed before proceeding
+- [ ] Each fix tested individually
+- [ ] No regressions introduced
+- [ ] Pushback provided with technical reasoning where appropriate
+- [ ] No performative agreement in responses
+
 ## The Bottom Line
 
 **External feedback = suggestions to evaluate, not orders to follow.**

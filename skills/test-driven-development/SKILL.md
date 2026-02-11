@@ -361,6 +361,24 @@ When adding mocks or test utilities, read @testing-anti-patterns.md to avoid com
 - Adding test-only methods to production classes
 - Mocking without understanding dependencies
 
+## Integration
+
+**Workflow position:**
+```
+[any implementation task] → test-driven-development → verification-before-completion
+```
+
+**Chains from:**
+- **systematic-debugging** - Bug found, need failing test to prove fix
+- **executing-plans** / **subagent-driven-development** - Each task follows TDD
+- **receiving-code-review** - Fixes from review feedback follow TDD
+
+**Chains to:**
+- **verification-before-completion** - After TDD cycle, verify all tests pass before claiming done
+
+**Agents:**
+- **turbocharge:implementer** - Follows TDD for each task
+
 ## Final Rule
 
 ```

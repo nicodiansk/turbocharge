@@ -130,6 +130,33 @@ From 24 failure memories:
 - Implications of success
 - ANY communication suggesting completion/correctness
 
+## Integration
+
+**Workflow position:**
+```
+[any task completion] → verification-before-completion → [commit/PR/report]
+```
+
+**Chains from:**
+- **test-driven-development** - Verify all tests pass after TDD cycle
+- **systematic-debugging** - Verify fix before claiming bug resolved
+- **executing-plans** / **subagent-driven-development** - Verify each task before marking complete
+
+**Chains to:**
+- **requesting-code-review** - After verification passes, request review
+- **finishing-a-development-branch** - After all verification passes, complete the work
+
+## Verification Checklist
+
+Before making any completion claim:
+
+- [ ] Verification command identified for the claim
+- [ ] Command run fresh (not relying on previous run)
+- [ ] Full output read, exit code checked
+- [ ] Output confirms the specific claim
+- [ ] No "should", "probably", "seems to" in response
+- [ ] Evidence cited with claim
+
 ## The Bottom Line
 
 **No shortcuts for verification.**

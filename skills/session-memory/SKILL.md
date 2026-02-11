@@ -105,7 +105,7 @@ Before ending any significant session, offer to save context.
       "date": "2025-12-18",
       "category": "workflow",
       "learning": "Always copy skills before adapting them",
-      "context": "Discovered while implementing turbocharge from superpowers",
+      "context": "Discovered while implementing turbocharge plugin",
       "applies_to": ["similar migrations", "framework adoption"]
     }
   ]
@@ -128,7 +128,6 @@ Before ending any significant session, offer to save context.
     "pr_workflow": "branch → PR → Claude review → merge"
   },
   "dependencies": {
-    "reference": "superpowers plugin",
     "target": "Claude Code plugin system"
   }
 }
@@ -289,12 +288,10 @@ session-memory (start) → [any workflow] → session-memory (end)
 - **SessionStart**: Trigger memory load
 - **SessionEnd**: Trigger save offer
 
-### Commands (Planned - Phase 6)
-- `/tc:memory load` - Load and display context
-- `/tc:memory save` - Save current context
-- `/tc:memory clear` - Clear with confirmation
-
-*Commands will be implemented in Phase 6: Commands*
+### Commands
+- `/memory load` - Load and display context
+- `/memory save` - Save current context
+- `/memory clear` - Clear with confirmation
 
 ## Example: Session Flow
 
@@ -379,5 +376,14 @@ When `.turbocharge/memory/` doesn't exist, create the directory and initialize e
 ├── learnings.json       # {"learnings": []}
 └── project-context.json # {"name": "", "type": "", ...}
 ```
+
+**Gitignore:** On first initialization, check if `.turbocharge/memory/` is excluded from version control. If not, add it:
+
+```
+# Append to .gitignore if not already present
+.turbocharge/memory/
+```
+
+Memory is personal session context. It must never be committed to a shared repository.
 
 Prompt user to fill in project details on first initialization.

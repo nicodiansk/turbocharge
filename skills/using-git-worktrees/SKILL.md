@@ -211,3 +211,14 @@ Ready to implement auth feature
 **Pairs with:**
 - **finishing-a-development-branch** - REQUIRED for cleanup after work complete
 - **executing-plans** or **subagent-driven-development** - Work happens in this worktree
+
+## Verification Checklist
+
+Before declaring worktree ready:
+
+- [ ] Directory location resolved (existing > CLAUDE.md > ask)
+- [ ] .gitignore verified for project-local directories
+- [ ] Worktree created with feature branch
+- [ ] Project dependencies installed
+- [ ] Baseline tests passing
+- [ ] Working location reported to user
