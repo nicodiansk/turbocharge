@@ -1,6 +1,10 @@
 : << 'CMDBLOCK'
 @echo off
-REM Polyglot wrapper: runs .sh scripts cross-platform
+REM DEPRECATED: Claude Code 2.1.x auto-detects .sh files and prepends bash
+REM on Windows, making this polyglot wrapper unnecessary. hooks.json now
+REM invokes session-start.sh directly. This file is kept for reference only.
+REM
+REM Original purpose: Polyglot wrapper that runs .sh scripts cross-platform
 REM Usage: run-hook.cmd <script-name> [args...]
 REM The script should be in the same directory as this wrapper
 
