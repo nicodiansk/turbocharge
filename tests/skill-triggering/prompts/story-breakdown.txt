@@ -1,0 +1,1 @@
+We have a product requirement to add a shopping cart to our e-commerce app. Users should be able to add items, adjust quantities, remove items, and proceed to checkout. We need to break this down into user stories with acceptance criteria.

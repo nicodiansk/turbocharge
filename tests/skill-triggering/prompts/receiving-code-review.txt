@@ -1,0 +1,7 @@
+I got this code review feedback and I'm not sure I agree with all of it:
+
+1. "The error handling in auth.ts is too broad - catching all errors loses context"
+2. "You should use a factory pattern instead of direct instantiation"
+3. "The variable names are too short"
+
+Some of these seem valid but others feel like style preferences. How should I respond?
