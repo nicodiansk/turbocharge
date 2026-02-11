@@ -198,3 +198,14 @@ git worktree remove <worktree-path>
 
 **Pairs with:**
 - **using-git-worktrees** - Cleans up worktree created by that skill
+
+## Verification Checklist
+
+Before declaring branch finished:
+
+- [ ] Tests verified passing before presenting options
+- [ ] Exactly 4 options presented
+- [ ] User choice executed correctly
+- [ ] Typed "discard" confirmation obtained for Option 4
+- [ ] Worktree cleaned up (Options 1 & 4 only)
+- [ ] Tests re-verified after merge (Option 1)

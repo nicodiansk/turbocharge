@@ -67,6 +67,56 @@ After all tasks complete and verified:
 
 **Don't force through blockers** - stop and ask.
 
+## Red Flags - STOP
+
+| Flag | Problem |
+|------|---------|
+| Skipping plan review | Missed concerns or ambiguities |
+| Not following plan steps | Deviating without discussion |
+| Skipping verifications | Can't prove work is correct |
+| Guessing through blockers | Should stop and ask |
+| No batch reporting | Human partner can't review progress |
+
+## Common Rationalizations
+
+| Excuse | Reality |
+|--------|---------|
+| "Plan is clear enough, skip review" | Plans always have ambiguities. Read critically. |
+| "This blocker is minor, push through" | Minor blockers compound. Stop and ask. |
+| "I'll verify at the end" | End verification catches too late. Verify per batch. |
+| "I know what they meant" | Assumptions kill implementations. Clarify. |
+| "Batches slow me down" | Batches catch issues early. Faster overall. |
+
+## Integration
+
+**Workflow position:**
+```
+writing-plans → executing-plans → finishing-a-development-branch
+```
+
+**Chains from:**
+- **writing-plans** - Creates the plan this skill executes
+- **brainstorming** - Design leads to plan leads to execution
+
+**Chains to:**
+- **finishing-a-development-branch** - REQUIRED after all tasks complete
+- **test-driven-development** - Used within each task
+
+**Alternative:**
+- **subagent-driven-development** - Same-session execution with fresh subagents per task
+
+## Verification Checklist
+
+Before marking plan execution complete:
+
+- [ ] Plan reviewed critically before starting
+- [ ] Concerns raised before executing
+- [ ] Each task completed with verification
+- [ ] Batch reports delivered at checkpoints
+- [ ] Feedback applied between batches
+- [ ] All tasks pass their verification criteria
+- [ ] finishing-a-development-branch skill invoked
+
 ## Remember
 - Review plan critically first
 - Follow plan steps exactly

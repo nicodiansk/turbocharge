@@ -114,3 +114,30 @@ After saving the plan, offer execution choice:
 **If Parallel Session chosen:**
 - Guide them to open new session in worktree
 - **REQUIRED SUB-SKILL:** New session uses turbocharge:executing-plans
+
+## Integration
+
+**Workflow position:**
+```
+brainstorming → story-breakdown → writing-plans → executing-plans / subagent-driven-development
+```
+
+**Chains from:**
+- **brainstorming** - Design approved, needs implementation plan
+- **story-breakdown** - Stories refined, need detailed task breakdown
+
+**Chains to:**
+- **subagent-driven-development** - Same-session execution with fresh subagents
+- **executing-plans** - Parallel session execution with batch checkpoints
+
+## Verification Checklist
+
+Before declaring plan complete:
+
+- [ ] Every task has exact file paths
+- [ ] Every task has complete code (not "add validation")
+- [ ] Every task has exact commands with expected output
+- [ ] TDD cycle explicit for each implementation task
+- [ ] Plan saved to `docs/plans/YYYY-MM-DD-<feature>.md`
+- [ ] Plan committed to git
+- [ ] Execution choice offered (subagent vs parallel session)

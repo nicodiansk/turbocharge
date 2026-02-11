@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation."
+description: Use when starting creative work - creating features, building components, adding functionality, or modifying behavior - before any implementation begins
 ---
 
 # Brainstorming Ideas Into Designs
@@ -52,3 +52,40 @@ Start by understanding the current project context, then ask questions one at a 
 - **Explore alternatives** - Always propose 2-3 approaches before settling
 - **Incremental validation** - Present design in sections, validate each
 - **Be flexible** - Go back and clarify when something doesn't make sense
+
+## Red Flags - STOP
+
+| Flag | Problem |
+|------|---------|
+| Jumping to code | Didn't explore requirements first |
+| Single approach | Didn't propose 2-3 alternatives |
+| Wall of text | Present design in 200-300 word sections |
+| Unanswered questions | Don't design around unknowns |
+| No YAGNI review | Remove unnecessary features from all designs |
+
+## Integration
+
+**Workflow position:**
+```
+brainstorming → story-breakdown → writing-plans → implementation
+```
+
+**Chains to:**
+- **story-breakdown** - Refined idea becomes INVEST stories
+- **writing-plans** - Design becomes implementation plan
+- **using-git-worktrees** - Creates isolated workspace for implementation
+
+**Chains from:**
+- Entry point skill - triggered by vague requirements or creative work
+
+## Verification Checklist
+
+Before declaring design complete:
+
+- [ ] Project context reviewed (files, docs, commits)
+- [ ] User intent fully understood through questions
+- [ ] 2-3 approaches explored with trade-offs
+- [ ] Design presented in sections, each validated
+- [ ] YAGNI applied - unnecessary features removed
+- [ ] Design document committed to `docs/plans/`
+- [ ] Next step offered (implementation setup)

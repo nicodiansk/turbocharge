@@ -240,3 +240,27 @@ Done!
 
 **Alternative workflow:**
 - **turbocharge:executing-plans** - Use for parallel session instead of same-session execution
+
+## Common Rationalizations
+
+| Excuse | Reality |
+|--------|---------|
+| "Skip spec review, code looks fine" | Implementers finish suspiciously quickly. Verify independently. |
+| "Skip quality review, spec passed" | Spec compliance and code quality are different concerns. Both needed. |
+| "Review one task, skip rest" | Each task needs fresh review. Quality degrades without gates. |
+| "Let implementer fix and skip re-review" | Fixes can introduce new issues. Always re-review. |
+| "Start quality review before spec passes" | Wrong order. Spec compliance first, always. |
+| "Parallel subagents save time" | Parallel implementation subagents cause conflicts. Sequential only. |
+| "Subagent can read the plan file" | Subagents lack context. Provide full task text directly. |
+
+## Verification Checklist
+
+Before marking all tasks complete:
+
+- [ ] All tasks extracted from plan with full text
+- [ ] Each task implemented by fresh subagent
+- [ ] Each task passed spec compliance review
+- [ ] Each task passed code quality review
+- [ ] Review loops completed (fixes re-reviewed until approved)
+- [ ] Final code review dispatched for entire implementation
+- [ ] finishing-a-development-branch skill invoked

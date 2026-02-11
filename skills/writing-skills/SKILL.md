@@ -643,6 +643,16 @@ How future Claude finds your skill:
 
 **Optimize for this flow** - put searchable terms early and often.
 
+## Integration
+
+**Workflow position:** Meta skill - used when creating or editing any skill.
+
+**Chains from:**
+- Any need to create or modify skills
+
+**Chains to:**
+- **test-driven-development** - Same TDD principles applied to documentation
+
 ## The Bottom Line
 
 **Creating skills IS TDD for process documentation.**

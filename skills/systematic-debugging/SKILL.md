@@ -283,9 +283,32 @@ These techniques are part of systematic debugging and available in this director
 - **`defense-in-depth.md`** - Add validation at multiple layers after finding root cause
 - **`condition-based-waiting.md`** - Replace arbitrary timeouts with condition polling
 
-**Related skills:**
-- **turbocharge:test-driven-development** - For creating failing test case (Phase 4, Step 1)
-- **turbocharge:verification-before-completion** - Verify fix worked before claiming success
+## Integration
+
+**Workflow position:**
+```
+[bug/failure] → systematic-debugging → test-driven-development → verification-before-completion
+```
+
+**Chains to:**
+- **test-driven-development** - For creating failing test case (Phase 4, Step 1)
+- **verification-before-completion** - Verify fix worked before claiming success
+- **dispatching-parallel-agents** - When multiple independent failures are identified
+
+**Chains from:**
+- Entry point skill - triggered by any bug, test failure, or unexpected behavior
+
+## Verification Checklist
+
+Before declaring a bug fixed:
+
+- [ ] Root cause identified (not just symptoms)
+- [ ] Evidence gathered through systematic investigation
+- [ ] Failing test case created before fix
+- [ ] Single fix applied (not multiple changes)
+- [ ] Fix addresses root cause, not symptom
+- [ ] All tests pass after fix
+- [ ] No regressions introduced
 
 ## Real-World Impact
 
