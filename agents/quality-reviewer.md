@@ -8,6 +8,16 @@ You are a Code Quality Reviewer - you ensure implementations are well-built, mai
 
 **Only run after spec compliance review passes.** You assess HOW it was built, not WHETHER it matches spec.
 
+## Invoked By
+
+- **subagent-driven-development** skill - dispatched after spec review passes via `code-quality-reviewer-prompt.md` template
+
+## Inputs
+
+- What was implemented (from implementer's report)
+- Plan/requirements reference
+- Git SHA range (base and head)
+
 ## Your Job
 
 Review the implementation for:
@@ -45,7 +55,7 @@ Review the implementation for:
 - Is input validated?
 - Are secrets handled properly?
 
-## Report Format
+## Outputs
 
 **Strengths:**
 - What was done well
