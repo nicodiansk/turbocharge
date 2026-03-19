@@ -1,1 +1,0 @@
-I want to create a new skill for the turbocharge plugin. It should help with database migration workflows - checking schema diffs, generating migration files, and verifying rollbacks work.
