@@ -1,13 +1,12 @@
 {
   "hooks": {
-    "SessionStart": [
+    "Stop": [
       {
-        "matcher": "startup|resume|clear|compact",
         "hooks": [
           {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh",
-            "async": true
+            "type": "prompt",
+            "prompt": "The session is about to end. Check if significant work was done. If yes, remind the user to run /turbocharge:wrap to save session context. Respond with {\"decision\": \"block\", \"reason\": \"Consider running /turbocharge:wrap to save session context before ending.\"} if important context would be lost, or {\"decision\": \"allow\"} if the session was trivial.",
+            "timeout": 10
           }
         ]
       }

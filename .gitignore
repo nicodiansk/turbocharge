@@ -1,5 +1,6 @@
-# Session memory (user-specific, not committed)
+# Session state (user-specific, not committed)
 .turbocharge/memory/
+.turbocharge/wrap/
 
 # Node modules (if any)
 node_modules/
