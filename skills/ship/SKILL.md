@@ -23,7 +23,7 @@ npm test / cargo test / pytest / go test ./...
 ## Step 2: Determine Base Branch
 
 ```bash
-git merge-base HEAD main 2>/dev/null || git merge-base HEAD develop 2>/dev/null
+git merge-base HEAD main 2>/dev/null || git merge-base HEAD develop 2>/dev/null || git merge-base HEAD master 2>/dev/null
 ```
 
 ## Step 3: Present Options

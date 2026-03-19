@@ -4,7 +4,7 @@ description: |
   Creates detailed implementation plans with bite-sized tasks. Breaks work into
   2-5 minute tasks with exact file paths, complete code, and verification commands.
   Use when requirements are clear and need systematic task breakdown.
-disallowedTools: Write, Edit, NotebookEdit
+tools: Read, Write, Bash, Grep, Glob
 model: inherit
 memory: project
 ---

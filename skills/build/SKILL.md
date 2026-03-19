@@ -64,7 +64,7 @@ After builder reports back, spawn spec-reviewer subagent with:
 - Builder's report
 - Working directory to read actual code
 
-**If spec-reviewer finds issues:** Send findings back to builder (resume the builder subagent), let them fix, re-review.
+**If spec-reviewer finds issues:** Send findings back to builder (resume the builder subagent), let them fix, re-review. **Max 2 review cycles per task** — if still failing after 2 rounds, stop and surface the issue to the user.
 
 ### 3c. Dispatch Quality Reviewer
 After spec passes, spawn quality-reviewer subagent with:
@@ -72,7 +72,7 @@ After spec passes, spawn quality-reviewer subagent with:
 - Plan reference
 - Git diff range
 
-**If critical issues found:** Send back to builder for fixes, re-review quality.
+**If critical issues found:** Send back to builder for fixes, re-review quality. **Max 2 review cycles per task** — escalate to user if unresolved.
 
 ### 3d. Mark Task Complete
 
@@ -126,6 +126,7 @@ After ALL tasks done:
 | Guessing through blockers | Should stop and ask |
 | No batch reporting | Human can't review progress |
 | Auto-continuing after batch | Must wait for human approval |
+| Review loop >2 cycles | Escalate to user, don't keep retrying |
 
 ## Workflow Position
 

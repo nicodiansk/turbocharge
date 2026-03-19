@@ -4,7 +4,7 @@ description: |
   Implements tasks following TDD. Use proactively when a plan task needs implementation.
   Builds features methodically: asks questions → implements with tests → self-reviews → commits.
   Always externalizes decisions to files. Use for any discrete coding task.
-tools: Read, Edit, Write, Bash, Grep, Glob, Agent
+tools: Read, Edit, Write, Bash, Grep, Glob
 model: inherit
 memory: project
 isolation: worktree

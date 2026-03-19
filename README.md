@@ -84,7 +84,12 @@ For each task:
 Every 3 tasks → checkpoint with human for feedback
 ```
 
-**Multi-track mode** (Agent Teams): Independent tasks can run in parallel with coordinated builders.
+**Multi-track mode** (Agent Teams): Independent tasks can run in parallel with coordinated builders. Requires opt-in:
+
+```bash
+# Enable Agent Teams (experimental) in your Claude Code settings
+claude config set env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS 1
+```
 
 ## Validation
 
@@ -111,7 +116,7 @@ turbocharge/
 ├── scripts/
 │   └── validate.sh            # Plugin health check
 ├── examples/                  # Sample pipeline outputs
-├── settings.json              # Agent Teams enabled
+├── settings.json              # Plugin settings
 ├── docs/
 │   └── plans/                 # Implementation plans
 ├── CHANGELOG.md

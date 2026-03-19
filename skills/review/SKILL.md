@@ -27,7 +27,7 @@ The plan or requirements being reviewed: $ARGUMENTS
 
 1. Get the git diff:
    ```bash
-   BASE_SHA=$(git merge-base HEAD main 2>/dev/null || git merge-base HEAD develop 2>/dev/null)
+   BASE_SHA=$(git merge-base HEAD main 2>/dev/null || git merge-base HEAD develop 2>/dev/null || git merge-base HEAD master 2>/dev/null)
    git diff $BASE_SHA..HEAD
    ```
 

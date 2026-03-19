@@ -1,6 +1,7 @@
 ---
 name: debug
 description: Use when encountering any bug, test failure, or unexpected behavior. Enforces systematic root-cause investigation before proposing fixes. Prevents guess-and-check debugging.
+disable-model-invocation: true
 ---
 
 # Systematic Debugging
