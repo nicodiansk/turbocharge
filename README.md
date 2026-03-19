@@ -2,10 +2,35 @@
 
 A Claude Code plugin that acts as your tech lead — orchestrating agents through an opinionated product development pipeline from brainstorm to shipped code.
 
-## Installation
+## Quick Start
 
 ```bash
-claude plugins add /path/to/turbocharge
+# Load the plugin
+claude --plugin-dir ./turbocharge
+
+# Start building something
+/turbocharge:brainstorm I want to build a CLI tool that manages git worktrees
+
+# Or jump straight to planning if you already have requirements
+/turbocharge:plan docs/plans/my-feature-stories.md
+
+# When you're done for the day
+/turbocharge:wrap
+```
+
+See `examples/` for sample outputs from each stage of the pipeline.
+
+## Installation
+
+**Development (per-session):**
+```bash
+claude --plugin-dir ./turbocharge
+```
+
+**Persistent (own marketplace):**
+```bash
+claude /plugin marketplace add https://github.com/nicodiansk/turbocharge
+claude /plugin install turbocharge
 ```
 
 ## The Workflow
@@ -61,22 +86,35 @@ Every 3 tasks → checkpoint with human for feedback
 
 **Multi-track mode** (Agent Teams): Independent tasks can run in parallel with coordinated builders.
 
+## Validation
+
+Run the plugin validation script to check structural integrity:
+
+```bash
+./scripts/validate.sh
+```
+
 ## Directory Structure
 
 ```
 turbocharge/
 ├── .claude-plugin/
-│   └── plugin.json         # Plugin manifest (v2.0.0)
-├── skills/                  # 8 skill definitions
+│   ├── plugin.json            # Plugin manifest (v2.0.0)
+│   └── marketplace.json       # For self-hosted distribution
+├── skills/                    # 8 skill definitions
 │   └── <skill-name>/
 │       └── SKILL.md
-├── agents/                  # 6 agent definitions
+├── agents/                    # 6 agent definitions
 │   └── <agent-name>.md
 ├── hooks/
-│   └── hooks.json           # Stop hook (wrap reminder)
-├── settings.json            # Agent Teams enabled
+│   └── hooks.json             # Stop hook (wrap reminder)
+├── scripts/
+│   └── validate.sh            # Plugin health check
+├── examples/                  # Sample pipeline outputs
+├── settings.json              # Agent Teams enabled
 ├── docs/
-│   └── plans/               # Implementation plans
+│   └── plans/                 # Implementation plans
+├── CHANGELOG.md
 └── README.md
 ```
 
