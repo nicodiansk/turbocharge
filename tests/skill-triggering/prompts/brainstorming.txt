@@ -1,1 +1,0 @@
-I have an idea for a new feature but I'm not totally sure about the details yet. We need some kind of notification system for our app - maybe push notifications, maybe email, maybe both. I'd like to talk through the requirements before we start building anything.
