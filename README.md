@@ -22,15 +22,15 @@ See `examples/` for sample outputs from each stage of the pipeline.
 
 ## Installation
 
+**From marketplace:**
+```bash
+claude plugin marketplace add nicodiansk/turbocharge-marketplace
+claude plugin install turbocharge
+```
+
 **Development (per-session):**
 ```bash
 claude --plugin-dir ./turbocharge
-```
-
-**Persistent (own marketplace):**
-```bash
-claude /plugin marketplace add https://github.com/nicodiansk/turbocharge
-claude /plugin install turbocharge
 ```
 
 ## The Workflow
