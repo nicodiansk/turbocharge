@@ -1,7 +1,7 @@
 {
   "name": "turbocharge",
-  "description": "Claude Code skills library with epic/story generation: TDD, debugging, collaboration patterns, and product development workflows",
-  "version": "1.0.0",
+  "description": "Engineering team orchestration for Claude Code. 8 skills, 6 agents — from brainstorm to shipped code.",
+  "version": "2.0.0",
   "author": {
     "name": "Nicholas",
     "email": "nicholasprevitali96@gmail.com"
@@ -9,5 +9,5 @@
   "homepage": "https://github.com/nicodiansk/turbocharge",
   "repository": "https://github.com/nicodiansk/turbocharge",
   "license": "MIT",
-  "keywords": ["skills", "tdd", "debugging", "collaboration", "epics", "stories", "product-development", "workflows"]
+  "keywords": ["orchestration", "agents", "tdd", "code-review", "product-development", "workflow", "team"]
 }

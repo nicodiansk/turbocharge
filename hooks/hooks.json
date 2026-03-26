@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "The session is about to end. Check if significant work was done (files created, commits made, architectural decisions). If yes, remind the user to run /turbocharge:wrap to save session context. Always respond with {\"decision\": \"allow\"} — this is a reminder, not a gate.",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}
