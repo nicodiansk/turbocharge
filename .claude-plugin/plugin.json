@@ -1,7 +1,7 @@
 {
   "name": "turbocharge",
   "description": "Engineering team orchestration for Claude Code. 8 skills, 6 agents — from brainstorm to shipped code.",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "author": {
     "name": "Nicholas",
     "email": "nicholasprevitali96@gmail.com"
