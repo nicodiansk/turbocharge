@@ -40,39 +40,36 @@ When you detect a session is ending (goodbye, thanks, natural stopping point, co
 - Which skill to invoke first in next session
 
 ### 5. Resume Prompt
-Generate a self-contained prompt that a fresh session can execute:
+Generate a self-contained prompt the user can paste into a fresh session. Use `@` references for files so Claude reads them automatically.
 
 ```
-Resume turbocharge work on [project]:
+@CLAUDE.md  Continue [PROJECT] - [CURRENT TASK]
 
-## Context
-- Branch: [branch-name]
-- Last completed: [task/story]
-- Plan file: [path]
+Branch: `branch-name`
 
-## What's Done
+Completed:
 - [completed items]
 
-## What's Next
+Next Task: [description]
 1. [next task with context]
 2. [following task]
 
-## Decisions to Remember
+Context Files:
+- @path/to/design-doc.md (implementation plan)
+- @path/to/relevant-code
+
+Decisions to Remember:
 - [key decision]: [rationale]
 
-## Start With
-/turbocharge:build [plan-file] (continue from Task N)
+Start With:
+/turbocharge:[skill] [args]
 ```
 
-## Where to Save
+## How to Deliver
 
-Write to: `.turbocharge/wrap/YYYY-MM-DD-session.md`
+**Output the resume prompt directly in chat** so the user can copy it. Do NOT write files, create directories, or modify `.gitignore`.
 
-Add `.turbocharge/wrap/` to `.gitignore` if not already present.
-
-## Agent Memory Flush
-
-Before wrapping, remind each active subagent to update their agent memory with anything they've learned this session. This ensures persistent knowledge survives the session boundary.
+Agent memory (via `memory: project`) handles persistence automatically — no manual file saving needed.
 
 ## Workflow Position
 

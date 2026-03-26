@@ -27,29 +27,31 @@ This is a sample session wrap produced by `/turbocharge:wrap`.
 
 ## Resume Prompt
 
+Displayed directly in chat for the user to copy:
+
 ```
-Resume turbocharge work on worktree-cli:
+@CLAUDE.md  Continue worktree-cli - Add dry-run flag
 
-## Context
-- Branch: feature/worktree-cli
-- Last completed: Task 5 of 6 (clean command implementation)
-- Plan file: docs/plans/2026-03-19-worktree-cli.md
+Branch: `feature/worktree-cli`
 
-## What's Done
+Completed:
 - List command with table and JSON output
 - Create command with auto-branch creation
 - Remove command with safety checks
 - Clean command (base implementation)
 
-## What's Next
+Next Task: Add --dry-run flag to clean command (Task 6 of 6)
 1. Task 6: Add --dry-run flag to clean command
 2. Holistic code review
 3. Ship
 
-## Decisions to Remember
+Context Files:
+- @docs/plans/2026-03-19-worktree-cli.md (implementation plan)
+
+Decisions to Remember:
 - No go-git dep — shell out to git directly
 - Cobra for CLI framework
 
-## Start With
+Start With:
 /turbocharge:build docs/plans/2026-03-19-worktree-cli.md (continue from Task 6)
 ```
