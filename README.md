@@ -56,7 +56,10 @@ Each skill chains to the next. You can enter at any point — don't need to star
 | `ship` | Ready to merge, PR, or discard |
 | `wrap` | Session ending, need continuity |
 
-## Skills (8)
+## Skills (9)
+
+### setup
+Run once after installing. Audits global config for conflicts — duplicate agents, competing skills, stale rules — and offers to fix them.
 
 ### brainstorm
 Socratic requirements discovery. Asks questions one at a time, proposes 2-3 approaches with trade-offs, saves design doc. No implementation.
@@ -135,11 +138,15 @@ These live in `.claude/commands/` and complement turbocharge without overlapping
 ```
 turbocharge/
 ├── .claude-plugin/         # Plugin manifest
-├── skills/                 # 8 skill definitions
+├── skills/                 # 9 skill definitions
 │   └── <skill>/SKILL.md
 ├── agents/                 # 6 agent definitions
 │   └── <agent>.md
-├── hooks/hooks.json        # Stop hook (wrap reminder)
+├── hooks/                  # Lifecycle hooks
+│   ├── hooks.json          # Hook registration
+│   ├── session-bootstrap.md
+│   └── stop-wrap-reminder.md
+├── docs/                   # Guides
 ├── scripts/validate.sh     # Plugin health check
 ├── examples/               # Sample pipeline outputs
 ├── settings.json

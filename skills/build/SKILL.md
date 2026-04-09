@@ -118,6 +118,7 @@ After ALL tasks done:
 
 ## Red Flags — STOP
 
+### Process Violations
 | Flag | Problem |
 |------|---------|
 | Skipping plan review | Missed concerns |
@@ -127,6 +128,20 @@ After ALL tasks done:
 | No batch reporting | Human can't review progress |
 | Auto-continuing after batch | Must wait for human approval |
 | Review loop >2 cycles | Escalate to user, don't keep retrying |
+
+### Rationalizations That Mean You're Wrong
+
+If you catch yourself thinking any of these, **STOP — they are signals to follow the process harder, not skip it:**
+
+| Thought | Why It's Wrong |
+|---------|----------------|
+| "This task is simple, I don't need the review chain" | Simple tasks have the highest rate of missed edge cases |
+| "I already know the codebase well enough" | You confused CampaignScript with Prompt last time you thought this |
+| "Running the full test suite is overkill for this change" | The 1-line change that broke 47 tests says otherwise |
+| "I'll verify it works manually" | Manual verification is not verification |
+| "The spec review is redundant, I followed the plan exactly" | The spec reviewer exists precisely because builders think this |
+| "Let me just finish this batch and review later" | Later never comes. Review each task before moving on |
+| "I can skip domain verification, the task description is clear" | Clear descriptions still use wrong entity names half the time |
 
 ## Workflow Position
 

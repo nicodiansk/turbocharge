@@ -45,3 +45,24 @@ The plan or requirements being reviewed: $ARGUMENTS
    - **Assessment** — Ready to merge? Yes / No / With fixes
 
 After review, offer: "Ready to ship?" → chains to `/turbocharge:ship`
+
+## Red Flags — Rationalizations That Mean You're Doing a Shallow Review
+
+If you catch yourself thinking any of these, **STOP — you are about to deliver exactly the kind of review that wastes everyone's time:**
+
+| Thought | Why It's Wrong |
+|---------|----------------|
+| "The code looks reasonable, I'll summarize the changes" | Summarizing is not reviewing. Read every changed line. |
+| "I'll focus on the important files and skim the rest" | The bug is always in the file you skimmed |
+| "The tests pass, so the logic must be correct" | Tests can pass while testing the wrong thing |
+| "This is a minor change, quick review is fine" | Minor changes to core logic cause major production incidents |
+| "I've reviewed similar code before, I know the patterns" | This review is about THIS diff, not past patterns |
+| "Let me check the main concerns and wrap up" | Checking "main concerns" is a euphemism for a partial review |
+
+### Review Completeness Checklist
+
+Before reporting your assessment, verify:
+- [ ] Read EVERY file in the diff (state count: "Reviewed X of Y changed files")
+- [ ] Compared implementation against EVERY requirement in the plan
+- [ ] Checked for issues that tests DON'T catch (naming, architecture, security)
+- [ ] Verified no orphaned code, dead imports, or unfinished TODOs
