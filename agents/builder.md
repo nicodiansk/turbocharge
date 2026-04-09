@@ -22,7 +22,14 @@ Your conversation context will die between sessions. Your artifacts survive.
 
 ## Before You Begin
 
-If ANYTHING is unclear about the task — requirements, approach, dependencies, assumptions — ask now. Don't guess.
+### Verify Domain Understanding (MANDATORY)
+Before writing any code:
+1. **Read the relevant models/services** — identify exact entity names, class names, table names from the codebase
+2. **Confirm relationships** — which entity owns which fields? Don't assume from naming alone
+3. **Confirm sync vs async** — read existing code patterns, don't guess
+4. **Confirm naming conventions** — use existing codebase names, not your own invention
+
+If ANYTHING is unclear — requirements, approach, dependencies, assumptions, entity relationships — ask now. Don't guess.
 
 ## Your Process
 

@@ -1,99 +1,130 @@
 # Turbocharge
 
-A Claude Code plugin that acts as your tech lead — orchestrating agents through an opinionated product development pipeline from brainstorm to shipped code.
+**One system to rule them all.** Turbocharge replaces ad-hoc agents, scattered skills, and custom commands with a single opinionated pipeline — from idea to shipped code.
+
+## Why This Exists
+
+Claude Code's agent ecosystem creates a problem: too many overlapping tools with unclear boundaries. Custom agents in `~/.claude/agents/`, project-level commands in `.claude/commands/`, slash commands from plugins — Claude doesn't know which system to use, and neither do you.
+
+Turbocharge fixes this by being **the only orchestration system you need.** One pipeline, clear handoffs, no ambiguity.
+
+### What to Remove When You Install This
+
+- Custom agents in `~/.claude/agents/` that overlap with turbocharge agents (planner, code-reviewer, tdd-guide, session-wrapper, etc.)
+- Project commands in `.claude/commands/` for session-wrap, story-authoring, or task-breakdown
+- Any `agents.md` rule file that references a parallel agent system
+
+Your `~/.claude/rules/common/agents.md` should point to turbocharge as the primary system, not list competing agents.
 
 ## Quick Start
 
 ```bash
-# Load the plugin
+# Install from marketplace
+claude plugin marketplace add nicodiansk/turbocharge-marketplace
+claude plugin install turbocharge
+
+# Or load locally for development
 claude --plugin-dir ./turbocharge
+```
 
-# Start building something
+Then just use the pipeline:
+
+```bash
 /turbocharge:brainstorm I want to build a CLI tool that manages git worktrees
-
-# Or jump straight to planning if you already have requirements
 /turbocharge:plan docs/plans/my-feature-stories.md
-
-# When you're done for the day
 /turbocharge:wrap
 ```
 
-See `examples/` for sample outputs from each stage of the pipeline.
-
-## Installation
-
-**From marketplace:**
-```bash
-claude plugin marketplace add nicodiansk/turbocharge-marketplace
-claude plugin install turbocharge
-```
-
-**Development (per-session):**
-```bash
-claude --plugin-dir ./turbocharge
-```
-
-## The Workflow
+## The Pipeline
 
 ```
 brainstorm → story → plan → build → review → ship
-                                 ↑               |
-                               debug            wrap
+                                  ↑               |
+                                debug            wrap
 ```
 
-Each skill chains to the next. `debug` is a side-branch invoked on bugs. `wrap` captures session state for resumption.
+Each skill chains to the next. You can enter at any point — don't need to start from brainstorm every time.
+
+| Entry Point | When |
+|-------------|------|
+| `brainstorm` | Vague idea, need to explore requirements |
+| `story` | Requirements clear, need INVEST-compliant stories |
+| `plan` | Stories approved, need implementation tasks |
+| `build` | Plan exists, time to write code |
+| `review` | Code done, need pre-merge assessment |
+| `debug` | Something's broken (side-branch, use anytime) |
+| `ship` | Ready to merge, PR, or discard |
+| `wrap` | Session ending, need continuity |
 
 ## Skills (8)
 
-| Skill | Command | Description |
-|-------|---------|-------------|
-| brainstorm | `/turbocharge:brainstorm` | Socratic requirements discovery before implementation |
-| story | `/turbocharge:story` | INVEST-compliant story breakdown with acceptance criteria |
-| plan | `/turbocharge:plan` | Bite-sized task decomposition (2-5 min tasks, exact paths, complete code) |
-| build | `/turbocharge:build` | Plan execution with builder→spec-reviewer→quality-reviewer chain |
-| review | `/turbocharge:review` | Holistic pre-merge code review against the original plan |
-| debug | `/turbocharge:debug` | Systematic root-cause debugging (4-phase investigation) |
-| ship | `/turbocharge:ship` | Branch completion: test verification, merge/PR/keep/discard options |
-| wrap | `/turbocharge:wrap` | Session continuity — captures state, generates resume prompt |
+### brainstorm
+Socratic requirements discovery. Asks questions one at a time, proposes 2-3 approaches with trade-offs, saves design doc. No implementation.
+
+### story
+Transforms requirements into INVEST-compliant user stories with testable acceptance criteria and story point estimates.
+
+### plan
+Breaks stories into 2-5 minute tasks with exact file paths, complete code, and TDD steps. Every task starts with a failing test.
+
+### build
+Executes the plan. Dispatches builder agents with a review chain per task:
+
+```
+builder → spec-reviewer → quality-reviewer
+              ↓ issues?        ↓ issues?
+         back to builder   back to builder
+         (max 2 cycles)    (max 2 cycles)
+```
+
+Runs in 3-task batches with human checkpoints. Multi-track mode available for independent parallel tasks.
+
+### review
+Holistic pre-merge assessment against the original plan. Checks architecture, quality, security, and plan alignment.
+
+### debug
+Systematic 4-phase root-cause investigation. Enforces investigation before fixes. 3+ failed fixes triggers architectural questioning.
+
+### ship
+Verifies tests pass, then presents options: merge locally, create PR, keep branch, or discard.
+
+### wrap
+Captures session state, encodes learnings into memory/CLAUDE.md, generates a copy-paste resume prompt for the next session.
 
 ## Agents (6)
 
-| Agent | Role | Key Properties |
-|-------|------|----------------|
-| builder | Implements tasks following TDD | `isolation: worktree`, full tool access |
-| spec-reviewer | Verifies implementations match spec | Read-only, doesn't trust builder reports |
-| quality-reviewer | Assesses code quality and production readiness | Read-only, categorized issue reporting |
-| code-reviewer | Holistic pre-merge assessment | Read-only, runs once after all tasks complete |
-| planner | Creates detailed implementation plans | Read-only, 2-5 minute task sizing |
-| researcher | Deep codebase exploration | Read-only, `model: haiku`, `background: true` |
+| Agent | Role | Properties |
+|-------|------|------------|
+| builder | TDD implementation | worktree isolation, full tool access |
+| planner | Task decomposition | domain verification before planning |
+| researcher | Codebase exploration | haiku model, background execution |
+| spec-reviewer | Spec compliance | read-only, doesn't trust builder claims |
+| quality-reviewer | Code quality | read-only, categorized issue reporting |
+| code-reviewer | Pre-merge holistic review | read-only, runs once after all tasks |
 
-All agents have `memory: project` for persistent codebase knowledge across sessions.
+All agents use `memory: project` for persistent codebase knowledge.
 
-## How Build Works
+## Iron Laws
 
-The `build` skill orchestrates a review chain for every task:
+These are enforced, not suggested:
 
-```
-For each task:
-  1. Dispatch builder (implements with TDD in isolated worktree)
-  2. Dispatch spec-reviewer (verifies against plan)
-  3. Dispatch quality-reviewer (checks code quality)
-  4. If issues → send back to builder → re-review
-  5. Mark complete
+- `NO IMPLEMENTATION WITHOUT UNDERSTANDING REQUIREMENTS FIRST`
+- `NO STORY WITHOUT ACCEPTANCE CRITERIA`
+- `NO TASK MARKED COMPLETE WITHOUT REVIEW CHAIN VERIFICATION`
+- `NO MERGE WITHOUT CODE REVIEW`
+- `NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST`
+- `NO SESSION END WITHOUT WRAP OFFER`
 
-Every 3 tasks → checkpoint with human for feedback
-```
+## Complementary Project Skills
 
-**Multi-track mode** (Agent Teams): Independent tasks can run in parallel with coordinated builders. Requires opt-in:
+Turbocharge covers the full build pipeline but not every workflow. Keep project-level commands for things turbocharge doesn't do:
 
-```bash
-# Enable Agent Teams (experimental) in your Claude Code settings
-claude config set env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS 1
-```
+- **epic-author** — Business-level epic drafting (WHAT and WHY, not HOW)
+- **consistency-review** — Cross-domain coherence validation between stories/tasks/epics
+
+These live in `.claude/commands/` and complement turbocharge without overlapping.
 
 ## Validation
-
-Run the plugin validation script to check structural integrity:
 
 ```bash
 ./scripts/validate.sh
@@ -103,26 +134,18 @@ Run the plugin validation script to check structural integrity:
 
 ```
 turbocharge/
-├── .claude-plugin/
-│   ├── plugin.json            # Plugin manifest (v2.0.0)
-│   └── marketplace.json       # For self-hosted distribution
-├── skills/                    # 8 skill definitions
-│   └── <skill-name>/
-│       └── SKILL.md
-├── agents/                    # 6 agent definitions
-│   └── <agent-name>.md
-├── hooks/
-│   └── hooks.json             # Stop hook (wrap reminder)
-├── scripts/
-│   └── validate.sh            # Plugin health check
-├── examples/                  # Sample pipeline outputs
-├── settings.json              # Plugin settings
-├── docs/
-│   └── plans/                 # Implementation plans
-├── CHANGELOG.md
+├── .claude-plugin/         # Plugin manifest
+├── skills/                 # 8 skill definitions
+│   └── <skill>/SKILL.md
+├── agents/                 # 6 agent definitions
+│   └── <agent>.md
+├── hooks/hooks.json        # Stop hook (wrap reminder)
+├── scripts/validate.sh     # Plugin health check
+├── examples/               # Sample pipeline outputs
+├── settings.json
 └── README.md
 ```
 
 ## License
 
-MIT License - See [LICENSE](LICENSE) for details.
+MIT — See [LICENSE](LICENSE) for details.

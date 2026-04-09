@@ -65,11 +65,22 @@ Start With:
 /turbocharge:[skill] [args]
 ```
 
+### 6. Encode Session Learnings
+Before generating the resume prompt, check: did the user correct any misunderstandings or wrong approaches during this session? If so:
+- **Update memory files** with corrections that apply to future sessions (domain concepts, preferences, conventions)
+- **Update CLAUDE.md** if the correction reveals a missing rule or domain term that would prevent the same mistake
+- Don't save ephemeral task details — only save what future sessions need to know
+
+Examples of things worth encoding:
+- "autotuning is proactive, not reactive" → domain term in CLAUDE.md
+- "always use asyncpg, never psycopg2" → infrastructure note in CLAUDE.md or memory
+- "don't ask permission to run tests" → rule in CLAUDE.md
+
 ## How to Deliver
 
-**Output the resume prompt directly in chat** so the user can copy it. Do NOT write files, create directories, or modify `.gitignore`.
+**Output the resume prompt directly in chat** so the user can copy it. Do NOT write files, create directories, or modify `.gitignore` (except for CLAUDE.md and memory updates above).
 
-Agent memory (via `memory: project`) handles persistence automatically — no manual file saving needed.
+Agent memory (via `memory: project`) handles persistence automatically — no manual file saving needed for session state.
 
 ## Workflow Position
 
