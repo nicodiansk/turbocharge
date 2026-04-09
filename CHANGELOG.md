@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.1.0] - 2026-04-09
+
+Pipeline hardening and operational discipline — driven by 91 sessions of real usage.
+
+### Added
+- `setup` skill — one-time config audit that finds duplicate agents, competing skills, and stale rules; offers to clean them up
+- SessionStart hook — bootstraps skill awareness so Claude knows the pipeline exists from the first message
+- Stop hook — reminds users to run `/turbocharge:wrap` before ending a session
+- Anti-rationalization "Red Flags" tables in build, review, and debug skills — catches Claude skipping process steps
+- Mandatory domain verification step in builder and planner agents
+
+### Changed
+- `wrap` skill now encodes session learnings into memory files and CLAUDE.md (not just resume prompts)
+- README rewritten with install/usage/architecture sections
+- CLAUDE.md updated with full plugin conventions and domain terms
+- validate.sh now recognizes the `setup` skill and fixes a bash arithmetic bug with `((VAR++))` under `set -e`
+
+### Removed
+- `docs/power-user-guide.md` — content migrated to global rules and blog post draft
+
 ## [2.0.0] - 2026-03-19
 
 Complete rebuild on native Claude Code primitives.

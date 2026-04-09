@@ -12,8 +12,8 @@ red() { printf '\033[0;31m%s\033[0m\n' "$1"; }
 green() { printf '\033[0;32m%s\033[0m\n' "$1"; }
 yellow() { printf '\033[0;33m%s\033[0m\n' "$1"; }
 
-error() { red "  ERROR: $1"; ((ERRORS++)); }
-warn() { yellow "  WARN:  $1"; ((WARNINGS++)); }
+error() { red "  ERROR: $1"; ERRORS=$((ERRORS + 1)); }
+warn() { yellow "  WARN:  $1"; WARNINGS=$((WARNINGS + 1)); }
 pass() { green "  OK:    $1"; }
 
 echo "=== Turbocharge Plugin Validation ==="
@@ -46,7 +46,7 @@ echo ""
 
 # 2. Check skills
 echo "--- Skills ---"
-EXPECTED_SKILLS="brainstorm build debug plan review ship story wrap"
+EXPECTED_SKILLS="brainstorm build debug plan review setup ship story wrap"
 for skill in $EXPECTED_SKILLS; do
     skill_file="$PLUGIN_DIR/skills/$skill/SKILL.md"
     if [[ -f "$skill_file" ]]; then

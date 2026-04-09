@@ -1,7 +1,6 @@
 ---
 name: plan
 description: Use when you have stories or clear requirements that need to become an implementation plan with bite-sized tasks, exact file paths, complete code, and verification commands.
-disable-model-invocation: true
 context: fork
 agent: planner
 argument-hint: "[stories-or-requirements-file]"

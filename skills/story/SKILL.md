@@ -1,7 +1,6 @@
 ---
 name: story
 description: Use when you have requirements, PRDs, or feature descriptions that need to become implementable work. Transforms requirements into INVEST-compliant user stories with testable acceptance criteria.
-disable-model-invocation: true
 argument-hint: "[requirements-source]"
 ---
 

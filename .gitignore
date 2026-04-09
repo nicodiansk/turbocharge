@@ -1,6 +1,14 @@
 # Project-level CLAUDE.md (user-specific, not part of plugin distribution)
 CLAUDE.md
 
+# Content drafts (blog, social posts — not part of plugin)
+docs/blog-post.md
+docs/linkedin-post.md
+docs/reddit-post.md
+
+# Report data (private usage analytics)
+report.html
+
 # Local plugin settings
 .claude/
 

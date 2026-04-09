@@ -1,7 +1,6 @@
 ---
 name: brainstorm
 description: Use when starting creative work - creating features, building components, adding functionality, or modifying behavior. Explores requirements through Socratic dialogue before any implementation.
-disable-model-invocation: true
 ---
 
 # Brainstorm

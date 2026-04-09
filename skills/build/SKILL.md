@@ -1,7 +1,6 @@
 ---
 name: build
 description: Use when you have an implementation plan ready to execute. Dispatches builder agents per task with automated spec and quality review chains. Supports single-track (subagents) and multi-track (Agent Teams) parallel execution.
-disable-model-invocation: true
 argument-hint: "[plan-file]"
 ---
 

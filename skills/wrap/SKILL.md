@@ -1,7 +1,6 @@
 ---
 name: wrap
 description: Use when ending a session, taking a break, or context is getting full. Captures session state, decisions, and generates a resume prompt for the next session. Critical for multi-session continuity.
-disable-model-invocation: true
 ---
 
 # Wrap Session
