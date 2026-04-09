@@ -23,6 +23,10 @@ Your `~/.claude/rules/common/agents.md` should point to turbocharge as the prima
 claude plugin marketplace add nicodiansk/turbocharge-marketplace
 claude plugin install turbocharge
 
+# Update to latest version
+claude plugin marketplace update turbocharge-marketplace
+claude plugin update turbocharge
+
 # Or load locally for development
 claude --plugin-dir ./turbocharge
 ```

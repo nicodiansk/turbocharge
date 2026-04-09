@@ -191,7 +191,116 @@ Every time you correct Claude, ask: "Will this come up again?" If yes:
 
 ---
 
-## 7. What NOT to Do
+## 7. Prompting Patterns That Work
+
+These patterns directly address the top friction sources from real usage data.
+
+### Starting a Task — Front-Load Context
+
+**Instead of:** "Implement the autotuning feature"
+
+**Say:** "Implement the autotuning feature. Key context: autotuning = PROACTIVE calibration, not reactive correction. It runs async. Relevant entities: CampaignPrompt and ScoringConfig in src/models/. Check exact class names before starting."
+
+**Template:**
+> [Task]. Key context: [the one thing Claude will get wrong]. Relevant files: [2-3 paths]. Constraint: [sync/async, proactive/reactive, which entity owns what].
+
+### After a Correction — Encode Immediately
+
+**Instead of:** Correcting and moving on
+
+**Say:** "Remember that for future sessions" or "Save that to CLAUDE.md domain terms"
+
+Don't wait for wrap. Corrections mid-session should be saved immediately so the current session benefits too.
+
+### Requesting a Review — State Scope and Count
+
+**Instead of:** "Review the code"
+
+**Say:** "Review ALL changed files in this branch against the plan at docs/plans/US-06.md. I expect every file in the diff examined. State the count: 'Reviewed X of Y files.' Flag anything that works but is wrong."
+
+The phrase **"state the count"** forces accountability for completeness.
+
+### Requesting Debugging — Force Investigation First
+
+**Instead of:** "The scoring is wrong"
+
+**Say:** "The scoring endpoint returns 3.2 but expected 7.0 for campaign ID 42. Don't propose fixes yet. Trace the data flow: API endpoint → service → scoring logic → DB query. Tell me where the value diverges from expected."
+
+The phrase **"don't propose fixes yet"** forces investigation before guessing.
+
+### Verifying Completion — Don't Accept Claims
+
+**Instead of:** "Ok sounds good" (when Claude says "that should work")
+
+**Say:** "Actually verify it. Run the test/query/command and show me the output."
+
+### The 5 Sentences to Memorize
+
+1. **Starting a task:** "Before coding, read [files] and tell me your understanding of [entities/relationships]"
+2. **After a correction:** "Remember that for future sessions"
+3. **Requesting a review:** "Review ALL [N items]. State the count. Don't sample."
+4. **Requesting debugging:** "Don't propose fixes yet. Trace the data flow first."
+5. **Before accepting 'done':** "Run the full test suite and show me the results"
+
+---
+
+## 8. Using Parallel Agents Effectively
+
+You can run multiple Claude Code sessions simultaneously, but unstructured parallelism causes more problems than it solves.
+
+### Good Parallel Patterns
+
+| Pattern | When to Use |
+|---------|-------------|
+| Story A in session 1, Story B in session 2 | Stories touch different files/modules |
+| Research in session 1, implementation in session 2 | Different phases, no file conflicts |
+| `/turbocharge:build` multi-track mode | Independent tasks within same plan |
+| Review in session 1, next story planning in session 2 | No file overlap, different pipeline stages |
+
+### Bad Parallel Patterns (Avoid)
+
+| Pattern | Why It Fails |
+|---------|-------------|
+| Two sessions modifying same files | Merge conflicts, one session's work gets lost |
+| Two sessions running pytest simultaneously | Resource contention, flaky results |
+| Two sessions without defined scope boundaries | Claude in session 2 reads stale state from session 1 |
+| Parallel sessions with vague tasks | Both sessions assume they own the same code |
+
+### How to Prompt for Parallel Work
+
+**Be explicit about file ownership:**
+> "Implement US-06, US-07, and US-08 in parallel. US-06 touches ONLY src/scoring/. US-07 touches ONLY src/prompts/. US-08 touches ONLY src/translation/. They share NO files. Use multi-track build."
+
+**For worktree-based parallelism:**
+> "Create isolated worktrees for each story. Each builder works in its own worktree. Run the full test suite in each worktree independently. Only surface to me when all tests pass."
+
+**Key rule:** If you can't clearly state which files each parallel track owns, don't parallelize. Run sequentially instead.
+
+---
+
+## 9. Session Scoping
+
+### Define Exit Criteria Before Starting
+
+**First message of every session:**
+> "This session: complete tasks 1-4 of the plan. If we finish early, we move to task 5. If we're behind, we wrap at task 4 and carry forward."
+
+### The Math
+
+From real data: 32% of sessions ended as "Mostly Achieved" — meaning ~1 in 3 sessions didn't finish what was planned. Each carryover task loses context between sessions, which feeds back into the misunderstanding problem.
+
+**Cap at 4 tasks.** Finishing 4 cleanly is worth more than starting 7 and carrying 3 forward.
+
+### When to Stop and Wrap
+
+- You've completed your defined scope → wrap
+- Context is getting long (Claude starts forgetting earlier decisions) → wrap
+- You've hit a blocker that needs research → wrap, do research separately
+- You've been correcting Claude repeatedly on the same concept → encode the correction, then wrap
+
+---
+
+## 10. What NOT to Do
 
 ### Don't run multiple orchestration systems
 Pick turbocharge. Remove competing agents and commands. One system, clear handoffs.
@@ -210,7 +319,7 @@ If you told Claude something important, write it down somewhere Claude will read
 
 ---
 
-## 8. Configuration Reference
+## 11. Configuration Reference
 
 ### Global Settings (`~/.claude/settings.json`)
 - `model`: Your preferred model
@@ -245,7 +354,7 @@ If you told Claude something important, write it down somewhere Claude will read
 
 ---
 
-## 9. Metrics to Watch
+## 12. Metrics to Watch
 
 From the Insights report, track these to measure improvement:
 

@@ -1,3 +1,9 @@
+# Project-level CLAUDE.md (user-specific, not part of plugin distribution)
+CLAUDE.md
+
+# Local plugin settings
+.claude/
+
 # Session state (user-specific, not committed)
 .turbocharge/memory/
 .turbocharge/wrap/
