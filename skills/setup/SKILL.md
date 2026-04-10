@@ -77,7 +77,7 @@ Run the validation script if available:
 ```
 
 Or manually check:
-- All 8 skills have SKILL.md files
+- All 10 skills have SKILL.md files
 - All 6 agents have .md files
 - hooks/hooks.json exists
 - .claude-plugin/plugin.json exists and has correct version
@@ -92,13 +92,19 @@ Scan `~/.claude/rules/common/` for rules that conflict with turbocharge's iron l
 
 **Action:** List missing rules and offer to add them.
 
+### 7. Check for Project Atlas
+
+Check if `ATLAS.md` exists in the project root:
+- **Exists:** pass "ATLAS.md found — domain map available"
+- **Missing:** suggest "No ATLAS.md found — run `/turbocharge:atlas` to generate a domain map for faster context gathering"
+
 ## Report Format
 
 ```
 TURBOCHARGE SETUP AUDIT
 =======================
 
-Plugin Health: ✅ OK (8 skills, 6 agents, hooks configured)
+Plugin Health: ✅ OK (10 skills, 6 agents, hooks configured)
 
 Conflicts Found:
   🔴 ~/.claude/agents/session-wrapper-agent.md → covered by turbocharge:wrap

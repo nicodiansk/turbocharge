@@ -12,6 +12,9 @@ report.html
 # Local plugin settings
 .claude/
 
+# Codemap index (local, auto-generated)
+.codemap/
+
 # Session state (user-specific, not committed)
 .turbocharge/memory/
 .turbocharge/wrap/

@@ -45,6 +45,8 @@ Then just use the pipeline:
 brainstorm → story → plan → build → review → ship
                                   ↑               |
                                 debug            wrap
+                                  ↑
+                                atlas (any point)
 ```
 
 Each skill chains to the next. You can enter at any point — don't need to start from brainstorm every time.
@@ -56,14 +58,18 @@ Each skill chains to the next. You can enter at any point — don't need to star
 | `plan` | Stories approved, need implementation tasks |
 | `build` | Plan exists, time to write code |
 | `review` | Code done, need pre-merge assessment |
+| `atlas` | Need a domain map of the project |
 | `debug` | Something's broken (side-branch, use anytime) |
 | `ship` | Ready to merge, PR, or discard |
 | `wrap` | Session ending, need continuity |
 
-## Skills (9)
+## Skills (10)
 
 ### setup
 Run once after installing. Audits global config for conflicts — duplicate agents, competing skills, stale rules — and offers to fix them.
+
+### atlas
+Generates a semantic domain map (ATLAS.md) of the project — entry points, data flows, domain model, module purposes, integration points. Complements codemap for structural indexing. Run after setup or whenever the codebase evolves significantly.
 
 ### brainstorm
 Socratic requirements discovery. Asks questions one at a time, proposes 2-3 approaches with trade-offs, saves design doc. No implementation.
@@ -121,6 +127,7 @@ These are enforced, not suggested:
 - `NO MERGE WITHOUT CODE REVIEW`
 - `NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST`
 - `NO SESSION END WITHOUT WRAP OFFER`
+- `NO ATLAS WITHOUT READING THE CODEBASE FIRST`
 
 ## Complementary Project Skills
 
@@ -142,7 +149,7 @@ These live in `.claude/commands/` and complement turbocharge without overlapping
 ```
 turbocharge/
 ├── .claude-plugin/         # Plugin manifest
-├── skills/                 # 9 skill definitions
+├── skills/                 # 10 skill definitions
 │   └── <skill>/SKILL.md
 ├── agents/                 # 6 agent definitions
 │   └── <agent>.md

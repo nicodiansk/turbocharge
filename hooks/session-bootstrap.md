@@ -13,6 +13,7 @@ You are running with the **turbocharge** plugin — your single orchestration sy
 | Merge, PR, or ship completed work | `/turbocharge:ship` |
 | End a session or take a break | `/turbocharge:wrap` |
 | First-time setup or config audit | `/turbocharge:setup` |
+| Generate or update the project domain map | `/turbocharge:atlas` |
 
 ## Red Flags — thoughts that mean you SHOULD use a skill:
 

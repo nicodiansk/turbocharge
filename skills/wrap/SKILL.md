@@ -64,6 +64,10 @@ Start With:
 /turbocharge:[skill] [args]
 ```
 
+### 5.5. Atlas Freshness
+If ATLAS.md exists and significant structural changes were made this session (new modules, changed entry points, new integrations), note in the resume prompt:
+- "Consider running `/turbocharge:atlas` to update the domain map"
+
 ### 6. Encode Session Learnings
 Before generating the resume prompt, check: did the user correct any misunderstandings or wrong approaches during this session? If so:
 - **Update memory files** with corrections that apply to future sessions (domain concepts, preferences, conventions)

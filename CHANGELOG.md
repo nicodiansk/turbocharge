@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.2.0] - 2026-04-10
+
+New skill: semantic domain mapping.
+
+### Added
+- `atlas` skill — generates and maintains ATLAS.md, a semantic domain map covering entry points, data flows, domain model, module purposes, integration points, and conventions
+- Pipeline integration: session-bootstrap lists atlas, plan skill reads ATLAS.md for context, wrap skill nudges atlas refresh, setup skill checks for ATLAS.md
+
+### Changed
+- Plugin description updated to "10 skills, 6 agents"
+- README updated with atlas documentation and revised pipeline diagram
+- .gitignore updated to exclude `.codemap/` directory
+
 ## [2.1.0] - 2026-04-09
 
 Pipeline hardening and operational discipline — driven by 91 sessions of real usage.

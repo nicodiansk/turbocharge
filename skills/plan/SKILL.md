@@ -22,6 +22,13 @@ Every plan MUST start with:
 **Tech Stack:** [Key technologies]
 ```
 
+## Context Gathering
+
+Before planning, check for domain context:
+- If `ATLAS.md` exists in the project root, read it for domain model, entry points, and module purposes
+- If `CLAUDE.md` exists, read it for conventions and rules
+- These inform task design — use correct entity names, file paths, and architectural patterns
+
 ## Task Structure
 
 Each task MUST follow this exact format:

@@ -46,7 +46,7 @@ echo ""
 
 # 2. Check skills
 echo "--- Skills ---"
-EXPECTED_SKILLS="brainstorm build debug plan review setup ship story wrap"
+EXPECTED_SKILLS="atlas brainstorm build debug plan review setup ship story wrap"
 for skill in $EXPECTED_SKILLS; do
     skill_file="$PLUGIN_DIR/skills/$skill/SKILL.md"
     if [[ -f "$skill_file" ]]; then
