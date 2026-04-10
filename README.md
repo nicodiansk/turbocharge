@@ -77,6 +77,8 @@ Socratic requirements discovery. Asks questions one at a time, proposes 2-3 appr
 ### story
 Transforms requirements into INVEST-compliant user stories with testable acceptance criteria and story point estimates.
 
+![Story skill output — acceptance criteria, story points, and pipeline chaining](images/story-output.png)
+
 ### plan
 Breaks stories into 2-5 minute tasks with exact file paths, complete code, and TDD steps. Every task starts with a failing test.
 
@@ -91,6 +93,8 @@ builder → spec-reviewer → quality-reviewer
 ```
 
 Runs in 3-task batches with human checkpoints. Multi-track mode available for independent parallel tasks.
+
+![Build skill — builder agent with spec and quality reviewers running in parallel](images/build-review-chain.png)
 
 ### review
 Holistic pre-merge assessment against the original plan. Checks architecture, quality, security, and plan alignment.
@@ -155,8 +159,12 @@ turbocharge/
 │   └── <agent>.md
 ├── hooks/                  # Lifecycle hooks
 │   ├── hooks.json          # Hook registration
+│   ├── session-start.sh    # SessionStart: bootstrap + project checks
 │   ├── session-bootstrap.md
+│   ├── missing-claudemd-nudge.md
+│   ├── missing-atlasmd-nudge.md
 │   └── stop-wrap-reminder.md
+├── images/                 # README screenshots
 ├── docs/                   # Guides
 ├── scripts/validate.sh     # Plugin health check
 ├── examples/               # Sample pipeline outputs
