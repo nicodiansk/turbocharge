@@ -159,6 +159,7 @@ turbocharge/
 ├── hooks/                  # Lifecycle hooks
 │   ├── hooks.json          # Hook registration
 │   ├── session-start.sh    # SessionStart: bootstrap + project checks
+│   ├── pretool-read-codemap.sh  # PreToolUse: codemap nudge on Read
 │   ├── session-bootstrap.md
 │   ├── missing-claudemd-nudge.md
 │   ├── missing-atlasmd-nudge.md
