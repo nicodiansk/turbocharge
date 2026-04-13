@@ -10,9 +10,9 @@ _(After)_ `/turbocharge:build` won't mark the task complete until the spec-revie
 
 ### The Agent Graveyard
 
-_(Before)_ TODO
+_(Before)_ `code-reviewer.md`, `code-reviewer-v2.md`, `tdd-guide.md`, `tdd-guide-strict.md`, `planner.md`, `planner-actually-good.md`. Claude picks one at random. You can't remember which one is current.
 
-_(After)_ TODO
+_(After)_ One plugin. Ten skills. Six agents. `/turbocharge:setup` audits `~/.claude/agents/` on first run and offers to delete the graveyard. The only orchestration you install is the one you stop maintaining.
 
 ![scene: agent-graveyard](images/scenes/agent-graveyard.gif)
 
