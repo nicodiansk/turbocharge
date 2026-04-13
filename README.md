@@ -1,4 +1,4 @@
-# Turbocharge
+# 🦴 Turbocharge
 
 **Claude Code with a spine.**
 
@@ -12,33 +12,33 @@ It also remembers. Every session you close with `/wrap` teaches Claude something
 
 ---
 
-## Five Scenes
+## 🎬 Five Scenes
 
-### The 11 PM Skip
+### 🌙 The 11 PM Skip
 
 _(Before)_ Feature works. You know you should review. You're tired. You don't. Two days later, your teammate finds the bug you'd have caught.
 
 _(After)_ `/turbocharge:build` won't mark the task complete until the spec-reviewer and quality-reviewer have run. It isn't a button you remember to press — it's the only way the pipeline lets you exit.
 
-### The Agent Graveyard
+### 🪦 The Agent Graveyard
 
 _(Before)_ `code-reviewer.md`, `code-reviewer-v2.md`, `tdd-guide.md`, `tdd-guide-strict.md`, `planner.md`, `planner-actually-good.md`. Claude picks one at random. You can't remember which one is current.
 
 _(After)_ One plugin. Ten skills. Six agents. `/turbocharge:setup` audits `~/.claude/agents/` on first run and offers to delete the graveyard. The only orchestration you install is the one you stop maintaining.
 
-### The Monday Re-explain
+### 📅 The Monday Re-explain
 
 _(Before)_ Monday morning. You explain it again — immutable patterns, tests live in `__tests__/`, files stay under 400 lines. The exact speech you gave Friday afternoon to a Claude that has since forgotten you exist.
 
 _(After)_ `/wrap` wrote it all to memory Friday at 5 PM — preferences, conventions, the corrections you made that week. Monday's Claude read it before you sat down. You open the laptop and skip the speech.
 
-### The Context Amnesia
+### 🧠 The Context Amnesia
 
 _(Before)_ "Where was I?" Scroll terminal history. Re-read your own commits. Open three files to rebuild the mental model. Twenty minutes gone before you write a line.
 
 _(After)_ `/wrap` captured the state — open question, current file, last decision, what's next. The fresh session reads the resume prompt and you're typing code in ninety seconds.
 
-### The Guess-and-Check Debug
+### 🎯 The Guess-and-Check Debug
 
 _(Before)_ Test fails. Try a thing. Still red. Try another thing. An hour in, the bar is green and you have no idea why. The bug will be back in three weeks.
 
@@ -46,7 +46,7 @@ _(After)_ `/turbocharge:debug` forces a four-phase root-cause investigation befo
 
 ---
 
-## Install
+## 📦 Install
 
 ```bash
 claude plugin marketplace add nicodiansk/turbocharge
@@ -75,7 +75,7 @@ claude --plugin-dir ./turbocharge
 
 ---
 
-## The Pipeline
+## 🔁 The Pipeline
 
 ```
 brainstorm → story → plan → build → review → ship
@@ -101,9 +101,9 @@ Enter at any step. Each skill gates the next — review before ship, root-cause 
 
 ---
 
-## With vs Without Turbocharge
+## ⚖️ With vs Without Turbocharge
 
-| | Without | With Turbocharge |
+| | ❌ Without | ✅ With Turbocharge |
 |---|---------|------------------|
 | Which agent for X? | Three overlapping ones — Claude rolls the dice. | One skill per step. The handoff is the design. |
 | Code review | "I'll do it later." (You won't.) | The build skill won't exit until spec + quality review pass. |
@@ -115,9 +115,9 @@ Enter at any step. Each skill gates the next — review before ship, root-cause 
 
 ---
 
-## What You Get
+## 📋 What You Get
 
-**Ten skills** — each a slash command:
+**🛠️ Ten skills** — each a slash command:
 
 | Skill | What it refuses to let you skip |
 |-------|---------------------------------|
@@ -134,7 +134,7 @@ Enter at any step. Each skill gates the next — review before ship, root-cause 
 
 ![Story skill — acceptance criteria and pipeline chaining](images/story-output.png)
 
-**Six agents** — dispatched by skills, never invoked directly:
+**🤖 Six agents** — dispatched by skills, never invoked directly:
 
 | Agent | Role |
 |-------|------|
@@ -145,7 +145,7 @@ Enter at any step. Each skill gates the next — review before ship, root-cause 
 | `quality-reviewer` | Categorized code quality issues. Blocks completion on CRITICAL. |
 | `code-reviewer` | Holistic pre-merge pass against the original plan. |
 
-**Three hooks** — fire on lifecycle events, not on request:
+**🪝 Three hooks** — fire on lifecycle events, not on request:
 
 - `SessionStart` — bootstraps context, flags missing `CLAUDE.md` / `ATLAS.md`.
 - `PreToolUse` on `Read` — nudges `.codemap/` usage when an index exists.
@@ -153,7 +153,7 @@ Enter at any step. Each skill gates the next — review before ship, root-cause 
 
 ---
 
-## Iron Laws
+## ⛓️ Iron Laws
 
 Enforced inside the skills themselves, not suggested:
 
@@ -177,7 +177,7 @@ builder → spec-reviewer → quality-reviewer
 ---
 
 <details>
-<summary><strong>What to remove when you install this</strong></summary>
+<summary><strong>🧹 What to remove when you install this</strong></summary>
 
 Turbocharge replaces overlapping systems — clean them up to avoid Claude picking the wrong one:
 
@@ -191,51 +191,8 @@ Your `~/.claude/rules/common/agents.md` should point to turbocharge as the prima
 
 </details>
 
-<details>
-<summary><strong>Complementary project skills</strong></summary>
-
-Turbocharge covers the build pipeline — not every workflow. Keep project-level commands in `.claude/commands/` for things turbocharge doesn't do:
-
-- **epic-author** — Business-level epic drafting (WHAT and WHY, not HOW)
-- **consistency-review** — Cross-domain coherence between stories/tasks/epics
-
-These complement turbocharge without overlapping.
-
-</details>
-
-<details>
-<summary><strong>Directory structure</strong></summary>
-
-```
-turbocharge/
-├── .claude-plugin/          # plugin.json + marketplace.json
-├── skills/                  # 10 skill definitions
-│   └── <skill>/SKILL.md
-├── agents/                  # 6 agent definitions
-├── hooks/                   # hooks.json + content files
-├── images/                  # README screenshots
-├── docs/                    # Guides and design docs
-├── scripts/validate.sh      # Plugin health check
-├── examples/                # Sample pipeline outputs
-├── settings.json
-└── README.md
-```
-
-</details>
-
-<details>
-<summary><strong>Validation</strong></summary>
-
-```bash
-./scripts/validate.sh
-```
-
-Verifies plugin structure: manifest validity, skill frontmatter, agent files, hook registration.
-
-</details>
-
 ---
 
-## License
+## 📜 License
 
 MIT — see [LICENSE](LICENSE).
