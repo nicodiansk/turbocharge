@@ -1,20 +1,48 @@
 # Turbocharge
 
-**One pipeline. No agent sprawl. From idea to shipped code.**
+**Claude Code with a spine.**
 
-Turbocharge replaces ad-hoc agents, scattered skills, and custom commands with a single opinionated engineering pipeline for Claude Code.
+*An opinionated pipeline that refuses to let you skip review, skip tests, or pick the wrong agent.*
+
+Turbocharge is the pipeline you'd build yourself if you had six months — and the discipline you'd enforce if you weren't tired at 11 PM. Ten skills, six agents, three hooks, one chain of command. Install it and stop maintaining your own orchestration.
+
+It also remembers. Every session you close with `/wrap` teaches Claude something — your preferences, your conventions, the corrections you made today. Next Monday, Claude already knows.
 
 ![Build skill — builder agent with spec and quality reviewers](images/build-review-chain.png)
 
 ---
 
-## Why
+## Five Scenes
 
-Claude Code's agent ecosystem has a drift problem. Custom agents in `~/.claude/agents/`. Project commands in `.claude/commands/`. Plugin slash commands. Competing tdd-guides, planners, code-reviewers. Claude doesn't know which to use — and neither do you.
+### The 11 PM Skip
 
-The result: inconsistent process, duplicated work, and review that only happens when you remember to ask.
+_(Before)_ Feature works. You know you should review. You're tired. You don't. Two days later, your teammate finds the bug you'd have caught.
 
-Turbocharge is the *only* orchestration system you install. One pipeline. Enforced review chains. No ambiguity about which skill does what.
+_(After)_ `/turbocharge:build` won't mark the task complete until the spec-reviewer and quality-reviewer have run. It isn't a button you remember to press — it's the only way the pipeline lets you exit.
+
+### The Agent Graveyard
+
+_(Before)_ `code-reviewer.md`, `code-reviewer-v2.md`, `tdd-guide.md`, `tdd-guide-strict.md`, `planner.md`, `planner-actually-good.md`. Claude picks one at random. You can't remember which one is current.
+
+_(After)_ One plugin. Ten skills. Six agents. `/turbocharge:setup` audits `~/.claude/agents/` on first run and offers to delete the graveyard. The only orchestration you install is the one you stop maintaining.
+
+### The Monday Re-explain
+
+_(Before)_ Monday morning. You explain it again — immutable patterns, tests live in `__tests__/`, files stay under 400 lines. The exact speech you gave Friday afternoon to a Claude that has since forgotten you exist.
+
+_(After)_ `/wrap` wrote it all to memory Friday at 5 PM — preferences, conventions, the corrections you made that week. Monday's Claude read it before you sat down. You open the laptop and skip the speech.
+
+### The Context Amnesia
+
+_(Before)_ "Where was I?" Scroll terminal history. Re-read your own commits. Open three files to rebuild the mental model. Twenty minutes gone before you write a line.
+
+_(After)_ `/wrap` captured the state — open question, current file, last decision, what's next. The fresh session reads the resume prompt and you're typing code in ninety seconds.
+
+### The Guess-and-Check Debug
+
+_(Before)_ Test fails. Try a thing. Still red. Try another thing. An hour in, the bar is green and you have no idea why. The bug will be back in three weeks.
+
+_(After)_ `/turbocharge:debug` forces a four-phase root-cause investigation before any fix lands. You name the broken assumption, prove it, then change one thing. You unbreak it on purpose, not by coincidence.
 
 ---
 
@@ -57,7 +85,7 @@ brainstorm → story → plan → build → review → ship
                                 atlas (any point)
 ```
 
-Each skill chains to the next. Enter at any point — you don't need to start from brainstorm every time.
+Enter at any step. Each skill gates the next — review before ship, root-cause before fix, wrap before you forget.
 
 | Start here | When |
 |------------|------|
@@ -77,50 +105,51 @@ Each skill chains to the next. Enter at any point — you don't need to start fr
 
 | | Without | With Turbocharge |
 |---|---------|------------------|
-| Which agent does X? | Unclear — multiple overlap | One skill per step, clear handoffs |
-| Code review | "I'll do it later" | Enforced per-task (spec + quality) + pre-merge (holistic) |
-| Bug fixes | Guess-and-check until green | Systematic root-cause before any fix |
-| Session continuity | Rewrite context every session | `wrap` captures state; next session resumes instantly |
-| TDD discipline | Aspirational | Every task starts with a failing test, gated on review |
-| Planning granularity | "Add auth" | 2–5 minute tasks with exact file paths and verification commands |
+| Which agent for X? | Three overlapping ones — Claude rolls the dice. | One skill per step. The handoff is the design. |
+| Code review | "I'll do it later." (You won't.) | The build skill won't exit until spec + quality review pass. |
+| Bug fixes | Try things until green. Ship the coincidence. | Four-phase root-cause before any fix touches code. |
+| Session continuity | Re-explain your project every Monday. | `/wrap` captures state Friday. Monday picks it up. |
+| Claude gets smarter across sessions? | You re-teach the same lessons every week. | Memory populated by `/wrap`. Yesterday's correction is today's default. |
+| TDD discipline | "Next time I'll write the test first." | Every task starts on a failing test. The pipeline gates on it. |
+| Planning granularity | "Add auth." | 2–5 minute tasks with exact paths and verification commands. |
 
 ---
 
 ## What You Get
 
-**10 skills** — each one a slash command:
+**Ten skills** — each a slash command:
 
-| Skill | Does |
-|-------|------|
-| `setup` | Audits global config, removes conflicts, one-time |
-| `atlas` | Generates project domain map (ATLAS.md) |
-| `brainstorm` | Socratic requirements discovery, saves design doc |
-| `story` | Requirements → INVEST stories with acceptance criteria |
-| `plan` | Stories → 2–5 min tasks with TDD steps and exact code |
-| `build` | Dispatches builder agents + enforced review chain per task |
-| `review` | Holistic pre-merge assessment against original plan |
-| `debug` | 4-phase root-cause investigation before fixes |
-| `ship` | Verifies tests, then merge / PR / keep / discard |
-| `wrap` | Captures session state + encodes learnings |
+| Skill | What it refuses to let you skip |
+|-------|---------------------------------|
+| `setup` | Running with conflicting agents. Audits `~/.claude/agents/` on first run. |
+| `atlas` | Coding without a domain map. Generates `ATLAS.md` from the actual codebase. |
+| `brainstorm` | Implementing a half-formed idea. Socratic discovery, design doc out. |
+| `story` | Vague work. Forces INVEST stories with testable acceptance criteria. |
+| `plan` | "Add auth." Breaks stories into 2–5 minute TDD tasks with exact paths. |
+| `build` | Marking a task done before spec + quality review pass. |
+| `review` | Merging without a holistic pass against the original plan. |
+| `debug` | Guess-and-check. Four-phase root-cause investigation before any fix. |
+| `ship` | Shipping with red tests. Verifies, then merge / PR / discard. |
+| `wrap` | Closing the laptop without saving what you taught Claude today. |
 
 ![Story skill — acceptance criteria and pipeline chaining](images/story-output.png)
 
-**6 agents** — dispatched by skills, not invoked directly:
+**Six agents** — dispatched by skills, never invoked directly:
 
 | Agent | Role |
 |-------|------|
-| `builder` | TDD implementation, worktree isolation |
-| `planner` | Task decomposition with domain verification |
-| `researcher` | Codebase exploration (haiku, background) |
-| `spec-reviewer` | Checks task matches spec, doesn't trust builder |
-| `quality-reviewer` | Categorized code-quality issues |
-| `code-reviewer` | Holistic pre-merge review |
+| `builder` | TDD implementation in an isolated worktree. |
+| `planner` | Decomposes stories into tasks; verifies entity names against the codebase. |
+| `researcher` | Fast codebase exploration on Haiku, runs in the background. |
+| `spec-reviewer` | Reads the task spec and the diff. Doesn't take builder's word. |
+| `quality-reviewer` | Categorized code quality issues. Blocks completion on CRITICAL. |
+| `code-reviewer` | Holistic pre-merge pass against the original plan. |
 
-**3 hooks** — fire on lifecycle events:
+**Three hooks** — fire on lifecycle events, not on request:
 
-- `SessionStart` — bootstraps context, flags missing CLAUDE.md / ATLAS.md
-- `PreToolUse` on `Read` — nudges `.codemap/` usage when indexes exist
-- `Stop` — reminds to wrap when the session ends
+- `SessionStart` — bootstraps context, flags missing `CLAUDE.md` / `ATLAS.md`.
+- `PreToolUse` on `Read` — nudges `.codemap/` usage when an index exists.
+- `Stop` — reminds you to `/wrap` before the session ends.
 
 ---
 
