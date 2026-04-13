@@ -18,9 +18,9 @@ _(After)_ One plugin. Ten skills. Six agents. `/turbocharge:setup` audits `~/.cl
 
 ### The Monday Re-explain
 
-_(Before)_ TODO
+_(Before)_ Monday morning. You explain it again — immutable patterns, tests live in `__tests__/`, files stay under 400 lines. The exact speech you gave Friday afternoon to a Claude that has since forgotten you exist.
 
-_(After)_ TODO
+_(After)_ `/wrap` wrote it all to memory Friday at 5 PM — preferences, conventions, the corrections you made that week. Monday's Claude read it before you sat down. You open the laptop and skip the speech.
 
 ![scene: monday-reexplain](images/scenes/monday-reexplain.gif)
 
