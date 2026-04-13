@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.3.0] - 2026-04-13
+
+Single-repo distribution — plugin and marketplace manifest now live together.
+
+### Changed
+- Restored `.claude-plugin/marketplace.json` as the authoritative marketplace manifest (previously in sibling `nicodiansk/turbocharge-marketplace` repo)
+- Install command: `claude plugin marketplace add nicodiansk/turbocharge` (was `nicodiansk/turbocharge-marketplace`)
+- Update command: `claude plugin update turbocharge@turbocharge` (was `turbocharge@turbocharge-marketplace`)
+- README rewritten: ruflo-inspired structure, with vs without comparison, progressive disclosure via collapsible deep-dives
+- CLAUDE.md Publishing Flow collapsed from 6 steps across 2 repos to 3 steps in one repo
+
+### Removed
+- Sibling `nicodiansk/turbocharge-marketplace` repo deleted — no longer needed
+
+### Migration
+- Existing users must re-add the marketplace: `claude plugin marketplace remove turbocharge-marketplace` then `claude plugin marketplace add nicodiansk/turbocharge`
+
 ## [2.2.0] - 2026-04-10
 
 New skill: semantic domain mapping.

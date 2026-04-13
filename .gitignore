@@ -19,6 +19,9 @@ report.html
 .turbocharge/memory/
 .turbocharge/wrap/
 
+# Sibling marketplace clone (historical — for reference during v2.3.0 consolidation)
+turbocharge-marketplace/
+
 # Node modules (if any)
 node_modules/
 

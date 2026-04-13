@@ -1,42 +1,51 @@
 # Turbocharge
 
-**One system to rule them all.** Turbocharge replaces ad-hoc agents, scattered skills, and custom commands with a single opinionated pipeline — from idea to shipped code.
+**One pipeline. No agent sprawl. From idea to shipped code.**
 
-## Why This Exists
+Turbocharge replaces ad-hoc agents, scattered skills, and custom commands with a single opinionated engineering pipeline for Claude Code.
 
-Claude Code's agent ecosystem creates a problem: too many overlapping tools with unclear boundaries. Custom agents in `~/.claude/agents/`, project-level commands in `.claude/commands/`, slash commands from plugins — Claude doesn't know which system to use, and neither do you.
+![Build skill — builder agent with spec and quality reviewers](images/build-review-chain.png)
 
-Turbocharge fixes this by being **the only orchestration system you need.** One pipeline, clear handoffs, no ambiguity.
+---
 
-### What to Remove When You Install This
+## Why
 
-- Custom agents in `~/.claude/agents/` that overlap with turbocharge agents (planner, code-reviewer, tdd-guide, session-wrapper, etc.)
-- Project commands in `.claude/commands/` for session-wrap, story-authoring, or task-breakdown
-- Any `agents.md` rule file that references a parallel agent system
+Claude Code's agent ecosystem has a drift problem. Custom agents in `~/.claude/agents/`. Project commands in `.claude/commands/`. Plugin slash commands. Competing tdd-guides, planners, code-reviewers. Claude doesn't know which to use — and neither do you.
 
-Your `~/.claude/rules/common/agents.md` should point to turbocharge as the primary system, not list competing agents.
+The result: inconsistent process, duplicated work, and review that only happens when you remember to ask.
 
-## Quick Start
+Turbocharge is the *only* orchestration system you install. One pipeline. Enforced review chains. No ambiguity about which skill does what.
+
+---
+
+## Install
 
 ```bash
-# Install from marketplace
-claude plugin marketplace add nicodiansk/turbocharge-marketplace
-claude plugin install turbocharge
+claude plugin marketplace add nicodiansk/turbocharge
+claude plugin install turbocharge@turbocharge
+```
 
-# Update to latest version
-claude plugin update turbocharge@turbocharge-marketplace
+First run:
 
-# Or load locally for development
+```
+/turbocharge:setup
+```
+
+`setup` audits your global config for conflicting agents/skills and offers to clean them up. Run it once.
+
+Update later:
+
+```bash
+claude plugin update turbocharge@turbocharge
+```
+
+Or load locally for plugin development:
+
+```bash
 claude --plugin-dir ./turbocharge
 ```
 
-Then just use the pipeline:
-
-```bash
-/turbocharge:brainstorm I want to build a CLI tool that manages git worktrees
-/turbocharge:plan docs/plans/my-feature-stories.md
-/turbocharge:wrap
-```
+---
 
 ## The Pipeline
 
@@ -48,81 +57,76 @@ brainstorm → story → plan → build → review → ship
                                 atlas (any point)
 ```
 
-Each skill chains to the next. You can enter at any point — don't need to start from brainstorm every time.
+Each skill chains to the next. Enter at any point — you don't need to start from brainstorm every time.
 
-| Entry Point | When |
-|-------------|------|
+| Start here | When |
+|------------|------|
 | `brainstorm` | Vague idea, need to explore requirements |
 | `story` | Requirements clear, need INVEST-compliant stories |
 | `plan` | Stories approved, need implementation tasks |
 | `build` | Plan exists, time to write code |
 | `review` | Code done, need pre-merge assessment |
-| `atlas` | Need a domain map of the project |
-| `debug` | Something's broken (side-branch, use anytime) |
+| `debug` | Something's broken |
 | `ship` | Ready to merge, PR, or discard |
-| `wrap` | Session ending, need continuity |
+| `wrap` | Session ending — capture state for next time |
+| `atlas` | Need a domain map of the project |
 
-## Skills (10)
+---
 
-### setup
-Run once after installing. Audits global config for conflicts — duplicate agents, competing skills, stale rules — and offers to fix them.
+## With vs Without Turbocharge
 
-### atlas
-Generates a semantic domain map (ATLAS.md) of the project — entry points, data flows, domain model, module purposes, integration points. Complements codemap for structural indexing. Run after setup or whenever the codebase evolves significantly.
+| | Without | With Turbocharge |
+|---|---------|------------------|
+| Which agent does X? | Unclear — multiple overlap | One skill per step, clear handoffs |
+| Code review | "I'll do it later" | Enforced per-task (spec + quality) + pre-merge (holistic) |
+| Bug fixes | Guess-and-check until green | Systematic root-cause before any fix |
+| Session continuity | Rewrite context every session | `wrap` captures state; next session resumes instantly |
+| TDD discipline | Aspirational | Every task starts with a failing test, gated on review |
+| Planning granularity | "Add auth" | 2–5 minute tasks with exact file paths and verification commands |
 
-### brainstorm
-Socratic requirements discovery. Asks questions one at a time, proposes 2-3 approaches with trade-offs, saves design doc. No implementation.
+---
 
-### story
-Transforms requirements into INVEST-compliant user stories with testable acceptance criteria and story point estimates.
+## What You Get
 
-![Story skill output — acceptance criteria, story points, and pipeline chaining](images/story-output.png)
+**10 skills** — each one a slash command:
 
-### plan
-Breaks stories into 2-5 minute tasks with exact file paths, complete code, and TDD steps. Every task starts with a failing test.
+| Skill | Does |
+|-------|------|
+| `setup` | Audits global config, removes conflicts, one-time |
+| `atlas` | Generates project domain map (ATLAS.md) |
+| `brainstorm` | Socratic requirements discovery, saves design doc |
+| `story` | Requirements → INVEST stories with acceptance criteria |
+| `plan` | Stories → 2–5 min tasks with TDD steps and exact code |
+| `build` | Dispatches builder agents + enforced review chain per task |
+| `review` | Holistic pre-merge assessment against original plan |
+| `debug` | 4-phase root-cause investigation before fixes |
+| `ship` | Verifies tests, then merge / PR / keep / discard |
+| `wrap` | Captures session state + encodes learnings |
 
-### build
-Executes the plan. Dispatches builder agents with a review chain per task:
+![Story skill — acceptance criteria and pipeline chaining](images/story-output.png)
 
-```
-builder → spec-reviewer → quality-reviewer
-              ↓ issues?        ↓ issues?
-         back to builder   back to builder
-         (max 2 cycles)    (max 2 cycles)
-```
+**6 agents** — dispatched by skills, not invoked directly:
 
-Runs in 3-task batches with human checkpoints. Multi-track mode available for independent parallel tasks.
+| Agent | Role |
+|-------|------|
+| `builder` | TDD implementation, worktree isolation |
+| `planner` | Task decomposition with domain verification |
+| `researcher` | Codebase exploration (haiku, background) |
+| `spec-reviewer` | Checks task matches spec, doesn't trust builder |
+| `quality-reviewer` | Categorized code-quality issues |
+| `code-reviewer` | Holistic pre-merge review |
 
-![Build skill — builder agent with spec and quality reviewers running in parallel](images/build-review-chain.png)
+**3 hooks** — fire on lifecycle events:
 
-### review
-Holistic pre-merge assessment against the original plan. Checks architecture, quality, security, and plan alignment.
+- `SessionStart` — bootstraps context, flags missing CLAUDE.md / ATLAS.md
+- `PreToolUse` on `Read` — nudges `.codemap/` usage when indexes exist
+- `Stop` — reminds to wrap when the session ends
 
-### debug
-Systematic 4-phase root-cause investigation. Enforces investigation before fixes. 3+ failed fixes triggers architectural questioning.
-
-### ship
-Verifies tests pass, then presents options: merge locally, create PR, keep branch, or discard.
-
-### wrap
-Captures session state, encodes learnings into memory/CLAUDE.md, generates a copy-paste resume prompt for the next session.
-
-## Agents (6)
-
-| Agent | Role | Properties |
-|-------|------|------------|
-| builder | TDD implementation | worktree isolation, full tool access |
-| planner | Task decomposition | domain verification before planning |
-| researcher | Codebase exploration | haiku model, background execution |
-| spec-reviewer | Spec compliance | read-only, doesn't trust builder claims |
-| quality-reviewer | Code quality | read-only, categorized issue reporting |
-| code-reviewer | Pre-merge holistic review | read-only, runs once after all tasks |
-
-All agents use `memory: project` for persistent codebase knowledge.
+---
 
 ## Iron Laws
 
-These are enforced, not suggested:
+Enforced inside the skills themselves, not suggested:
 
 - `NO IMPLEMENTATION WITHOUT UNDERSTANDING REQUIREMENTS FIRST`
 - `NO STORY WITHOUT ACCEPTANCE CRITERIA`
@@ -132,46 +136,77 @@ These are enforced, not suggested:
 - `NO SESSION END WITHOUT WRAP OFFER`
 - `NO ATLAS WITHOUT READING THE CODEBASE FIRST`
 
-## Complementary Project Skills
+The review chain for every build task:
 
-Turbocharge covers the full build pipeline but not every workflow. Keep project-level commands for things turbocharge doesn't do:
+```
+builder → spec-reviewer → quality-reviewer
+              ↓ issues?        ↓ issues?
+         back to builder   back to builder
+         (max 2 cycles)    (max 2 cycles)
+```
+
+---
+
+<details>
+<summary><strong>What to remove when you install this</strong></summary>
+
+Turbocharge replaces overlapping systems — clean them up to avoid Claude picking the wrong one:
+
+- Custom agents in `~/.claude/agents/` that duplicate turbocharge agents (`planner`, `code-reviewer`, `tdd-guide`, session-wrappers, etc.)
+- Project commands in `.claude/commands/` for session-wrap, story-authoring, or task-breakdown
+- Any `agents.md` rule file that references a parallel agent system
+
+Your `~/.claude/rules/common/agents.md` should point to turbocharge as the primary system, not list competing agents.
+
+`/turbocharge:setup` does this audit interactively.
+
+</details>
+
+<details>
+<summary><strong>Complementary project skills</strong></summary>
+
+Turbocharge covers the build pipeline — not every workflow. Keep project-level commands in `.claude/commands/` for things turbocharge doesn't do:
 
 - **epic-author** — Business-level epic drafting (WHAT and WHY, not HOW)
-- **consistency-review** — Cross-domain coherence validation between stories/tasks/epics
+- **consistency-review** — Cross-domain coherence between stories/tasks/epics
 
-These live in `.claude/commands/` and complement turbocharge without overlapping.
+These complement turbocharge without overlapping.
 
-## Validation
+</details>
+
+<details>
+<summary><strong>Directory structure</strong></summary>
+
+```
+turbocharge/
+├── .claude-plugin/          # plugin.json + marketplace.json
+├── skills/                  # 10 skill definitions
+│   └── <skill>/SKILL.md
+├── agents/                  # 6 agent definitions
+├── hooks/                   # hooks.json + content files
+├── images/                  # README screenshots
+├── docs/                    # Guides and design docs
+├── scripts/validate.sh      # Plugin health check
+├── examples/                # Sample pipeline outputs
+├── settings.json
+└── README.md
+```
+
+</details>
+
+<details>
+<summary><strong>Validation</strong></summary>
 
 ```bash
 ./scripts/validate.sh
 ```
 
-## Directory Structure
+Verifies plugin structure: manifest validity, skill frontmatter, agent files, hook registration.
 
-```
-turbocharge/
-├── .claude-plugin/         # Plugin manifest
-├── skills/                 # 10 skill definitions
-│   └── <skill>/SKILL.md
-├── agents/                 # 6 agent definitions
-│   └── <agent>.md
-├── hooks/                  # Lifecycle hooks
-│   ├── hooks.json          # Hook registration
-│   ├── session-start.sh    # SessionStart: bootstrap + project checks
-│   ├── pretool-read-codemap.sh  # PreToolUse: codemap nudge on Read
-│   ├── session-bootstrap.md
-│   ├── missing-claudemd-nudge.md
-│   ├── missing-atlasmd-nudge.md
-│   └── stop-wrap-reminder.md
-├── images/                 # README screenshots
-├── docs/                   # Guides
-├── scripts/validate.sh     # Plugin health check
-├── examples/               # Sample pipeline outputs
-├── settings.json
-└── README.md
-```
+</details>
+
+---
 
 ## License
 
-MIT — See [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE).
