@@ -34,8 +34,8 @@ _(After)_ `/wrap` captured the state — open question, current file, last decis
 
 ### The Guess-and-Check Debug
 
-_(Before)_ TODO
+_(Before)_ Test fails. Try a thing. Still red. Try another thing. An hour in, the bar is green and you have no idea why. The bug will be back in three weeks.
 
-_(After)_ TODO
+_(After)_ `/turbocharge:debug` forces a four-phase root-cause investigation before any fix lands. You name the broken assumption, prove it, then change one thing. You unbreak it on purpose, not by coincidence.
 
 ![scene: guess-and-check](images/scenes/guess-and-check.gif)
