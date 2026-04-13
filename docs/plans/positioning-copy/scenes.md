@@ -2,9 +2,9 @@
 
 ### The 11 PM Skip
 
-_(Before)_ TODO
+_(Before)_ Feature works. You know you should review. You're tired. You don't. Two days later, your teammate finds the bug you'd have caught.
 
-_(After)_ TODO
+_(After)_ `/turbocharge:build` won't mark the task complete until the spec-reviewer and quality-reviewer have run. It isn't a button you remember to press — it's the only way the pipeline lets you exit.
 
 ![scene: 11pm-skip](images/scenes/11pm-skip.gif)
 
