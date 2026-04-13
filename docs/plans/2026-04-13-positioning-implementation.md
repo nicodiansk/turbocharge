@@ -4,7 +4,7 @@
 
 **Architecture:** Pure copy + asset pipeline, no plugin behavior changes. Three asset workstreams (VHS scene gifs, FLUX logo via mcp-hfspace, Remotion hero animation) run in parallel with three text workstreams (positioning copy, five scenes prose, with/without + what-you-get rewrite), then a final assembly pass stitches everything into `README.md`. All tooling is free and locked per the design doc.
 
-**Tech Stack:** Charmbracelet VHS (scene gifs), `@llmindset/mcp-hfspace` + FLUX.1-Krea-dev (logo PNG), `vtracer` (PNG → SVG), Motion Canvas via `npm init @motion-canvas` (hero animation, MIT — swapped from Remotion 2026-04-13), GitHub-flavored Markdown (README).
+**Tech Stack:** Charmbracelet VHS (scene gifs), `@llmindset/mcp-hfspace` + FLUX.1-Krea-dev (logo PNG), Motion Canvas via `npm init @motion-canvas` (hero animation, MIT — swapped from Remotion 2026-04-13), GitHub-flavored Markdown (README). SVG vectorization dropped 2026-04-13 (Path A): PNG is sufficient for a static README logo; Windows MSVC toolchain wasn't installed and the 6 GB cost isn't justified for an image that's already raster-final.
 
 ---
 
@@ -32,7 +32,7 @@ Domain notes: `CLAUDE.md` (project conventions), `MEMORY.md` entry "positioning-
 | W2 | Five Scenes prose | T2.1 – T2.6 | Scenes section fragment |
 | W3 | With/Without + What You Get rewrite | T3.1 – T3.3 | Two table fragments |
 | W4 | VHS setup + 5 tapes + gifs | T4.1 – T4.7 | `vhs/*.tape` (5) + `images/scenes/*.gif` (5) |
-| W5 | Logo via mcp-hfspace + FLUX | T5.1 – T5.6 | `images/logo.png`, `images/logo.svg`, `images/banner.png` |
+| W5 | Logo via mcp-hfspace + FLUX | T5.1 – T5.4, T5.6 | `images/logo.png`, `images/banner.png` (T5.5 SVG vectorization dropped — Path A) |
 | W6 | Hero animation via Motion Canvas | T6.1 – T6.6 | `motion/` project + `images/hero.gif` + `images/hero.mp4` |
 | W7 | Final README assembly | T7.1 – T7.4 | `README.md` rewritten + verified |
 
@@ -794,21 +794,9 @@ Expected: `PASS`.
 
 ---
 
-### Task 5.5: Vectorize logo to SVG via vtracer
+### Task 5.5: ~~Vectorize logo to SVG via vtracer~~ (DROPPED 2026-04-13)
 
-**Files:** Output `images/logo.svg`. Tool: `vtracer` (Rust binary, free, OSS).
-
-**Step 1: Failing check** — `test ! -f images/logo.svg && echo FAIL`.
-
-**Step 2: Install + run**
-- Install: `cargo install vtracer` (or download binary from `https://github.com/visioncortex/vtracer/releases`).
-- Run: `vtracer --input images/logo.png --output images/logo.svg --mode polygon --color_precision 4 --filter_speckle 6`
-
-**Step 3: Verify**
-Run: `test -f images/logo.svg && head -1 images/logo.svg | grep -q "<svg" && echo PASS`
-Expected: `PASS`. File size budget < 50 KB.
-
-**Step 4:** Commit `feat(images): vectorize logo to SVG via vtracer`.
+Skipped per Path A decision. PNG serves the README hero adequately; vtracer compilation required MSVC Build Tools (6 GB) which weren't worth installing for a nice-to-have. If SVG becomes needed later: one-off via `https://svgcode.app` (web tool, no install).
 
 ---
 
@@ -1101,7 +1089,7 @@ Expected: `lint-positioning: clean`.
 **Step 1: Failing check (asset-existence pre-flight)**
 Run:
 ```
-for f in images/hero.gif images/hero.mp4 images/logo.png images/logo.svg images/banner.png \
+for f in images/hero.gif images/hero.mp4 images/logo.png images/banner.png \
          images/scenes/11pm-skip.gif images/scenes/agent-graveyard.gif \
          images/scenes/monday-reexplain.gif images/scenes/context-amnesia.gif \
          images/scenes/guess-and-check.gif; do
@@ -1136,7 +1124,7 @@ Expected: `FAIL`.
 ```bash
 
 # Positioning assets (added v3 README)
-for f in images/hero.gif images/logo.svg images/banner.png \
+for f in images/hero.gif images/logo.png images/banner.png \
          images/scenes/11pm-skip.gif images/scenes/agent-graveyard.gif \
          images/scenes/monday-reexplain.gif images/scenes/context-amnesia.gif \
          images/scenes/guess-and-check.gif; do
@@ -1159,7 +1147,7 @@ Expected: exits 0 with `validate: positioning assets OK` printed.
 - `README.md` opens on GitHub with: hero animation → tagline → hero paragraph → five scenes (each with gif) → install → pipeline → with/without → what you get → iron laws → deep-dives → license.
 - `bash scripts/lint-positioning.sh README.md` exits 0.
 - `bash scripts/validate.sh` exits 0.
-- `images/` contains: `hero.gif`, `hero.mp4`, `logo.png`, `logo.svg`, `banner.png`, and `scenes/{11pm-skip,agent-graveyard,monday-reexplain,context-amnesia,guess-and-check}.gif`.
+- `images/` contains: `hero.gif`, `hero.mp4`, `logo.png`, `banner.png`, and `scenes/{11pm-skip,agent-graveyard,monday-reexplain,context-amnesia,guess-and-check}.gif`. (SVG vectorization dropped 2026-04-13, Path A.)
 - `vhs/` contains: `_common.tape` + 5 scene tapes.
 - `motion/` contains a working Remotion project + `motion/README.md`.
 

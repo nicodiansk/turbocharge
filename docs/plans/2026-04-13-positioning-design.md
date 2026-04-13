@@ -126,9 +126,10 @@ Then at `https://huggingface.co/mcp/settings`, add `mcp-tools/FLUX.1-Krea-dev` t
 - PNG output only; SVG vectorization needs a post-processing step (Inkscape trace or `vtracer` — both free)
 
 **Output:**
-- `images/logo.svg` (vectorized from best PNG iteration)
-- `images/logo.png` (source raster, 1024×1024)
+- `images/logo.png` (raster, 1024×1024 — final, PNG-only per Path A 2026-04-13)
 - `images/banner.png` (wide aspect, README hero block)
+
+SVG vectorization dropped 2026-04-13: vtracer needed MSVC Build Tools (6 GB) which weren't worth installing for a static README logo. Fallback if SVG ever needed: https://svgcode.app (web, no install).
 
 **Style brief for prompt authoring:**
 - Spine motif — literal anatomical spine or abstract vertical-segmented column
