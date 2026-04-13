@@ -26,9 +26,9 @@ _(After)_ `/wrap` wrote it all to memory Friday at 5 PM — preferences, convent
 
 ### The Context Amnesia
 
-_(Before)_ TODO
+_(Before)_ "Where was I?" Scroll terminal history. Re-read your own commits. Open three files to rebuild the mental model. Twenty minutes gone before you write a line.
 
-_(After)_ TODO
+_(After)_ `/wrap` captured the state — open question, current file, last decision, what's next. The fresh session reads the resume prompt and you're typing code in ninety seconds.
 
 ![scene: context-amnesia](images/scenes/context-amnesia.gif)
 
