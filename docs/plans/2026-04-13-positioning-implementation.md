@@ -4,7 +4,7 @@
 
 **Architecture:** Pure copy + asset pipeline, no plugin behavior changes. Three asset workstreams (VHS scene gifs, FLUX logo via mcp-hfspace, Remotion hero animation) run in parallel with three text workstreams (positioning copy, five scenes prose, with/without + what-you-get rewrite), then a final assembly pass stitches everything into `README.md`. All tooling is free and locked per the design doc.
 
-**Tech Stack:** Charmbracelet VHS (scene gifs), `@llmindset/mcp-hfspace` + FLUX.1-Krea-dev (logo PNG), `vtracer` (PNG → SVG), Remotion via `create-video` (hero animation), GitHub-flavored Markdown (README).
+**Tech Stack:** Charmbracelet VHS (scene gifs), `@llmindset/mcp-hfspace` + FLUX.1-Krea-dev (logo PNG), `vtracer` (PNG → SVG), Motion Canvas via `npm init @motion-canvas` (hero animation, MIT — swapped from Remotion 2026-04-13), GitHub-flavored Markdown (README).
 
 ---
 
@@ -33,7 +33,7 @@ Domain notes: `CLAUDE.md` (project conventions), `MEMORY.md` entry "positioning-
 | W3 | With/Without + What You Get rewrite | T3.1 – T3.3 | Two table fragments |
 | W4 | VHS setup + 5 tapes + gifs | T4.1 – T4.7 | `vhs/*.tape` (5) + `images/scenes/*.gif` (5) |
 | W5 | Logo via mcp-hfspace + FLUX | T5.1 – T5.6 | `images/logo.png`, `images/logo.svg`, `images/banner.png` |
-| W6 | Hero animation via Remotion | T6.1 – T6.6 | `motion/` project + `images/hero.gif` + `images/hero.mp4` |
+| W6 | Hero animation via Motion Canvas | T6.1 – T6.6 | `motion/` project + `images/hero.gif` + `images/hero.mp4` |
 | W7 | Final README assembly | T7.1 – T7.4 | `README.md` rewritten + verified |
 
 ---
@@ -827,143 +827,154 @@ Run: `test -f images/banner.png && file images/banner.png | grep -q PNG && echo 
 
 ---
 
-## W6 — Hero Animation via Remotion
+## W6 — Hero Animation via Motion Canvas
 
-### Task 6.1: Scaffold Remotion project in `motion/`
+### Task 6.1: Scaffold Motion Canvas project in `motion/`
 
-**Files:** Create `motion/` (full Remotion scaffold).
+**Files:** Create `motion/` (full Motion Canvas scaffold).
 
 **Step 1: Failing check** — `test ! -d motion && echo FAIL`.
 
 **Step 2:** Run from repo root:
 ```
-npx create-video@latest motion --default remotion
+npm init @motion-canvas@latest motion
 ```
-Accept defaults. Then add `motion/node_modules` and `motion/out` to `.gitignore`.
+Accept defaults (TypeScript template). Then add `motion/node_modules` and `motion/output` to `.gitignore`.
 
 **Step 3: Verify**
-Run: `test -f motion/package.json && test -f motion/src/Root.tsx && echo PASS`
+Run: `test -f motion/package.json && test -f motion/src/project.ts && echo PASS`
 Expected: `PASS`.
 
-**Step 4:** Commit `chore(motion): scaffold Remotion project for hero animation`.
+**Step 4:** Commit `chore(motion): scaffold Motion Canvas project for hero animation`.
 
 ---
 
-### Task 6.2: Replace template composition with `SpineCollapse`
+### Task 6.2: Replace template scene with `spineCollapse`
 
-**Files:** Create `motion/src/SpineCollapse.tsx`. Modify `motion/src/Root.tsx`.
+**Files:** Create `motion/src/scenes/spineCollapse.tsx`. Modify `motion/src/project.ts`.
 
 **Step 1: Failing check**
-Run: `test ! -f motion/src/SpineCollapse.tsx && echo FAIL`
+Run: `test ! -f motion/src/scenes/spineCollapse.tsx && echo FAIL`
 Expected: `FAIL`.
 
-**Step 2: Write `motion/src/SpineCollapse.tsx`**
+**Step 2: Write `motion/src/scenes/spineCollapse.tsx`**
 ```tsx
-import {AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig} from 'remotion';
+import {makeScene2D, Rect, Txt} from '@motion-canvas/2d';
+import {all, createRef, easeInOutCubic, waitFor} from '@motion-canvas/core';
 
 const SKILLS = [
   'setup', 'atlas', 'brainstorm', 'story', 'plan',
   'build', 'review', 'debug', 'ship', 'wrap',
 ];
 
-// 6s @ 30fps = 180 frames. Phase 1 (jumble) 0-60, Phase 2 (collapse) 60-120, Phase 3 (hold) 120-180.
-export const SpineCollapse: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {width, height} = useVideoConfig();
+// 6s total = 2s jumble hold + 2s collapse + 2s aligned hold.
+export default makeScene2D(function* (view) {
+  view.fill('#F5F1E8');
 
-  // Deterministic jumble positions (seeded, stable across renders)
+  // Deterministic jumble positions (seeded, stable across renders).
   const jumble = SKILLS.map((_, i) => ({
-    x: ((i * 73) % width) - width / 2,
-    y: ((i * 131) % height) - height / 2,
+    x: ((i * 73) % 900) - 450,
+    y: ((i * 131) % 500) - 250,
     rot: ((i * 47) % 60) - 30,
   }));
 
-  return (
-    <AbsoluteFill style={{backgroundColor: '#F5F1E8', justifyContent: 'center', alignItems: 'center'}}>
-      {SKILLS.map((name, i) => {
-        const collapse = interpolate(frame, [60, 120], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
-        const x = interpolate(collapse, [0, 1], [jumble[i].x, 0]);
-        const y = interpolate(collapse, [0, 1], [jumble[i].y, (i - SKILLS.length / 2) * 56 + 28]);
-        const rot = interpolate(collapse, [0, 1], [jumble[i].rot, 0]);
-        return (
-          <div
-            key={name}
-            style={{
-              position: 'absolute',
-              transform: `translate(${x}px, ${y}px) rotate(${rot}deg)`,
-              padding: '10px 22px',
-              backgroundColor: '#0B1E3F',
-              color: '#F5F1E8',
-              fontFamily: 'monospace',
-              fontSize: 22,
-              borderRadius: 4,
-              minWidth: 220,
-              textAlign: 'center',
-            }}
-          >
-            /{name}
-          </div>
-        );
-      })}
-    </AbsoluteFill>
+  const refs = SKILLS.map(() => createRef<Rect>());
+
+  // Phase 1 — render jumble
+  view.add(
+    SKILLS.map((name, i) => (
+      <Rect
+        ref={refs[i]}
+        x={jumble[i].x}
+        y={jumble[i].y}
+        rotation={jumble[i].rot}
+        fill={'#0B1E3F'}
+        radius={4}
+        padding={[10, 22]}
+        layout
+      >
+        <Txt fontFamily={'monospace'} fontSize={22} fill={'#F5F1E8'}>
+          /{name}
+        </Txt>
+      </Rect>
+    )),
   );
-};
+
+  yield* waitFor(2);
+
+  // Phase 2 — collapse to vertical spine
+  yield* all(
+    ...SKILLS.map((_, i) =>
+      all(
+        refs[i]().position([0, (i - SKILLS.length / 2) * 56 + 28], 2, easeInOutCubic),
+        refs[i]().rotation(0, 2, easeInOutCubic),
+      ),
+    ),
+  );
+
+  // Phase 3 — hold aligned spine
+  yield* waitFor(2);
+});
 ```
 
-**Step 2b: Edit `motion/src/Root.tsx`** — register the composition (replace template content):
-```tsx
-import {Composition} from 'remotion';
-import {SpineCollapse} from './SpineCollapse';
+**Step 2b: Edit `motion/src/project.ts`** — register the scene (replace template content):
+```ts
+import {makeProject} from '@motion-canvas/core';
+import spineCollapse from './scenes/spineCollapse?scene';
 
-export const RemotionRoot: React.FC = () => (
-  <Composition
-    id="SpineCollapse"
-    component={SpineCollapse}
-    durationInFrames={180}
-    fps={30}
-    width={1280}
-    height={720}
-  />
-);
+export default makeProject({
+  scenes: [spineCollapse],
+  experimentalFeatures: true,
+});
 ```
 
-**Step 3: Verify it loads in studio (smoke test)**
-Run: `cd motion && npx remotion preview --no-open` (run briefly, then Ctrl+C). Expected: server starts on `http://localhost:3000`, no compile errors in stderr.
+**Step 3: Verify it loads in the editor (smoke test)**
+Run: `cd motion && npm start` (open `http://localhost:9000`, confirm scene plays end-to-end, then Ctrl+C).
 
-**Step 4:** Commit `feat(motion): SpineCollapse composition (jumble → spine alignment)`.
+**Step 4:** Commit `feat(motion): spineCollapse scene (jumble → spine alignment)`.
 
 ---
 
 ### Task 6.3: Render hero MP4
 
-**Files:** Output `images/hero.mp4`.
+**Files:** Output `images/hero.mp4`. Configure render output dir.
 
 **Step 1: Failing check** — `test ! -f images/hero.mp4 && echo FAIL`.
 
 **Step 2: Render**
-Run: `cd motion && npx remotion render SpineCollapse ../images/hero.mp4 --codec h264`
+The Motion Canvas CLI renders to `motion/output/` by default. Render then move:
+```
+cd motion
+npm run render -- --output ../images/hero.mp4
+```
+(If the project's `package.json` `render` script doesn't accept `--output`, render to default location and `mv motion/output/*.mp4 images/hero.mp4`.)
+
+Render uses ffmpeg under the hood — must be on PATH (already installed for VHS).
 
 **Step 3: Verify**
 Run: `test -f images/hero.mp4 && file images/hero.mp4 | grep -qi 'mp4\|MPEG' && echo PASS`. Size budget < 4 MB.
 
-**Step 4:** Commit `feat(motion): render hero.mp4 (SpineCollapse, 6s)`.
+**Step 4:** Commit `feat(motion): render hero.mp4 (spineCollapse, 6s)`.
 
 ---
 
-### Task 6.4: Render hero GIF (web-optimized fallback)
+### Task 6.4: Convert hero MP4 → GIF (web-optimized fallback)
 
-**Files:** Output `images/hero.gif`.
+**Files:** Output `images/hero.gif`. Tool: `ffmpeg` + optional `gifsicle` for compression.
 
 **Step 1: Failing check** — `test ! -f images/hero.gif && echo FAIL`.
 
-**Step 2: Render**
-Run: `cd motion && npx remotion render SpineCollapse ../images/hero.gif --codec gif --width 800`
+**Step 2: Two-pass GIF conversion (palette-aware, much smaller files than naive ffmpeg)**
+```
+ffmpeg -y -i images/hero.mp4 -vf "fps=15,scale=800:-1:flags=lanczos,palettegen" /tmp/hero-palette.png
+ffmpeg -y -i images/hero.mp4 -i /tmp/hero-palette.png -filter_complex "fps=15,scale=800:-1:flags=lanczos[x];[x][1:v]paletteuse" images/hero.gif
+```
 
 **Step 3: Verify size budget < 2 MB**
 Run: `test -f images/hero.gif && [ "$(wc -c < images/hero.gif)" -lt 2097152 ] && echo PASS`
-If over budget: drop `--width` to 640 and re-render, or run `gifsicle -O3 --colors 64 images/hero.gif -o images/hero.gif`.
+If over budget: drop scale to `640:-1` and re-run both ffmpeg commands, or post-process with `gifsicle -O3 --colors 64 images/hero.gif -o images/hero.gif`.
 
-**Step 4:** Commit `feat(motion): render hero.gif (web-optimized, <2 MB)`.
+**Step 4:** Commit `feat(motion): convert hero.mp4 to web-optimized hero.gif (<2 MB)`.
 
 ---
 
@@ -978,14 +989,14 @@ Expected: `FAIL`.
 **Step 2: Append to `.gitignore`**
 ```
 motion/node_modules/
-motion/out/
-motion/.remotion/
+motion/output/
+motion/dist/
 ```
 
 **Step 3: Verify**
-Run: `grep -q "motion/node_modules" .gitignore && grep -q "motion/out" .gitignore && echo PASS`.
+Run: `grep -q "motion/node_modules" .gitignore && grep -q "motion/output" .gitignore && echo PASS`.
 
-**Step 4:** Commit `chore: ignore Remotion build artifacts`.
+**Step 4:** Commit `chore: ignore Motion Canvas build artifacts`.
 
 ---
 
@@ -996,24 +1007,29 @@ Run: `grep -q "motion/node_modules" .gitignore && grep -q "motion/out" .gitignor
 **Step 1: Failing check** — file missing.
 
 **Step 2: Write minimal doc**
-```markdown
-# Hero animation (Remotion)
+````markdown
+# Hero animation (Motion Canvas)
 
-`SpineCollapse` — 6s, 30fps, 1280×720. Jumbled `~/.claude/agents/` files collapse into a vertical spine of ten labeled skills.
+`spineCollapse` scene — 6s, 60fps, 1920×1080. Jumbled `~/.claude/agents/` files collapse into a vertical spine of ten labeled skills.
 
 ## Re-render
 
 ```
 cd motion
 npm install
-npx remotion render SpineCollapse ../images/hero.mp4 --codec h264
-npx remotion render SpineCollapse ../images/hero.gif --codec gif --width 800
+npm run render -- --output ../images/hero.mp4
+
+# Then convert MP4 → web-optimized GIF
+ffmpeg -y -i ../images/hero.mp4 -vf "fps=15,scale=800:-1:flags=lanczos,palettegen" /tmp/hero-palette.png
+ffmpeg -y -i ../images/hero.mp4 -i /tmp/hero-palette.png \
+  -filter_complex "fps=15,scale=800:-1:flags=lanczos[x];[x][1:v]paletteuse" \
+  ../images/hero.gif
 ```
 
 ## Licensing
 
-Remotion is free for individuals and orgs with <4 engineers. If your org is larger, fork into Motion Canvas before re-rendering.
-```
+Motion Canvas is MIT — free forever, no engineer-count strings. Fork it, re-render, ship — no license check.
+````
 
 **Step 3:** Verify file exists and contains `Re-render`. Commit `docs(motion): document hero re-render workflow`.
 
@@ -1152,7 +1168,7 @@ Expected: exits 0 with `validate: positioning assets OK` printed.
 1. **VHS install method varies by host OS** — task 4.1 lists three alternatives; the operator picks one. No CI required (gifs are checked in).
 2. **mcp-hfspace + FLUX.1-Krea-dev availability** — assumed working on HuggingFace ZeroGPU at execution time. If quota-blocked, retry per design doc §Visual Identity Workstream caveat. No fallback tool wired in (per "tools locked" instruction).
 3. **vtracer install** — assumed available via `cargo install` or prebuilt binary. Listed inside task 5.5; not preinstalled.
-4. **Remotion licensing** — single-maintainer repo qualifies for the free tier. Caveat documented in `motion/README.md` per design doc.
+4. **Motion Canvas licensing** — MIT, no licensing caveat. Swapped from Remotion 2026-04-13 after web-search re-check.
 5. **Asset size budgets** — hero gif < 2 MB, scene gifs < 2 MB each, banner < 500 KB, logo SVG < 50 KB. If exceeded, the task notes the mitigation (gifsicle, pngquant, lower width).
 6. **No version bump** — design doc explicitly states this is copy + assets only. If the user wants a 2.3.1 patch tag, that is a separate one-task follow-up (not included).
 7. **Banner is optional** — the assembly task notes the banner can be omitted if it duplicates the hero animation visually. Decision deferred to T7.1 visual diff.

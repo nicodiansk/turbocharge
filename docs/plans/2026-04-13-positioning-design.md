@@ -136,19 +136,17 @@ Then at `https://huggingface.co/mcp/settings`, add `mcp-tools/FLUX.1-Krea-dev` t
 - Evokes structure + restraint, not power + scale
 - Explicitly negative prompt: "glossy, chrome, metallic, futuristic, swirling energy, neural network, glowing, holographic"
 
-### (c) 6-second hero animation — **Remotion** (locked)
+### (c) 6-second hero animation — **Motion Canvas** (locked, swapped from Remotion 2026-04-13)
 
 **In scope for v3.** Hero block sits above the tagline; a 6-second looping animation sells the "spine" metaphor in motion before the reader reads a word. Concept brief: a `~/.claude/agents/` jumble of files collapses/folds/aligns into a single vertical spine of ten labeled segments (the ten skills). No narration, no text overlay — just the visual transformation.
 
-**Tool choice: Remotion** — chosen by user 2026-04-13 for DX and ecosystem.
-
-**Licensing note (not a blocker for this repo):** Remotion is free for individuals and organizations with <4 engineers. Solo-maintained today — qualifies. Flagged for any future contributor who might re-render the animation on behalf of a larger org; if turbocharge ever gets adopted by a company with ≥4 engineers, they'd need a Remotion license to re-render or can fork into Motion Canvas.
+**Tool choice: Motion Canvas** — swapped from Remotion after 2026-04-13 web-search re-check. Motion Canvas is **MIT, free forever, no engineer-count strings**; Remotion is source-available and requires a paid license for orgs with ≥4 engineers. Motion Canvas's imperative generator-based timeline API also fits the three-phase animation (jumble → collapse → hold) more naturally than Remotion's per-frame interpolation.
 
 **Install:**
 ```bash
-npx create-video@latest motion --default remotion
+npm init @motion-canvas@latest motion
 ```
-Project lives in `motion/` at repo root. Renders to `images/hero.gif` + `images/hero.mp4` via `npx remotion render`.
+Project lives in `motion/` at repo root. Renders MP4 via the Motion Canvas editor or `npm run render`; GIF is produced by post-processing the MP4 with `ffmpeg` (already installed for VHS).
 
 **Output:** `images/hero.gif` (web-optimized, <2 MB) + `images/hero.mp4` (fallback for high-DPI renders). Embedded at the very top of the README, above `# Turbocharge`.
 
@@ -158,14 +156,14 @@ Project lives in `motion/` at repo root. Renders to `images/hero.gif` + `images/
 |------------|------|-----------|
 | Scene gifs | **VHS** (Charmbracelet) | MIT, fully OSS |
 | Logo / banner | **`mcp-hfspace`** + FLUX.1-Krea-dev | Free via HF ZeroGPU |
-| Hero animation | **Remotion** | Free for individuals & orgs <4 engineers |
+| Hero animation | **Motion Canvas** | MIT, free forever (no engineer-count strings) |
 
 ---
 
 ## Open Decisions (deferred — not blocking plan/story)
 
 1. ~~**MCP image generator pick**~~ — **Locked 2026-04-13:** `mcp-hfspace` + FLUX.1-Krea-dev.
-2. ~~**Hero animation tool pick**~~ — **Locked 2026-04-13:** Remotion (user decision; licensing caveat noted for future adopters).
+2. ~~**Hero animation tool pick**~~ — **Locked 2026-04-13:** Motion Canvas (swapped from Remotion same day after 2026 web-search re-check confirmed Motion Canvas is the only fully-MIT free option; removes the licensing caveat for future adopters).
 3. **Logo style** — abstract spine (recommended), literal anatomical spine (bold), typographic wordmark (safe). Iterate during the logo-generation task.
 4. **VHS theme** — default Charm theme vs custom matching the logo palette. Decide after logo lands so they're coherent.
 5. **Whether to add a 6th scene for `/ship`** — current 5 scenes skew toward `build`, `wrap`, `debug`. `ship` / `plan` / `story` are underrepresented. Possible add: *"The Stalled PR"* — but risks bloating the narrative spine. Default: ship with 5.
@@ -209,7 +207,7 @@ Ready for `/turbocharge:story` to break this into INVEST-compliant stories, then
 3. **With/Without + What You Get copy** — rewrite remaining sections.
 4. **VHS setup + 5 tapes + gif generation** — tool install, tape authoring, rendering.
 5. **Logo generation via MCP** — install one MCP image tool (HuggingFace or Gemini-free), iterate to final logo + banner, drop into README.
-6. **Hero animation via Motion Canvas** — scaffold project in `motion/`, author the spine-collapse animation, render to `images/hero.gif` + `images/hero.mp4`.
+6. **Hero animation via Motion Canvas** — scaffold project in `motion/`, author the spine-collapse scene, render to `images/hero.mp4` then convert to `images/hero.gif` via ffmpeg.
 7. **Final README assembly + polish pass** — stitch copy + assets, verify links/images render on GitHub.
 
 Stories 1–3 are purely text (unblocked). Stories 4–6 are asset workstreams that run in parallel to 1–3 and merge at story 7. All tools free.
