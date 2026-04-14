@@ -135,6 +135,15 @@ for f in README.md LICENSE settings.json hooks/hooks.json .gitignore; do
 done
 echo ""
 
+# 6. Content-shape tests
+echo "--- Content-Shape Tests ---"
+if bash "$PLUGIN_DIR/scripts/tests/run.sh"; then
+    pass "content-shape tests passed"
+else
+    error "content-shape test(s) failed"
+fi
+echo ""
+
 # Summary
 echo "=== Summary ==="
 if (( ERRORS == 0 )); then
