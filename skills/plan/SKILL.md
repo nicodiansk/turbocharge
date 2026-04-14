@@ -24,10 +24,14 @@ Every plan MUST start with:
 
 ## Context Gathering
 
-Before planning, check for domain context:
-- If `ATLAS.md` exists in the project root, read it for domain model, entry points, and module purposes
-- If `CLAUDE.md` exists, read it for conventions and rules
-- These inform task design — use correct entity names, file paths, and architectural patterns
+Before planning, preload domain context. When dispatching the planner agent, prefix its prompt with:
+
+```
+@ATLAS.md (navigation index — use its Where to Look and Module Map tables before any codebase search)
+@CLAUDE.md (conventions, rules, domain vocabulary)
+```
+
+If either file does not exist, omit the corresponding `@` reference. These inform task design — use correct entity names, file paths, and architectural patterns. `@` references auto-read on dispatch so the subagent receives them in context; subagents do NOT inherit parent conversation history.
 
 ## Task Structure
 
