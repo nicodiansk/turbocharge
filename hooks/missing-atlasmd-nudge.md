@@ -1,3 +1,3 @@
 ## No ATLAS.md Detected
 
-This project has no `ATLAS.md` domain map. Suggest the user run `/turbocharge:atlas` to generate one.
+Suggest `/turbocharge:atlas` to generate one. When present, ATLAS.md is pre-loaded into context on every session so navigation lookups cost zero tool calls.
