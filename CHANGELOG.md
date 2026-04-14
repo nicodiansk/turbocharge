@@ -1,5 +1,33 @@
 # Changelog
 
+## [2.4.0] - 2026-04-14
+
+ATLAS becomes core navigation layer; CLAUDE.md bootstrap gets a coherent chain.
+
+### Added
+- ATLAS pre-load: SessionStart hook cats `ATLAS.md` (if present) into context every session — navigation lookups cost zero tool calls after turn 1.
+- Session snapshot: `/wrap` writes `.claude/turbocharge-session.json`; SessionStart cats it for zero-tool-call resume.
+- `CLAUDE.md bootstrap` phase in `/turbocharge:setup` — auto-detects language/test command/package manager, asks ≤5 skippable questions, writes HTML-comment-delimited idempotent blocks.
+- `templates/CLAUDE-turbocharge.md` — default values for the setup interview.
+- `scripts/validate-atlas.sh` — ATLAS.md format check; wired into `scripts/validate.sh`.
+- `scripts/tests/` — shell-based content-shape test harness.
+- Memory discipline in `/wrap`: confidence+source metadata on bullets, 200-line cap with prune-before-build, session snapshot JSON.
+
+### Changed
+- ATLAS.md format reshaped to lookup-first tables (Where to Look, Entry Points, Module Map, Key Symbols, Integration Points, Conventions & Gotchas). Data Flows / Domain Model / Active Work sections removed.
+- `planner`, `researcher`, `code-reviewer` agents now explicitly read ATLAS.md before exploration.
+- `/turbocharge:plan` and `/turbocharge:review` inject `@ATLAS.md` + `@CLAUDE.md` into subagent dispatch prompts (subagents do not inherit parent history).
+- `/turbocharge:build` injects `@CLAUDE.md` into builder/reviewer dispatches; only the on-demand researcher sub-dispatch gets `@ATLAS.md`.
+- `hooks/missing-claudemd-nudge.md` tightened from 30 lines of manual copy-paste to a 2-line `/init → /turbocharge:setup` chain.
+- `hooks/missing-atlasmd-nudge.md` tightened; notes pre-load behavior.
+- `CLAUDE.md` (this repo) demoted inaccurate ATLAS claim to match new pre-load+dispatch-inject wording.
+
+### Removed
+- `PreToolUse` Read hook + `hooks/pretool-read-codemap.sh` — redundant once ATLAS is pre-loaded on every session.
+
+### Migration
+- Existing users: re-run `/turbocharge:atlas` to regenerate ATLAS.md in the new lookup-first format. Old ATLAS files still work but won't match the expected headers.
+
 ## [2.3.0] - 2026-04-13
 
 Single-repo distribution — plugin and marketplace manifest now live together.
