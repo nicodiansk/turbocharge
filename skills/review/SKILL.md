@@ -22,6 +22,15 @@ NO MERGE WITHOUT CODE REVIEW
 
 The plan or requirements being reviewed: $ARGUMENTS
 
+Dispatch the code-reviewer agent with this prefix so the subagent sees the navigation index (subagents do not inherit parent history):
+
+```
+@ATLAS.md (navigation index — use Module Map + Key Symbols to locate touched modules)
+@CLAUDE.md (conventions, rules)
+```
+
+Omit either reference if the file doesn't exist.
+
 ## Your Review
 
 1. Get the git diff:
