@@ -17,6 +17,7 @@ Transform clear requirements into a plan with bite-sized, implementable tasks.
 
 ### Verify Domain Understanding First (MANDATORY)
 Before writing any plan:
+0. **Read ATLAS.md first** — if `ATLAS.md` exists in the project root, read it before exploring. Its Where-to-Look table maps intent→file and saves token-expensive searches. Treat it as the navigation index for this project.
 1. **Read the codebase** — find exact entity names, class names, file paths. Never assume.
 2. **Map entity relationships** — which model owns which fields? Verify by reading the code, not guessing.
 3. **Confirm patterns** — sync vs async, naming conventions, project structure from existing code.
