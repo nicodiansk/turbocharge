@@ -27,10 +27,10 @@ Local dev: `claude --plugin-dir ./turbocharge`
 
 ```
 brainstorm → story → plan → build → review → ship
-                                  ↑               |
-                                debug            wrap
-                                  ↑
-                                atlas (any point)
+                                 ↑                          |
+                               debug                       wrap
+
+                        atlas (run any time)
 ```
 
 Enter at any step. Each skill gates the next.
