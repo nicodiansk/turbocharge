@@ -56,6 +56,7 @@ Spawn builder subagent with:
 - Task number and full task text from plan
 - Context: where this task fits, what's already done, architecture
 - Working directory
+- Prefix the builder's dispatch prompt with `@CLAUDE.md` (conventions). Do NOT inject `@ATLAS.md` here — builders read the spec and diff, not the navigation index.
 
 ### 3b. Dispatch Spec Reviewer
 After builder reports back, spawn spec-reviewer subagent with:
@@ -73,9 +74,12 @@ After spec passes, spawn quality-reviewer subagent with:
 
 **If critical issues found:** Send back to builder for fixes, re-review quality. **Max 2 review cycles per task** — escalate to user if unresolved.
 
-### 3d. Mark Task Complete
+### 3d. Dispatch Researcher (on demand)
+If the builder blocks on unclear context, dispatch the researcher with `@ATLAS.md @CLAUDE.md` prefixed. Subagents do not inherit parent history — `@ATLAS.md` must ride on the dispatch prompt itself.
 
-### 3e. After Batch (every 3 tasks)
+### 3e. Mark Task Complete
+
+### 3f. After Batch (every 3 tasks)
 
 Report to human:
 - What was implemented in this batch
