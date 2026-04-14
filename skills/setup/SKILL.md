@@ -92,11 +92,56 @@ Scan `~/.claude/rules/common/` for rules that conflict with turbocharge's iron l
 
 **Action:** List missing rules and offer to add them.
 
-### 7. Check for Project Atlas
+## CLAUDE.md Phase
 
-Check if `ATLAS.md` exists in the project root:
-- **Exists:** pass "ATLAS.md found — domain map available"
-- **Missing:** suggest "No ATLAS.md found — run `/turbocharge:atlas` to generate a domain map for faster context gathering"
+Run this phase after the conflict audit completes and before the final report.
+
+### 1. Auto-Detect (no questions)
+
+Probe the project root for these files and extract values:
+
+| Signal | Inspect | Extract |
+|--------|---------|---------|
+| `package.json` | `scripts.test`, `scripts.lint`, top-level `name` | test command, lint command, project name |
+| `pyproject.toml` | `[tool.poetry]`, `[project]`, `[tool.pytest.ini_options]` | language (Python), test framework |
+| `Cargo.toml` | `[package].name`, `[dev-dependencies]` | language (Rust), test runner |
+| `go.mod` | `module` line | language (Go), module path |
+| `pnpm-lock.yaml` / `yarn.lock` / `package-lock.json` | presence | package manager |
+| Primary entry | `src/index.*`, `main.*`, `cmd/*/main.go` | entry-point file |
+
+Do not ask the user about anything detectable.
+
+### 2. Interview (≤5 questions, each skippable)
+
+Ask at most these five, each with `[skip]` producing the template default:
+
+1. **Test discipline** — Strict TDD / Tests-alongside / Tests-when-reasonable
+2. **File-header convention** — ABOUTME / JSDoc-style / None
+3. **Naming style** — camelCase / snake_case / mixed-by-language
+4. **Debug protocol strictness** — Always 4-phase / Non-trivial only
+5. **Project-specific domain terms** — free text; empty skips the block
+
+The interview must be completable in under 90 seconds.
+
+### 3. Render and Append
+
+Read `${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE-turbocharge.md`. Substitute answers (test command, naming style, file-header convention, domain terms). Each block is delimited by `<!-- turbocharge:NAME -->` and `<!-- /turbocharge:NAME -->`.
+
+- If CLAUDE.md exists and contains a block with the same marker → replace between markers, leave surrounding content untouched.
+- If CLAUDE.md exists and does not contain that block → append to end of file.
+- If CLAUDE.md does not exist → suggest `/init` first, do not create a bare CLAUDE.md from the template alone.
+
+### 4. Show Diff, Confirm, Write
+
+Always show the diff and ask for confirmation before writing. Never modify CLAUDE.md silently.
+
+### 5. Size Guard
+
+After writing, if CLAUDE.md exceeds 180 lines, warn the user and suggest extracting personal rules to `~/.claude/CLAUDE.md`.
+
+### 6. Chain Forward
+
+If ATLAS.md does not exist, offer: `/turbocharge:atlas` to generate the navigation index. This closes the bootstrap loop: `/init → /turbocharge:setup → /turbocharge:atlas`.
 
 ## Report Format
 
