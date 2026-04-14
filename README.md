@@ -48,28 +48,34 @@ _(After)_ `/turbocharge:debug` forces a four-phase root-cause investigation befo
 
 ## 📦 Install
 
-```bash
+Open Claude Code and run these commands **in order inside the Claude Code REPL** (not your shell — these are Claude Code CLI commands):
+
+```
+# 1. Register the marketplace repo
 claude plugin marketplace add nicodiansk/turbocharge
+
+# 2. Install the plugin
 claude plugin install turbocharge@turbocharge
-```
 
-First run:
+# 3. Restart Claude Code to load the plugin
+# (exit and re-open, or start a new session)
 
-```
+# 4. First-run setup — audits your config for conflicts
 /turbocharge:setup
 ```
 
-`setup` audits your global config for conflicting agents/skills and offers to clean them up. Run it once.
+`setup` checks `~/.claude/agents/` for overlapping agents, audits global rules, and (new in v2.4.0) bootstraps `CLAUDE.md` with project-specific convention blocks via a short interview.
 
-Update later:
+### Update
 
-```bash
+```
 claude plugin update turbocharge@turbocharge
 ```
 
-Or load locally for plugin development:
+### Local Development
 
 ```bash
+# Load plugin from a local directory (run from your shell, not the REPL)
 claude --plugin-dir ./turbocharge
 ```
 
@@ -145,10 +151,9 @@ Enter at any step. Each skill gates the next — review before ship, root-cause 
 | `quality-reviewer` | Categorized code quality issues. Blocks completion on CRITICAL. |
 | `code-reviewer` | Holistic pre-merge pass against the original plan. |
 
-**🪝 Three hooks** — fire on lifecycle events, not on request:
+**🪝 Two hooks** — fire on lifecycle events, not on request:
 
-- `SessionStart` — bootstraps context, flags missing `CLAUDE.md` / `ATLAS.md`.
-- `PreToolUse` on `Read` — nudges `.codemap/` usage when an index exists.
+- `SessionStart` — bootstraps context, pre-loads `ATLAS.md` into context (zero-tool-call navigation), loads session snapshot from `/wrap`, flags missing `CLAUDE.md` / `ATLAS.md`.
 - `Stop` — reminds you to `/wrap` before the session ends.
 
 ---
