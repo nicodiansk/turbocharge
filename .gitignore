@@ -9,8 +9,8 @@ docs/reddit-post.md
 # Report data (private usage analytics)
 report.html
 
-# Local plugin settings
-.claude/
+# Turbocharge session snapshot (per-user, zero-tool-call resume)
+.claude/turbocharge-session.json
 
 # Codemap index (local, auto-generated)
 .codemap/
