@@ -1,21 +1,29 @@
 #!/usr/bin/env bash
-# ABOUTME: SessionStart hook script for turbocharge plugin.
-# ABOUTME: Outputs bootstrap content, checks for missing CLAUDE.md and ATLAS.md.
-
+# ABOUTME: SessionStart hook — bootstrap cat, pre-load ATLAS.md + session snapshot.
+# ABOUTME: Pre-loading ATLAS means zero tool calls for "where is X" lookups.
 set -e
-
 HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-# Always output the bootstrap content
 cat "$HOOK_DIR/session-bootstrap.md"
 
-# Working directory is the user's project root at hook execution time
+if [ -f "ATLAS.md" ]; then
+    echo ""
+    echo "--- ATLAS.md (pre-loaded for zero-tool-call navigation) ---"
+    cat "ATLAS.md"
+    echo "--- end ATLAS.md ---"
+else
+    echo ""
+    cat "$HOOK_DIR/missing-atlasmd-nudge.md"
+fi
+
+if [ -f ".claude/turbocharge-session.json" ]; then
+    echo ""
+    echo "--- Session snapshot (previous /wrap) ---"
+    cat ".claude/turbocharge-session.json"
+    echo "--- end snapshot ---"
+fi
+
 if [ ! -f "CLAUDE.md" ]; then
     echo ""
     cat "$HOOK_DIR/missing-claudemd-nudge.md"
-fi
-
-if [ ! -f "ATLAS.md" ]; then
-    echo ""
-    cat "$HOOK_DIR/missing-atlasmd-nudge.md"
 fi
