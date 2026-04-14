@@ -1,6 +1,6 @@
 ---
 name: atlas
-description: Generate or update a semantic domain map (ATLAS.md) for the project. Maps entry points, data flows, domain model, module purposes, and integration points. Complements codemap's structural index with the domain knowledge layer.
+description: Generate or update a semantic domain map (ATLAS.md) for the project. Maps where to look, entry points, module purposes, key symbols, and integration points. Complements codemap's structural index with the domain knowledge layer.
 ---
 
 # Atlas — Project Domain Map
@@ -101,7 +101,7 @@ Last updated: YYYY-MM-DD
 
 ATLAS.md contains **facts about the project**. Do not include:
 - Rules or instructions for Claude → CLAUDE.md
-- Symbol-level indexes (classes, functions, line ranges) → codemap
+- Exhaustive symbol indexes (every class/function) → codemap; Key Symbols is a curated top-30 heuristic, not a full AST dump
 - Full code snippets → reference by `file:line` path
 - Git history → `git log`
 - Dependency version lists → `package.json` / `requirements.txt`
