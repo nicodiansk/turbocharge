@@ -52,64 +52,50 @@ Create `ATLAS.md` in the project root following the format in Step 4.
 
 Last updated: YYYY-MM-DD
 
-## Project Identity
+## Where to Look
 
-| Attribute | Value |
-|-----------|-------|
-| Description | One-line what this project does |
-| Language | Primary language(s) |
-| Framework | Primary framework(s) |
-| Repo | Monorepo / single-service / library |
+| I want to... | Open | Why |
+|--------------|------|-----|
+| [Intent phrased as user goal] | `path/to/file` | One-line why this is the right file |
 
 ## Entry Points
 
-| Entry | File | Type | Purpose |
-|-------|------|------|---------|
-| Main | `path/to/main.py` | CLI / API / Job | What it starts |
+| File | Role | Starts |
+|------|------|--------|
+| `path/to/main` | CLI / API / Job / Hook | What it boots |
 
-## Domain Model
+## Module Map
 
-| Entity | Definition | Key Relationships |
-|--------|-----------|-------------------|
-| EntityName | What it represents | → Related, → Other |
+| Directory | One-line purpose | Key files |
+|-----------|------------------|-----------|
+| `src/module/` | What this module does | `important.ext`, `other.ext` |
 
-## Data Flows
+## Key Symbols
 
-### [Flow Name]
-```
-source → step1 (what happens) → step2 (what happens) → destination
-```
+(20-30 most-referenced; heuristic, not AST-exhaustive.)
 
-### [Another Flow]
-```
-trigger → process → output
-```
-
-## Module Directory
-
-| Directory | Purpose | Key Files |
-|-----------|---------|-----------|
-| `src/module/` | What this module does | `important.py`, `other.py` |
+| Symbol | File:line-range | Kind |
+|--------|-----------------|------|
+| `SymbolName` | `path/to/file:10-42` | class / function / const |
 
 ## Integration Points
 
-| System | Type | Config | Purpose |
-|--------|------|--------|---------|
-| ServiceName | API / DB / Queue / Blob | `ENV_VAR` or config path | What it's used for |
+| System | Config key | Path |
+|--------|------------|------|
+| ServiceName | `ENV_VAR` | `path/to/client` |
 
 ## Conventions & Gotchas
 
-- [Non-obvious pattern, naming convention, or trap that isn't in CLAUDE.md]
-- [Things that look wrong but are intentional]
-- [Gotcha that has burned people before]
+- [Non-obvious trap that burned someone]
+- [Intentional-looking-wrong pattern]
 
-## Active Work & Known Issues
-
-- [Current pain point or in-progress migration]
-- [Tech debt item with context on why it exists]
-
-<!-- Prefix manual notes with 📌 to preserve them during atlas updates -->
+<!-- 📌-prefixed lines are manual notes, preserved across atlas updates -->
 ````
+
+**Constraint:** every section above is a table or bullet list. No prose paragraphs.
+
+**Removed from prior format:** Data Flows (prose arrows), Domain Model (→ CLAUDE.md), Active Work & Known Issues.
+**Added:** Where to Look (intent→file), Key Symbols (heuristic).
 
 ## What NOT to Include
 
