@@ -198,7 +198,7 @@ Applied to entries `/wrap` writes to `~/.claude/projects/<project>/memory/*.md`.
 `/wrap` trims oldest + lowest-confidence entries first. Matches "CLAUDE.md under 200 lines" guidance from 2026 best practices.
 
 **#3 — Session snapshot JSON**
-`/wrap` persists `~/.claude/projects/<project>/memory/_session.json`:
+`/wrap` persists `.claude/turbocharge-session.json` in the project root (the standard Claude Code project-state dir — same place `.claude/settings.json` lives; `turbocharge-` prefix namespaces it away from native settings files). Added to `.gitignore` as a specific file — do NOT exclude all of `.claude/`, because `settings.json` is team-shared.
 ```json
 {
   "date": "2026-04-14",
@@ -209,7 +209,7 @@ Applied to entries `/wrap` writes to `~/.claude/projects/<project>/memory/*.md`.
   "open_files": ["skills/atlas/SKILL.md"]
 }
 ```
-SessionStart hook cats this after ATLAS for zero-tool-call resume.
+SessionStart hook cats this after ATLAS for zero-tool-call resume. Hook access via cwd-relative `.claude/turbocharge-session.json` (idiomatic; `$CLAUDE_PROJECT_DIR` is the canonical env var and available in SessionStart hooks if cwd-relative ever becomes unreliable).
 
 **Skipped:**
 - Dedup via content hash (#4) — marginal at plugin scale, revisit v2.5
