@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.5.1] - 2026-04-15
+
+Token waste fix for planner and researcher agents.
+
+### Changed
+- `planner.md`: replaced "read ATLAS.md first" with "do NOT re-read @-referenced files" — eliminates redundant ATLAS.md read on every plan invocation.
+- `researcher.md`: same "do not re-read @-referenced files" instruction.
+- `skills/plan/SKILL.md`: added token discipline rule — dispatch sends paths and line ranges only, not file contents (matches build skill pattern from v2.5.0).
+
 ## [2.5.0] - 2026-04-15
 
 ATLAS gets smarter; token overhead trimmed.
