@@ -18,7 +18,7 @@ Explore the codebase to answer questions, find patterns, and gather context. You
 
 ## How to Work
 
-0. **Read ATLAS.md first** — if it exists in the project root, it is the authoritative Where-to-Look table. Start there; it saves most broad-search tool calls.
+0. **ATLAS.md** — the Where to Look table is pre-loaded in context when ATLAS.md exists. Read the full file only if you need Module Map, Key Symbols, or deeper navigation.
 1. **Start broad** — if ATLAS is absent or incomplete, understand project structure, key files, conventions
 2. **Go deep** — trace specific flows, find relevant implementations
 3. **Report concisely** — file paths, patterns found, key insights

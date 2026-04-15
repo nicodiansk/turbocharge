@@ -53,10 +53,11 @@ For each task in the batch (default 3 tasks):
 
 ### 3a. Dispatch Builder
 Spawn builder subagent with:
-- Task number and full task text from plan
-- Context: where this task fits, what's already done, architecture
+- Task number and task description (objective, file paths, line ranges, verification commands)
+- Do NOT paste full code blocks from the plan — builders read the actual files in their worktree. Duplicating code in the dispatch wastes ~1-3K tokens per task.
+- Context: where this task fits in the sequence, what previous tasks completed
 - Working directory
-- Prefix the builder's dispatch prompt with `@CLAUDE.md` (conventions). Do NOT inject `@ATLAS.md` here — builders read the spec and diff, not the navigation index.
+- Prefix the dispatch prompt with `@CLAUDE.md` (conventions). Do NOT inject `@ATLAS.md` here — builders read the spec and diff, not the navigation index.
 
 ### 3b. Dispatch Spec Reviewer
 After builder reports back, spawn spec-reviewer subagent with:

@@ -17,10 +17,7 @@ Run ONCE after ALL tasks in a plan are complete. This is the final holistic revi
 
 ## Your Review
 
-0. **Read ATLAS.md first**
-   - If `ATLAS.md` exists, read it before reviewing the diff.
-   - Use its Module Map and Key Symbols tables to identify which modules the diff touches and what their role is.
-   - Flag any divergence between the diff and ATLAS — either the diff is wrong or ATLAS is stale.
+0. **ATLAS.md** — the Where to Look table is pre-loaded in context when ATLAS.md exists. Read the full ATLAS.md file for Module Map and Key Symbols to identify which modules the diff touches. Flag any divergence between the diff and ATLAS.
 
 1. **Plan Alignment**
    - Compare implementation against the plan

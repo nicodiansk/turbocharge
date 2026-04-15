@@ -92,6 +92,20 @@ Scan `~/.claude/rules/common/` for rules that conflict with turbocharge's iron l
 
 **Action:** List missing rules and offer to add them.
 
+### 7. Check for Global Rules / Turbocharge Overlap
+
+Scan `~/.claude/rules/common/` for files that duplicate what turbocharge skills already enforce:
+
+| Global Rule File | Overlaps With | Recommendation |
+|------------------|---------------|----------------|
+| `agents.md` | turbocharge pipeline (SessionStart bootstrap) | Keep only the "Primary System: Turbocharge Plugin" header + pipeline table. Remove agent dispatch details — turbocharge skills handle dispatch. |
+| `development-workflow.md` | turbocharge:plan, turbocharge:build | Remove TDD steps and plan-first sections — builder.md and planner.md enforce these. Keep only git workflow and research steps. |
+| `testing.md` | builder.md TDD mandate | Remove TDD workflow section — builder.md is the single source. Keep coverage targets and test types. |
+
+**Action:** For each overlap found, show the user what's duplicated and offer to trim. Don't delete files — trim the overlapping sections and keep unique content.
+
+**Why this matters:** Every global rule file is loaded into context on every turn (~4 bytes/token). Duplicate instructions between rules and turbocharge skills waste ~2,000 tokens per session and can cause conflicting guidance.
+
 ## CLAUDE.md Phase
 
 Run this phase after the conflict audit completes and before the final report.

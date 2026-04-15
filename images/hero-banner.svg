@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" width="1200" height="400">
+  <defs>
+    <linearGradient id="pipeGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="50%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <linearGradient id="lineGlow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0.6"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="400" fill="#0d1117"/>
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.04">
+    <line x1="0" y1="0" x2="0" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="60" y1="0" x2="60" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="120" y1="0" x2="120" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="180" y1="0" x2="180" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="240" y1="0" x2="240" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="300" y1="0" x2="300" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="360" y1="0" x2="360" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="420" y1="0" x2="420" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="480" y1="0" x2="480" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="540" y1="0" x2="540" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="600" y1="0" x2="600" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="660" y1="0" x2="660" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="720" y1="0" x2="720" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="780" y1="0" x2="780" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="840" y1="0" x2="840" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="900" y1="0" x2="900" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="960" y1="0" x2="960" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="1020" y1="0" x2="1020" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="1080" y1="0" x2="1080" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="1140" y1="0" x2="1140" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="1200" y1="0" x2="1200" y2="400" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="0" y1="60" x2="1200" y2="60" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="0" y1="120" x2="1200" y2="120" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="0" y1="180" x2="1200" y2="180" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="0" y1="240" x2="1200" y2="240" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="0" y1="300" x2="1200" y2="300" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="0" y1="360" x2="1200" y2="360" stroke="#58a6ff" stroke-width="0.5"/>
+  </g>
+
+  <!-- Title -->
+  <text x="600" y="105" text-anchor="middle" fill="#e6edf3" font-family="'SF Mono', 'Fira Code', 'Cascadia Code', monospace" font-size="48" font-weight="700" letter-spacing="6">turbocharge</text>
+  <text x="600" y="140" text-anchor="middle" fill="#8b949e" font-family="'SF Mono', 'Fira Code', monospace" font-size="16" letter-spacing="1">One plugin. One pipeline. No conflicts.</text>
+
+  <!-- Pipeline flow — main line glow -->
+  <line x1="170" y1="220" x2="1030" y2="220" stroke="url(#lineGlow)" stroke-width="2" filter="url(#softGlow)" opacity="0.3"/>
+
+  <!-- Pipeline nodes -->
+  <!-- brainstorm -->
+  <rect x="148" y="202" width="100" height="36" rx="6" fill="#3b82f6" opacity="0.15" stroke="#3b82f6" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="198" y="225" text-anchor="middle" fill="#3b82f6" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" font-weight="500">brainstorm</text>
+
+  <!-- arrow -->
+  <line x1="252" y1="220" x2="278" y2="220" stroke="#30363d" stroke-width="1.5"/>
+  <polygon points="278,216 286,220 278,224" fill="#30363d"/>
+
+  <!-- story -->
+  <rect x="290" y="202" width="72" height="36" rx="6" fill="#4f6df7" opacity="0.15" stroke="#4f6df7" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="326" y="225" text-anchor="middle" fill="#4f6df7" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" font-weight="500">story</text>
+
+  <!-- arrow -->
+  <line x1="366" y1="220" x2="392" y2="220" stroke="#30363d" stroke-width="1.5"/>
+  <polygon points="392,216 400,220 392,224" fill="#30363d"/>
+
+  <!-- plan -->
+  <rect x="404" y="202" width="64" height="36" rx="6" fill="#6366f1" opacity="0.15" stroke="#6366f1" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="436" y="225" text-anchor="middle" fill="#6366f1" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" font-weight="500">plan</text>
+
+  <!-- arrow -->
+  <line x1="472" y1="220" x2="498" y2="220" stroke="#30363d" stroke-width="1.5"/>
+  <polygon points="498,216 506,220 498,224" fill="#30363d"/>
+
+  <!-- build (highlighted) -->
+  <rect x="510" y="198" width="72" height="44" rx="7" fill="#7c3aed" opacity="0.2" stroke="#7c3aed" stroke-width="1.5" stroke-opacity="0.6"/>
+  <text x="546" y="225" text-anchor="middle" fill="#7c3aed" font-family="'SF Mono', 'Fira Code', monospace" font-size="13" font-weight="600">build</text>
+
+  <!-- debug loop under build -->
+  <line x1="536" y1="242" x2="536" y2="280" stroke="#f78166" stroke-width="1" stroke-dasharray="3,3" opacity="0.7"/>
+  <line x1="556" y1="280" x2="556" y2="248" stroke="#f78166" stroke-width="1" stroke-dasharray="3,3" opacity="0.7"/>
+  <polygon points="556,248 552,256 560,256" fill="#f78166" opacity="0.7"/>
+  <rect x="517" y="282" width="58" height="26" rx="4" fill="#f78166" opacity="0.1" stroke="#f78166" stroke-width="0.8" stroke-opacity="0.3"/>
+  <text x="546" y="300" text-anchor="middle" fill="#f78166" font-family="'SF Mono', 'Fira Code', monospace" font-size="11" opacity="0.8">debug</text>
+
+  <!-- arrow -->
+  <line x1="586" y1="220" x2="612" y2="220" stroke="#30363d" stroke-width="1.5"/>
+  <polygon points="612,216 620,220 612,224" fill="#30363d"/>
+
+  <!-- review -->
+  <rect x="624" y="202" width="80" height="36" rx="6" fill="#8b5cf6" opacity="0.15" stroke="#8b5cf6" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="664" y="225" text-anchor="middle" fill="#8b5cf6" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" font-weight="500">review</text>
+
+  <!-- arrow -->
+  <line x1="708" y1="220" x2="734" y2="220" stroke="#30363d" stroke-width="1.5"/>
+  <polygon points="734,216 742,220 734,224" fill="#30363d"/>
+
+  <!-- ship -->
+  <rect x="746" y="202" width="64" height="36" rx="6" fill="#a78bfa" opacity="0.15" stroke="#a78bfa" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="778" y="225" text-anchor="middle" fill="#a78bfa" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" font-weight="500">ship</text>
+
+  <!-- wrap — standalone, separate from pipeline -->
+  <rect x="878" y="202" width="64" height="36" rx="6" fill="#7ee787" opacity="0.1" stroke="#7ee787" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="4,3"/>
+  <text x="910" y="225" text-anchor="middle" fill="#7ee787" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" font-weight="500">wrap</text>
+  <text x="910" y="258" text-anchor="middle" fill="#8b949e" font-family="'SF Mono', 'Fira Code', monospace" font-size="9">session memory</text>
+
+  <!-- Bottom tagline -->
+  <text x="600" y="360" text-anchor="middle" fill="#8b949e" font-family="'SF Mono', 'Fira Code', monospace" font-size="13">8 skills · 6 agents · 1 pipeline — a Claude Code plugin</text>
+</svg>

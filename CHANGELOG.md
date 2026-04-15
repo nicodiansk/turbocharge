@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.5.0] - 2026-04-15
+
+ATLAS gets smarter; token overhead trimmed.
+
+### Added
+- Lazy-load: SessionStart pre-loads only the Where to Look table; remaining sections available via Read on demand.
+- Staleness detection: atlas generation writes a directory-listing hash (`<!-- atlas-hash:XXXX -->`); SessionStart compares it and nudges re-run if structure changed.
+- Codemap integration: `/turbocharge:atlas` reads `.codemap/` JSON index (when present) to auto-populate Key Symbols and Module Map, cutting generation cost from ~20 tool calls to ~5.
+- Setup audit: `/turbocharge:setup` now checks for global rules that duplicate turbocharge behavior and suggests consolidation.
+
+### Changed
+- `planner`, `researcher`, `code-reviewer` agents updated to reflect lazy-load (Where to Look in context, full file on demand).
+- ATLAS.md template now includes `<!-- atlas-hash:XXXX -->` footer comment.
+- Build skill: builder dispatch sends file paths + line ranges instead of full code blocks (~1-3K tokens saved per task).
+- Debug skill: trimmed from 10.7KB to <7KB — removed verbose examples, redundant tables, meta-commentary.
+- CLAUDE.md: ATLAS.md term updated to reflect lazy-load and staleness detection.
+
 ## [2.4.0] - 2026-04-14
 
 ATLAS becomes core navigation layer; CLAUDE.md bootstrap gets a coherent chain.

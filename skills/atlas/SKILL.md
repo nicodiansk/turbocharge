@@ -31,6 +31,19 @@ Regardless of mode:
 4. Read domain models (data classes, schemas, database models)
 5. Scan integration configs (env files, connection strings, external service clients)
 
+### Step 2b: Read Codemap Index (if available)
+
+If `.codemap/.codemap.json` exists in the project root:
+
+1. Read `.codemap/.codemap.json` — it contains a manifest with `directories` (list of indexed paths) and `stats` (total files, total symbols).
+2. For each directory in the manifest, read `.codemap/<dir>/.codemap.json` — each contains `files` with symbol entries (name, type, lines, language).
+3. Use this data to pre-populate:
+   - **Module Map** — each directory with its file count and key files
+   - **Key Symbols** — pick the 20-30 most important symbols (classes, exported functions) with their `file:line-range`
+4. You still need to fill in the semantic layer manually: **Where to Look** (intent→file mapping), **Entry Points** (which files boot the app), **Integration Points** (external services), **Conventions & Gotchas**.
+
+This shortcut reduces atlas generation from ~20 tool calls to ~5. If `.codemap/` does not exist, skip this step entirely — fall through to the standard codebase scan in Step 2.
+
 ## Step 3: Generate or Update
 
 ### Generate Mode (no ATLAS.md)
@@ -90,12 +103,24 @@ Last updated: YYYY-MM-DD
 - [Intentional-looking-wrong pattern]
 
 <!-- 📌-prefixed lines are manual notes, preserved across atlas updates -->
+<!-- atlas-hash:XXXXXXXXXXXX -->
 ````
 
 **Constraint:** every section above is a table or bullet list. No prose paragraphs.
 
 **Removed from prior format:** Data Flows (prose arrows), Domain Model (→ CLAUDE.md), Active Work & Known Issues.
 **Added:** Where to Look (intent→file), Key Symbols (heuristic).
+
+## Step 5: Write Staleness Hash
+
+After writing ATLAS.md, compute a directory-listing hash and append it as an HTML comment on the very last line:
+
+```bash
+HASH=$(ls -1 | grep -v -e '^\.codemap$' -e '^node_modules$' -e '^\.git$' -e '^__pycache__$' -e '^\.venv$' -e '^venv$' -e '^dist$' -e '^build$' | sort | md5sum | cut -c1-12)
+echo "<!-- atlas-hash:$HASH -->" >> ATLAS.md
+```
+
+This hash is checked by the SessionStart hook to detect structural changes. If the user adds or removes top-level files/directories, the hash will mismatch and the hook will nudge a re-run.
 
 ## What NOT to Include
 
