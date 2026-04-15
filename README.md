@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/hero-banner.svg" alt="turbocharge — one plugin, one pipeline, no conflicts" width="100%">
+  <img src="images/hero-banner-v2.svg" alt="turbocharge — one plugin, one pipeline, no conflicts" width="100%">
 </p>
 
 <p align="center">

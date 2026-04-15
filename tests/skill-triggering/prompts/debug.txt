@@ -1,1 +1,0 @@
-The notification delivery tests are failing intermittently. Sometimes they pass, sometimes they timeout. I've tried adding a sleep(500) but it didn't help. What's going on?

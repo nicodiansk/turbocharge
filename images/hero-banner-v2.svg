@@ -64,7 +64,7 @@
   <text x="600" y="140" text-anchor="middle" fill="#8b949e" font-family="'SF Mono', 'Fira Code', monospace" font-size="16" letter-spacing="1">One plugin. One pipeline. No conflicts.</text>
 
   <!-- Pipeline flow — main line glow -->
-  <line x1="170" y1="220" x2="1030" y2="220" stroke="url(#lineGlow)" stroke-width="2" filter="url(#softGlow)" opacity="0.3"/>
+  <line x1="170" y1="220" x2="815" y2="220" stroke="url(#lineGlow)" stroke-width="2" filter="url(#softGlow)" opacity="0.3"/>
 
   <!-- Pipeline nodes -->
   <!-- brainstorm -->
@@ -118,11 +118,24 @@
   <rect x="746" y="202" width="64" height="36" rx="6" fill="#a78bfa" opacity="0.15" stroke="#a78bfa" stroke-width="1" stroke-opacity="0.4"/>
   <text x="778" y="225" text-anchor="middle" fill="#a78bfa" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" font-weight="500">ship</text>
 
-  <!-- wrap — standalone, separate from pipeline -->
-  <rect x="878" y="202" width="64" height="36" rx="6" fill="#7ee787" opacity="0.1" stroke="#7ee787" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="4,3"/>
-  <text x="910" y="225" text-anchor="middle" fill="#7ee787" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" font-weight="500">wrap</text>
-  <text x="910" y="258" text-anchor="middle" fill="#8b949e" font-family="'SF Mono', 'Fira Code', monospace" font-size="9">session memory</text>
+  <!-- wrap — standalone, session memory -->
+  <rect x="860" y="196" width="64" height="36" rx="6" fill="#7ee787" opacity="0.1" stroke="#7ee787" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="4,3"/>
+  <text x="892" y="219" text-anchor="middle" fill="#7ee787" font-family="'SF Mono', 'Fira Code', monospace" font-size="11" font-weight="500">wrap</text>
+  <text x="892" y="250" text-anchor="middle" fill="#8b949e" font-family="'SF Mono', 'Fira Code', monospace" font-size="9">session memory</text>
+
+  <!-- atlas — standalone, codebase map -->
+  <rect x="938" y="196" width="64" height="36" rx="6" fill="#bc8cff" opacity="0.1" stroke="#bc8cff" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="4,3"/>
+  <text x="970" y="219" text-anchor="middle" fill="#bc8cff" font-family="'SF Mono', 'Fira Code', monospace" font-size="11" font-weight="500">atlas</text>
+  <text x="970" y="250" text-anchor="middle" fill="#8b949e" font-family="'SF Mono', 'Fira Code', monospace" font-size="9">codebase map</text>
+
+  <!-- setup — standalone, config audit -->
+  <rect x="1016" y="196" width="64" height="36" rx="6" fill="#58a6ff" opacity="0.1" stroke="#58a6ff" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="4,3"/>
+  <text x="1048" y="219" text-anchor="middle" fill="#58a6ff" font-family="'SF Mono', 'Fira Code', monospace" font-size="11" font-weight="500">setup</text>
+  <text x="1048" y="250" text-anchor="middle" fill="#8b949e" font-family="'SF Mono', 'Fira Code', monospace" font-size="9">config audit</text>
+
+  <!-- "run any time" label spanning the three standalone skills -->
+  <text x="970" y="272" text-anchor="middle" fill="#30363d" font-family="'SF Mono', 'Fira Code', monospace" font-size="9">— run any time —</text>
 
   <!-- Bottom tagline -->
-  <text x="600" y="360" text-anchor="middle" fill="#8b949e" font-family="'SF Mono', 'Fira Code', monospace" font-size="13">8 skills · 6 agents · 1 pipeline — a Claude Code plugin</text>
+  <text x="600" y="360" text-anchor="middle" fill="#8b949e" font-family="'SF Mono', 'Fira Code', monospace" font-size="13">10 skills · 6 agents · 2 hooks — a Claude Code plugin</text>
 </svg>

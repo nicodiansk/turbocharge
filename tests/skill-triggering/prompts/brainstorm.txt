@@ -1,1 +1,0 @@
-I'm thinking about building a notification system for our app but I'm not sure about the architecture. Can we explore the requirements first?

@@ -1,1 +1,0 @@
-Execute the implementation plan at docs/plans/2026-03-19-notifications.md. Start from Task 1 and work through the tasks with the builder and review chain.
