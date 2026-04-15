@@ -18,7 +18,7 @@ Explore the codebase to answer questions, find patterns, and gather context. You
 
 ## How to Work
 
-0. **ATLAS.md** — the Where to Look table is pre-loaded in context when ATLAS.md exists. Read the full file only if you need Module Map, Key Symbols, or deeper navigation.
+0. **Do NOT re-read `@`-referenced files** — `ATLAS.md` and `CLAUDE.md` are injected into your context via `@` references on dispatch. Reading them again wastes tokens. Use what's already in context.
 1. **Start broad** — if ATLAS is absent or incomplete, understand project structure, key files, conventions
 2. **Go deep** — trace specific flows, find relevant implementations
 3. **Report concisely** — file paths, patterns found, key insights

@@ -17,8 +17,8 @@ Transform clear requirements into a plan with bite-sized, implementable tasks.
 
 ### Verify Domain Understanding First (MANDATORY)
 Before writing any plan:
-0. **ATLAS.md** — the Where to Look table is pre-loaded in context when ATLAS.md exists. For Module Map, Key Symbols, or Integration Points, read the full ATLAS.md file.
-1. **Read the codebase** — find exact entity names, class names, file paths. Never assume.
+0. **Do NOT re-read `@`-referenced files** — `ATLAS.md` and `CLAUDE.md` are injected into your context via `@` references on dispatch. Reading them again wastes tokens. Use what's already in context.
+1. **Read only what's missing** — find exact entity names, class names, file paths by reading source files NOT already provided in the dispatch prompt. Never assume.
 2. **Map entity relationships** — which model owns which fields? Verify by reading the code, not guessing.
 3. **Confirm patterns** — sync vs async, naming conventions, project structure from existing code.
 4. **Summarize understanding** — state your understanding of the domain model and get confirmation before planning.
