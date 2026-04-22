@@ -107,7 +107,7 @@ All agents have `memory: project` for persistent codebase knowledge across sessi
 
 | Hook | When | What |
 |:-----|:-----|:-----|
-| **SessionStart** | Start of session | Loads `ATLAS.md` Where to Look table, restores session snapshot, flags missing files, checks ATLAS staleness |
+| **SessionStart** | Start of session | Loads `ATLAS.md` Where to Look table, injects CodeMap stats when `.codemap/` present, restores session snapshot, flags missing files, checks ATLAS staleness |
 | **Stop** | End of session | Reminds you to run `/turbocharge:wrap` before closing |
 
 ## Quick Start Examples

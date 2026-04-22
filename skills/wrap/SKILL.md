@@ -42,7 +42,7 @@ When you detect a session is ending (goodbye, thanks, natural stopping point, co
 Generate a self-contained prompt the user can paste into a fresh session. Use `@` references for files so Claude reads them automatically.
 
 ```
-@CLAUDE.md  Continue [PROJECT] - [CURRENT TASK]
+@CLAUDE.md @ATLAS.md  Continue [PROJECT] - [CURRENT TASK]
 
 Branch: `branch-name`
 
@@ -64,9 +64,15 @@ Start With:
 /turbocharge:[skill] [args]
 ```
 
-### 5.5. Atlas Freshness
-If ATLAS.md exists and significant structural changes were made this session (new modules, changed entry points, new integrations), note in the resume prompt:
-- "Consider running `/turbocharge:atlas` to update the domain map"
+### 5.5. Atlas + CodeMap Freshness (MANDATORY)
+Before generating the resume prompt:
+1. **Always run `/turbocharge:atlas`** to refresh the domain map — do not skip, even if changes seem minor.
+2. **If `.codemap/` exists**, run `codemap update` (or note it in the resume prompt if watch mode is active).
+
+Include in the resume prompt:
+```
+Navigation: @ATLAS.md is current. CodeMap index: run `codemap validate` if unsure.
+```
 
 ### 6. Encode Session Learnings
 Before generating the resume prompt, check: did the user correct any misunderstandings or wrong approaches during this session? If so:

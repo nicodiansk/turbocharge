@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.5.2] - 2026-04-22
+
+CodeMap + ATLAS enforcement at session start and wrap.
+
+### Changed
+- `hooks/session-start.sh`: injects CodeMap stats and usage reminder when `.codemap/` index is present — models now see the index on every session start, same as ATLAS.
+- `skills/wrap/SKILL.md`: `@ATLAS.md` added to resume prompt template (was `@CLAUDE.md` only); section 5.5 Atlas Freshness made mandatory — always run `/turbocharge:atlas` and `codemap update` before ending a session, not conditional on "significant changes".
+
 ## [2.5.1] - 2026-04-15
 
 Token waste fix for planner and researcher agents.

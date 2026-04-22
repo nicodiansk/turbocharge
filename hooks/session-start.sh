@@ -34,6 +34,14 @@ if [ -f "ATLAS.md" ]; then
     fi
 fi
 
+if [ -d ".codemap" ] && command -v codemap >/dev/null 2>&1; then
+    echo ""
+    echo "--- CodeMap index available ---"
+    codemap stats
+    echo "Use: codemap find 'SymbolName' | codemap show path/to/file"
+    echo "--- end CodeMap ---"
+fi
+
 if [ -f ".claude/turbocharge-session.json" ]; then
     echo ""
     echo "--- Session snapshot (previous /wrap) ---"
