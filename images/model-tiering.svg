@@ -51,9 +51,9 @@
   <text x="156" y="113" fill="#8b949e" font-family="'SF Mono','Fira Code',monospace" font-size="12">brainstorm · plan · review · debug · every decision that needs judgment</text>
   <!-- Stats pills -->
   <rect x="870" y="76" width="145" height="22" rx="4" fill="#7c3aed" fill-opacity="0.15" stroke="#7c3aed" stroke-width="0.8" stroke-opacity="0.4"/>
-  <text x="942" y="92" text-anchor="middle" fill="#a78bfa" font-family="'SF Mono','Fira Code',monospace" font-size="11">$15 / $75 per MTok</text>
+  <text x="942" y="92" text-anchor="middle" fill="#a78bfa" font-family="'SF Mono','Fira Code',monospace" font-size="11">deepest reasoning</text>
   <rect x="1025" y="76" width="138" height="22" rx="4" fill="#7c3aed" fill-opacity="0.15" stroke="#7c3aed" stroke-width="0.8" stroke-opacity="0.4"/>
-  <text x="1094" y="92" text-anchor="middle" fill="#a78bfa" font-family="'SF Mono','Fira Code',monospace" font-size="11">deepest reasoning</text>
+  <text x="1094" y="92" text-anchor="middle" fill="#a78bfa" font-family="'SF Mono','Fira Code',monospace" font-size="11">complex judgment</text>
   <!-- Dispatch arrow -->
   <line x1="600" y1="132" x2="600" y2="150" stroke="#30363d" stroke-width="1.5"/>
   <polygon points="596,148 600,156 604,148" fill="#30363d"/>
@@ -69,9 +69,9 @@
   <text x="156" y="209" fill="#8b949e" font-family="'SF Mono','Fira Code',monospace" font-size="12">TDD implementation · self-review · commits · holistic pre-merge review</text>
   <!-- Stats pills -->
   <rect x="870" y="172" width="145" height="22" rx="4" fill="#2563eb" fill-opacity="0.15" stroke="#3b82f6" stroke-width="0.8" stroke-opacity="0.4"/>
-  <text x="942" y="188" text-anchor="middle" fill="#60a5fa" font-family="'SF Mono','Fira Code',monospace" font-size="11">$3 / $15 per MTok</text>
+  <text x="942" y="188" text-anchor="middle" fill="#60a5fa" font-family="'SF Mono','Fira Code',monospace" font-size="11">best coding model</text>
   <rect x="1025" y="172" width="138" height="22" rx="4" fill="#2563eb" fill-opacity="0.15" stroke="#3b82f6" stroke-width="0.8" stroke-opacity="0.4"/>
-  <text x="1094" y="188" text-anchor="middle" fill="#60a5fa" font-family="'SF Mono','Fira Code',monospace" font-size="11">98% coding · 2× faster</text>
+  <text x="1094" y="188" text-anchor="middle" fill="#60a5fa" font-family="'SF Mono','Fira Code',monospace" font-size="11">fast · 2× faster output</text>
   <!-- Dispatch arrow -->
   <line x1="600" y1="228" x2="600" y2="246" stroke="#30363d" stroke-width="1.5" stroke-dasharray="3,2"/>
   <text x="618" y="241" fill="#30363d" font-family="'SF Mono','Fira Code',monospace" font-size="10">--reviewed</text>
@@ -88,7 +88,7 @@
   <text x="156" y="297" fill="#8b949e" font-family="'SF Mono','Fira Code',monospace" font-size="12">mechanical checks · diff comparison · codebase search  (opt-in review chain only)</text>
   <!-- Stats pills -->
   <rect x="870" y="265" width="145" height="22" rx="4" fill="#059669" fill-opacity="0.12" stroke="#10b981" stroke-width="0.8" stroke-opacity="0.35"/>
-  <text x="942" y="281" text-anchor="middle" fill="#34d399" font-family="'SF Mono','Fira Code',monospace" font-size="11">lowest cost</text>
+  <text x="942" y="281" text-anchor="middle" fill="#34d399" font-family="'SF Mono','Fira Code',monospace" font-size="11">fastest output</text>
   <rect x="1025" y="265" width="138" height="22" rx="4" fill="#059669" fill-opacity="0.12" stroke="#10b981" stroke-width="0.8" stroke-opacity="0.35"/>
-  <text x="1094" y="281" text-anchor="middle" fill="#34d399" font-family="'SF Mono','Fira Code',monospace" font-size="11">fastest · focused tasks</text>
+  <text x="1094" y="281" text-anchor="middle" fill="#34d399" font-family="'SF Mono','Fira Code',monospace" font-size="11">focused · mechanical</text>
 </svg>

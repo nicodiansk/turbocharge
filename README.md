@@ -71,7 +71,7 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 
 ## How Build Works
 
-**Default — builder only (fast, cheap):**
+**Default — builder only (fast, lean):**
 
 ```
 builder (Sonnet) → self-review → commit
