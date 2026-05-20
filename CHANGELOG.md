@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.1] - 2026-05-20
+
+Fix: session snapshot always on first line of resume prompt.
+
+### Fixed
+- `skills/wrap/SKILL.md`: `@.claude/turbocharge-session.json` moved from "Context Files" list onto the first line of the resume prompt template — it is now fixed and mandatory, not a variable placeholder. Added explicit MANDATORY note to prevent Claude from omitting it.
+
 ## [2.6.0] - 2026-05-20
 
 Lean Builder v3 — simpler, faster, cheaper build pipeline.

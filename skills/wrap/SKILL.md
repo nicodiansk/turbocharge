@@ -42,7 +42,7 @@ When you detect a session is ending (goodbye, thanks, natural stopping point, co
 Generate a self-contained prompt the user can paste into a fresh session. Use `@` references for files so Claude reads them automatically.
 
 ```
-@CLAUDE.md @ATLAS.md  Continue [PROJECT] - [CURRENT TASK]
+@CLAUDE.md @ATLAS.md @.claude/turbocharge-session.json  Continue [PROJECT] - [CURRENT TASK]
 
 Branch: `branch-name`
 
@@ -54,7 +54,6 @@ Next Task: [description]
 2. [following task]
 
 Context Files:
-- @.claude/turbocharge-session.json (session snapshot — auto-loaded by hook)
 - @path/to/design-doc.md (implementation plan)
 - @path/to/relevant-code
 
@@ -64,6 +63,8 @@ Decisions to Remember:
 Start With:
 /turbocharge:[skill] [args]
 ```
+
+**MANDATORY:** `@.claude/turbocharge-session.json` MUST appear on the first line of every resume prompt — it is not optional context, it is the session state. Do not move it to "Context Files" or omit it.
 
 ### 5.5. Atlas + CodeMap Freshness (MANDATORY)
 Before generating the resume prompt:
