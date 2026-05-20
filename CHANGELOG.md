@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.6.0] - 2026-05-20
+
+Lean Builder v3 — simpler, faster, cheaper build pipeline.
+
+### Changed
+- `agents/builder.md`: model changed from inherit (Opus) to Sonnet; worktree isolation removed — builder works in main tree.
+- `agents/spec-reviewer.md`: model changed from inherit to Haiku.
+- `agents/quality-reviewer.md`: model changed from inherit to Haiku.
+- `agents/code-reviewer.md`: model changed from inherit to Sonnet.
+- `skills/build/SKILL.md`: review chain (spec-reviewer + quality-reviewer) now opt-in via `--reviewed` flag, not mandatory. Default mode is builder-only with self-review. Leaner dispatch — plan file:line pointers instead of context dumps. Frontmatter description and argument-hint updated.
+
+### Performance
+- Default build: 1 agent spawn per task (was 3-5). ~70% token reduction.
+- Reviewed build: 3 spawns per task on Haiku/Sonnet (was 3-5 on Opus). ~30% additional token + cost reduction.
+- Builder runs on Sonnet (98% of Opus coding capability at 1/5 cost, 2x speed).
+- No worktree overhead.
+
 ## [2.5.2] - 2026-04-22
 
 CodeMap + ATLAS enforcement at session start and wrap.

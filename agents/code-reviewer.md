@@ -5,7 +5,7 @@ description: |
   the original plan for architecture alignment, design quality, and production readiness.
   Run ONCE after ALL tasks complete, not per-task. Reports merge readiness with reasoning.
 disallowedTools: Write, Edit, NotebookEdit
-model: inherit
+model: sonnet
 memory: project
 ---
 

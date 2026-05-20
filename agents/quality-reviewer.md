@@ -5,7 +5,7 @@ description: |
   patterns, error handling, type safety, test coverage, security, maintainability.
   Reports issues categorized as Critical/Important/Minor with file:line references.
 disallowedTools: Write, Edit, NotebookEdit
-model: inherit
+model: haiku
 memory: project
 ---
 

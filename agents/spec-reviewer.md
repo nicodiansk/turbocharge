@@ -5,7 +5,7 @@ description: |
   Reads actual code — does NOT trust builder reports. Checks for missing requirements,
   unneeded extra work, and misunderstandings. Reports pass/fail with file:line references.
 disallowedTools: Write, Edit, NotebookEdit
-model: inherit
+model: haiku
 memory: project
 ---
 
