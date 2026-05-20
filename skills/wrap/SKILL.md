@@ -54,6 +54,7 @@ Next Task: [description]
 2. [following task]
 
 Context Files:
+- @.claude/turbocharge-session.json (session snapshot — auto-loaded by hook)
 - @path/to/design-doc.md (implementation plan)
 - @path/to/relevant-code
 
@@ -124,7 +125,13 @@ Write `.claude/turbocharge-session.json` in the project root (the standard Claud
 }
 ```
 
-The SessionStart hook cats this on next session so resume is zero-tool-call. Make sure `.claude/turbocharge-session.json` is in the project `.gitignore` — it is per-user session-local state (don't exclude all of `.claude/` because `settings.json` is team-shared).
+The SessionStart hook cats this on next session so resume is zero-tool-call.
+
+**Gitignore check (MANDATORY):** Before writing the snapshot, verify `.claude/turbocharge-session.json` is in the project `.gitignore`. If not, add exactly this line:
+```
+.claude/turbocharge-session.json
+```
+This is per-user session-local state — do NOT exclude all of `.claude/` because `settings.json` is team-shared.
 
 ## How to Deliver
 
