@@ -63,7 +63,7 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 | **brainstorm** | `/turbocharge:brainstorm` | Socratic requirements discovery before implementation |
 | **story** | `/turbocharge:story` | INVEST-compliant story breakdown with acceptance criteria |
 | **plan** | `/turbocharge:plan` | Bite-sized task decomposition — 2-5 min tasks, exact paths, complete code |
-| **build** | `/turbocharge:build` | Plan execution with builder → spec-reviewer → quality-reviewer chain |
+| **build** | `/turbocharge:build` | Plan execution with Sonnet builder + self-review. Opt-in review chain (`--reviewed`) for high-risk tasks. |
 | **review** | `/turbocharge:review` | Holistic pre-merge code review against the original plan |
 | **debug** | `/turbocharge:debug` | Systematic 4-phase root-cause investigation — no fix until cause is proven |
 | **ship** | `/turbocharge:ship` | Test verification, then merge / PR / keep / discard |
@@ -71,16 +71,22 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 
 ## How Build Works
 
-Every task goes through a mandatory review chain. You can't mark a task complete without passing both reviewers.
+**Default — builder only (fast, cheap):**
 
 ```
-builder → spec-reviewer → quality-reviewer
-             ↓ issues?        ↓ issues?
-        back to builder   back to builder
-         (max 2 cycles)    (max 2 cycles)
+builder (Sonnet) → self-review → commit
 ```
 
-Every 3 tasks, the pipeline checkpoints with you for feedback.
+**With `--reviewed` flag — for security-sensitive or unfamiliar codebases:**
+
+```
+builder (Sonnet) → spec-reviewer (Haiku) → quality-reviewer (Haiku)
+                        ↓ issues?                ↓ issues?
+                   back to builder           back to builder
+                    (max 2 cycles)            (max 2 cycles)
+```
+
+Every 3 tasks, the pipeline checkpoints with you for feedback. After all tasks, chain to `/turbocharge:review` for the final holistic assessment.
 
 **Multi-track mode** — independent tasks can run in parallel with coordinated builders. Requires Agent Teams (experimental):
 
@@ -92,14 +98,18 @@ claude config set env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS 1
 
 Dispatched by skills. You never invoke them directly.
 
-| Agent | Role | Properties |
-|:------|:-----|:-----------|
-| **builder** | TDD implementation in isolated worktree | Full tool access, `isolation: worktree` |
-| **planner** | Task breakdown, verifies entity names against codebase | Read-only |
-| **researcher** | Fast codebase exploration | Read-only, `model: haiku`, `background: true` |
-| **spec-reviewer** | Verifies implementation matches spec | Read-only, doesn't trust builder reports |
-| **quality-reviewer** | Code quality and production readiness | Read-only, categorized issue reporting |
-| **code-reviewer** | Holistic pre-merge assessment | Read-only, runs after all tasks complete |
+<p align="center">
+  <img src="images/model-tiering.svg" alt="Smart model routing — right model for each role" width="100%">
+</p>
+
+| Agent | Role | Model |
+|:------|:-----|:------|
+| **builder** | TDD implementation, self-review, commits | Sonnet |
+| **planner** | Task breakdown, verifies entity names against codebase | inherit |
+| **researcher** | Fast background codebase exploration | Haiku |
+| **spec-reviewer** | Verifies implementation matches spec (opt-in) | Haiku |
+| **quality-reviewer** | Code quality and production readiness (opt-in) | Haiku |
+| **code-reviewer** | Holistic pre-merge assessment | Sonnet |
 
 All agents have `memory: project` for persistent codebase knowledge across sessions.
 

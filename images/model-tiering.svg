@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="1200" height="320">
+  <defs>
+    <linearGradient id="opusGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <linearGradient id="sonnetGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="haikuGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="320" fill="#0d1117"/>
+
+  <!-- Subtle grid -->
+  <g opacity="0.04">
+    <line x1="0" y1="60" x2="1200" y2="60" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="0" y1="120" x2="1200" y2="120" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="0" y1="180" x2="1200" y2="180" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="0" y1="240" x2="1200" y2="240" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="0" y1="300" x2="1200" y2="300" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="200" y1="0" x2="200" y2="320" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="400" y1="0" x2="400" y2="320" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="600" y1="0" x2="600" y2="320" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="800" y1="0" x2="800" y2="320" stroke="#58a6ff" stroke-width="0.5"/>
+    <line x1="1000" y1="0" x2="1000" y2="320" stroke="#58a6ff" stroke-width="0.5"/>
+  </g>
+
+  <!-- Title -->
+  <text x="600" y="42" text-anchor="middle" fill="#e6edf3" font-family="'SF Mono','Fira Code','Cascadia Code',monospace" font-size="18" font-weight="600" letter-spacing="2">smart model routing — right model for each role</text>
+
+  <!-- ═══ ROW 1: OPUS ═══ -->
+  <!-- Row background -->
+  <rect x="24" y="62" width="1152" height="70" rx="8" fill="#7c3aed" fill-opacity="0.07" stroke="#7c3aed" stroke-width="1" stroke-opacity="0.25"/>
+  <!-- Left accent bar -->
+  <rect x="24" y="62" width="5" height="70" rx="3" fill="url(#opusGrad)" filter="url(#glow)"/>
+  <!-- Model badge -->
+  <rect x="44" y="79" width="90" height="28" rx="5" fill="#7c3aed" fill-opacity="0.25" stroke="#7c3aed" stroke-width="1" stroke-opacity="0.6"/>
+  <text x="89" y="98" text-anchor="middle" fill="#a78bfa" font-family="'SF Mono','Fira Code',monospace" font-size="13" font-weight="700" letter-spacing="1">OPUS</text>
+  <!-- Role label -->
+  <text x="156" y="91" fill="#e6edf3" font-family="'SF Mono','Fira Code',monospace" font-size="14" font-weight="600">You — the orchestrator</text>
+  <text x="156" y="113" fill="#8b949e" font-family="'SF Mono','Fira Code',monospace" font-size="12">brainstorm · plan · review · debug · every decision that needs judgment</text>
+  <!-- Stats pills -->
+  <rect x="870" y="76" width="145" height="22" rx="4" fill="#7c3aed" fill-opacity="0.15" stroke="#7c3aed" stroke-width="0.8" stroke-opacity="0.4"/>
+  <text x="942" y="92" text-anchor="middle" fill="#a78bfa" font-family="'SF Mono','Fira Code',monospace" font-size="11">$15 / $75 per MTok</text>
+  <rect x="1025" y="76" width="138" height="22" rx="4" fill="#7c3aed" fill-opacity="0.15" stroke="#7c3aed" stroke-width="0.8" stroke-opacity="0.4"/>
+  <text x="1094" y="92" text-anchor="middle" fill="#a78bfa" font-family="'SF Mono','Fira Code',monospace" font-size="11">deepest reasoning</text>
+  <!-- Dispatch arrow -->
+  <line x1="600" y1="132" x2="600" y2="150" stroke="#30363d" stroke-width="1.5"/>
+  <polygon points="596,148 600,156 604,148" fill="#30363d"/>
+
+  <!-- ═══ ROW 2: SONNET ═══ -->
+  <rect x="24" y="158" width="1152" height="70" rx="8" fill="#2563eb" fill-opacity="0.07" stroke="#3b82f6" stroke-width="1" stroke-opacity="0.25"/>
+  <rect x="24" y="158" width="5" height="70" rx="3" fill="url(#sonnetGrad)" filter="url(#glow)"/>
+  <!-- Model badge -->
+  <rect x="44" y="175" width="90" height="28" rx="5" fill="#2563eb" fill-opacity="0.25" stroke="#3b82f6" stroke-width="1" stroke-opacity="0.6"/>
+  <text x="89" y="194" text-anchor="middle" fill="#60a5fa" font-family="'SF Mono','Fira Code',monospace" font-size="13" font-weight="700" letter-spacing="0.5">SONNET</text>
+  <!-- Role label -->
+  <text x="156" y="187" fill="#e6edf3" font-family="'SF Mono','Fira Code',monospace" font-size="14" font-weight="600">builder · code-reviewer</text>
+  <text x="156" y="209" fill="#8b949e" font-family="'SF Mono','Fira Code',monospace" font-size="12">TDD implementation · self-review · commits · holistic pre-merge review</text>
+  <!-- Stats pills -->
+  <rect x="870" y="172" width="145" height="22" rx="4" fill="#2563eb" fill-opacity="0.15" stroke="#3b82f6" stroke-width="0.8" stroke-opacity="0.4"/>
+  <text x="942" y="188" text-anchor="middle" fill="#60a5fa" font-family="'SF Mono','Fira Code',monospace" font-size="11">$3 / $15 per MTok</text>
+  <rect x="1025" y="172" width="138" height="22" rx="4" fill="#2563eb" fill-opacity="0.15" stroke="#3b82f6" stroke-width="0.8" stroke-opacity="0.4"/>
+  <text x="1094" y="188" text-anchor="middle" fill="#60a5fa" font-family="'SF Mono','Fira Code',monospace" font-size="11">98% coding · 2× faster</text>
+  <!-- Dispatch arrow -->
+  <line x1="600" y1="228" x2="600" y2="246" stroke="#30363d" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <text x="618" y="241" fill="#30363d" font-family="'SF Mono','Fira Code',monospace" font-size="10">--reviewed</text>
+  <polygon points="596,244 600,252 604,244" fill="#30363d"/>
+
+  <!-- ═══ ROW 3: HAIKU ═══ -->
+  <rect x="24" y="254" width="1152" height="50" rx="8" fill="#059669" fill-opacity="0.07" stroke="#10b981" stroke-width="1" stroke-opacity="0.2"/>
+  <rect x="24" y="254" width="5" height="50" rx="3" fill="url(#haikuGrad)" filter="url(#glow)"/>
+  <!-- Model badge -->
+  <rect x="44" y="268" width="90" height="26" rx="5" fill="#059669" fill-opacity="0.2" stroke="#10b981" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="89" y="286" text-anchor="middle" fill="#34d399" font-family="'SF Mono','Fira Code',monospace" font-size="13" font-weight="700" letter-spacing="0.5">HAIKU</text>
+  <!-- Role label -->
+  <text x="156" y="279" fill="#e6edf3" font-family="'SF Mono','Fira Code',monospace" font-size="14" font-weight="600">spec-reviewer · quality-reviewer · researcher</text>
+  <text x="156" y="297" fill="#8b949e" font-family="'SF Mono','Fira Code',monospace" font-size="12">mechanical checks · diff comparison · codebase search  (opt-in review chain only)</text>
+  <!-- Stats pills -->
+  <rect x="870" y="265" width="145" height="22" rx="4" fill="#059669" fill-opacity="0.12" stroke="#10b981" stroke-width="0.8" stroke-opacity="0.35"/>
+  <text x="942" y="281" text-anchor="middle" fill="#34d399" font-family="'SF Mono','Fira Code',monospace" font-size="11">lowest cost</text>
+  <rect x="1025" y="265" width="138" height="22" rx="4" fill="#059669" fill-opacity="0.12" stroke="#10b981" stroke-width="0.8" stroke-opacity="0.35"/>
+  <text x="1094" y="281" text-anchor="middle" fill="#34d399" font-family="'SF Mono','Fira Code',monospace" font-size="11">fastest · focused tasks</text>
+</svg>
