@@ -83,7 +83,7 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 
 - **One source of truth.** No competing `planner-v2.md` files, no rules that contradict each other. Install once, update once.
 - **Each step gates the next.** Requirements before stories, stories before plans, plans before code. The skill you skipped is usually the bug you ship.
-- **Right model for each role.** Builders, reviewers, and researchers run on Sonnet — fast and focused. Your orchestration session runs whatever model you've configured, so you can reach for a larger one (Opus shines here) on the planning and judgment calls.
+- **Right model for each role.** Builders, reviewers, and researchers run on Sonnet — fast and focused. Your orchestration session runs whatever model you've configured, so you can reach for a more capable one on the planning and judgment calls.
 - **Drop in anywhere.** Already have a plan? Start at `build`. Hit a bug? `debug`. Wrapping up? `wrap`. You're never forced through the whole chain.
 
 ## How Build Works
