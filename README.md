@@ -15,6 +15,10 @@ You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that c
 
 **Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 5 agents, 2 hooks. One system to install, nothing to maintain.
 
+<p align="center">
+  <img src="images/before-after.svg" alt="Before: scattered, contradictory config. After: one ordered pipeline." width="100%">
+</p>
+
 ## Install
 
 ```bash
@@ -27,6 +31,12 @@ Restart Claude Code, then start building:
 ```bash
 /turbocharge:brainstorm I want to build a CLI tool that manages git worktrees
 ```
+
+Every skill announces itself, does one job well, and hands you the next step:
+
+<p align="center">
+  <img src="images/brainstorm-session.svg" alt="A brainstorm session: Socratic dialogue, a captured design doc, and a chain-forward to /turbocharge:story" width="92%">
+</p>
 
 <details>
 <summary>Other install methods</summary>
@@ -68,6 +78,13 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 | **debug** | `/turbocharge:debug` | Systematic 4-phase root-cause investigation — no fix until cause is proven |
 | **ship** | `/turbocharge:ship` | Test verification, then merge / PR / keep / discard |
 | **wrap** | `/turbocharge:wrap` | Session continuity — captures state, generates resume prompt |
+
+## Why a Pipeline
+
+- **One source of truth.** No competing `planner-v2.md` files, no rules that contradict each other. Install once, update once.
+- **Each step gates the next.** Requirements before stories, stories before plans, plans before code. The skill you skipped is usually the bug you ship.
+- **Right model for each role.** You orchestrate on Opus; builders, reviewers, and researchers run on Sonnet. Judgment where it matters, speed where it counts.
+- **Drop in anywhere.** Already have a plan? Start at `build`. Hit a bug? `debug`. Wrapping up? `wrap`. You're never forced through the whole chain.
 
 ## How Build Works
 
