@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.7.1] - 2026-06-23
+
+README visuals refresh — value/positioning diagram, terminal mockups, accurate build chain.
+
+### Added
+- `images/before-after.svg`: scattered-config vs. single-pipeline diagram, embedded under the README intro.
+- `images/brainstorm-session.svg`: hand-authored terminal mockup of a brainstorm session (announce → dialogue → captured doc → chain-forward).
+- `images/build-review-chain.svg`: accurate SVG of default vs. `--reviewed` task execution; replaces the ASCII diagrams in "How Build Works".
+- `README.md`: "Why a Pipeline" section sharpening the positioning.
+
+### Fixed
+- `images/hero-banner-v2.svg`: agent count corrected 6 → 5 (missed in the 2.7.0 roster update; now matches `plugin.json` and the README badge).
+
+### Removed
+- `images/build-review-chain.png` (orphaned and stale — depicted the `spec-reviewer`/`quality-reviewer` agents removed in 2.7.0) and `images/story-output.png` (orphaned, unreferenced). Replaced by version-controlled SVGs.
+
 ## [2.7.0] - 2026-06-23
 
 Lean review pipeline — planner self-review, single Sonnet task-reviewer, Sonnet floor, build UX.

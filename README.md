@@ -88,20 +88,11 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 
 ## How Build Works
 
-**Default — builder only (fast, lean):**
+<p align="center">
+  <img src="images/build-review-chain.svg" alt="Build execution: default builder + self-review, or the opt-in --reviewed chain with a Sonnet task-reviewer loop" width="100%">
+</p>
 
-```
-builder (Sonnet) → self-review → commit
-```
-
-**With `--reviewed` flag — for security-sensitive or unfamiliar codebases:**
-
-```
-builder (Sonnet) → task-reviewer (Sonnet) — Spec + Quality verdicts
-                        ↓ issues?
-                   back to builder
-                    (max 2 cycles)
-```
+By default each task runs `builder (Sonnet) → self-review → commit` — one spawn per task. The opt-in `--reviewed` flag adds a single Sonnet `task-reviewer` that loads the diff once and returns Spec + Quality verdicts; on issues it loops back to the builder for up to two cycles.
 
 Every N tasks (default 3, set with `--checkpoint=N`; `--checkpoint=0` runs straight through), the pipeline checkpoints with you for feedback. After all tasks, chain to `/turbocharge:review` for the final holistic assessment.
 
