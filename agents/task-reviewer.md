@@ -49,6 +49,8 @@ its quality now wastes tokens and risks a misleading "Approved" on soon-dead cod
 
 Only when `Spec: ✅`, assess HOW it was built (independent of spec):
 - **Patterns** — clean, readable, follows existing codebase conventions.
+- **Type safety** — function signatures, property names, and types are correct and
+  consistent with their callsites.
 - **Error handling** — errors handled, edge cases covered, graceful failure.
 - **Test rigor** — tests verify behavior (not mocks), cover edge cases.
 - **Maintainability** — clear names, modular, no needless complexity, no obvious

@@ -41,7 +41,7 @@ NO TASK MARKED COMPLETE WITHOUT BUILDER SELF-REVIEW AND PASSING TESTS
 - Spawn Agent Team with specialized builders
 - Each builder owns a set of non-overlapping files
 - Builders communicate via shared task list
-- Reviewer blocked until builders complete
+- Per-task review (`--reviewed`) is NOT supported in multi-track — parallel, interleaved commits make per-task `BEFORE_SHA..HEAD` diff ranges unreliable. Run `/turbocharge:review` after the team completes for a holistic diff review instead.
 - Requires user confirmation before spawning team
 
 **How to decide:**
@@ -83,7 +83,15 @@ Say: **"Batch complete. Ready for feedback."**
 
 ## Step 4: Execute — Reviewed
 
-Same as Step 3, with these additions after each builder completes:
+For each task in the batch, run this exact ordered sequence. **The task is not marked complete until its review passes** — never mark complete straight after the builder (that is the Step 3 flow, not this one):
+
+1. **Dispatch builder** — same as Step 3a. In Reviewed mode, record `BEFORE_SHA=$(git rev-parse HEAD)` *before* dispatching (Step 3a) so the reviewer diffs exactly this builder's output.
+2. **Dispatch task-reviewer** (Step 4a) and apply the disposition — loop the builder if Spec ❌ or any 🔴 Critical (max 2 cycles).
+3. **Dispatch researcher on demand** (Step 4b) only if the builder blocked on unclear context.
+4. **Mark the task complete** (Step 4c) — only after Spec ✅ with no unresolved 🔴 Critical.
+5. **After every N tasks, run the batch checkpoint** (Step 4d).
+
+The sub-steps below detail each stage:
 
 ### 4a. Dispatch Task Reviewer
 Spawn one task-reviewer subagent (Sonnet) with:
@@ -98,7 +106,7 @@ The reviewer returns two verdicts:
 
 **Disposition:**
 - **Spec ❌:** Resume the builder with the spec gaps only (ignore quality — it's N/A), then re-review. **Max 2 cycles** — escalate to user if still failing.
-- **Spec ✅, Quality has any 🔴 Critical:** Resume the builder with the Critical findings, then re-review. **Max 2 cycles.**
+- **Spec ✅, Quality has any 🔴 Critical:** Resume the builder with the Critical findings **only**, then re-review. **Max 2 cycles.** Any 🟡 Important / 🟢 Minor findings that co-occur in the same review are NOT fixed in this loop — carry them forward to the next batch checkpoint (Step 4d) exactly as the bullet below does. Do not let them vanish just because a Critical was present.
 - **Spec ✅, Quality has only 🟡 Important / 🟢 Minor:** Do NOT loop. Carry these concerns into the next batch checkpoint (Step 4d) so the user decides whether to address them.
 
 ### 4b. Dispatch Researcher (on demand)
@@ -135,13 +143,13 @@ Spawn an Agent Team? This uses more tokens but is faster.
 ### 5b. Spawn Team
 - Create team with builders per track
 - Each builder gets their track's tasks
-- Add reviewer tasks blocked by builder tasks (dependency chains)
+- Builders self-review per task; per-task reviewers are not dispatched in multi-track (see Step 2) — holistic review comes after via `/turbocharge:review`
 - Builders communicate if they need to coordinate (API contracts, shared types)
 
 ### 5c. Monitor and Report
 - Wait for builders to complete
-- Reviewer tasks auto-unblock
 - Synthesize results for human review
+- Offer `/turbocharge:review` for holistic assessment of the combined diff
 
 ## Step 6: Complete
 

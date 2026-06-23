@@ -102,6 +102,12 @@ for agent in $EXPECTED_AGENTS; do
         else
             warn "agents/$agent.md — missing memory field"
         fi
+        # Sonnet floor — never Haiku (see CLAUDE.md Agent Models)
+        if grep -qiE "^model:[[:space:]]*haiku" "$agent_file"; then
+            error "agents/$agent.md — 'model: haiku' is banned (Sonnet floor; see CLAUDE.md Agent Models)"
+        else
+            pass "agents/$agent.md — no banned haiku model"
+        fi
     else
         error "agents/$agent.md — not found"
     fi

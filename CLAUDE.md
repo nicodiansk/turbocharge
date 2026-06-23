@@ -85,6 +85,15 @@ planners) runs Sonnet or higher. Turn count beats token price: a cheaper model
 that loops on misunderstandings costs more than one that gets it right the first
 time. Do not set `model: haiku` on any agent.
 
+### Release Naming
+
+Name releases by what they **do**, not after the source of inspiration. Never put
+competitor/plugin codenames (e.g. another plugin's brand) in commit messages,
+branch names, CHANGELOG entries, or PR titles/bodies. Continue the project's own
+lineage instead (e.g. "Lean Builder v3" → "Lean review pipeline"). The one allowed
+exception is the pre-existing `setup` skill's conflict-detection list, which names
+competing plugins functionally to warn about conflicts.
+
 ### Versioning
 
 - Version lives in `.claude-plugin/plugin.json`
