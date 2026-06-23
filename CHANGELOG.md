@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.7.2] - 2026-06-23
+
+Directory-readiness — leaner SessionStart payload, read-only hook attestation.
+
+### Changed
+- `hooks/session-bootstrap.md`: replaced the 10-row skill table with a one-line pipeline summary + `/help` pointer. Standing per-session context cost ~434 → ~306 tokens (~30% lighter; the skill table duplicated descriptions Claude Code already loads). Red Flags and Critical Rules retained — they add anti-rationalization behavior Claude Code's skill descriptions don't. All 10 skills still named (pipeline line + red flags).
+- `hooks/session-start.sh`: header now attests the hook is read-only (stdout only, no writes, no network) for plugin-directory safety screening.
+
 ## [2.7.1] - 2026-06-23
 
 README visuals refresh — value/positioning diagram, terminal mockups, accurate build chain.

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ABOUTME: SessionStart hook — bootstrap cat, pre-load ATLAS.md + session snapshot.
 # ABOUTME: Pre-loading ATLAS means zero tool calls for "where is X" lookups.
+# ABOUTME: Read-only — emits text to stdout only; creates/modifies/deletes nothing, no network.
 HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 cat "$HOOK_DIR/session-bootstrap.md"
