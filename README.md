@@ -83,7 +83,7 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 
 - **One source of truth.** No competing `planner-v2.md` files, no rules that contradict each other. Install once, update once.
 - **Each step gates the next.** Requirements before stories, stories before plans, plans before code. The skill you skipped is usually the bug you ship.
-- **Right model for each role.** You orchestrate on Opus; builders, reviewers, and researchers run on Sonnet. Judgment where it matters, speed where it counts.
+- **Right model for each role.** Builders, reviewers, and researchers run on Sonnet — fast and focused. Your orchestration session runs whatever model you've configured, so you can reach for a larger one (Opus shines here) on the planning and judgment calls.
 - **Drop in anywhere.** Already have a plan? Start at `build`. Hit a bug? `debug`. Wrapping up? `wrap`. You're never forced through the whole chain.
 
 ## How Build Works
@@ -92,7 +92,7 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
   <img src="images/build-review-chain.svg" alt="Build execution: default builder + self-review, or the opt-in --reviewed chain with a Sonnet task-reviewer loop" width="100%">
 </p>
 
-By default each task runs `builder (Sonnet) → self-review → commit` — one spawn per task. The opt-in `--reviewed` flag adds a single Sonnet `task-reviewer` that loads the diff once and returns Spec + Quality verdicts; on issues it loops back to the builder for up to two cycles.
+By default each task runs `builder (Sonnet) → self-review → commit` — one spawn per task. For security-sensitive or unfamiliar code, the opt-in `--reviewed` flag adds a single Sonnet `task-reviewer` that loads the diff once and returns Spec + Quality verdicts; on issues it loops back to the builder for up to two cycles (2–4 spawns per task).
 
 Every N tasks (default 3, set with `--checkpoint=N`; `--checkpoint=0` runs straight through), the pipeline checkpoints with you for feedback. After all tasks, chain to `/turbocharge:review` for the final holistic assessment.
 
