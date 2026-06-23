@@ -10,7 +10,7 @@ A Claude Code plugin that replaces ad-hoc agents, scattered skills, and custom c
 
 This is a **plugin** for Claude Code — not a standalone app. It consists of:
 - 10 skills (SKILL.md files that define slash commands)
-- 6 agents (markdown agent definitions dispatched by skills)
+- 5 agents (markdown agent definitions dispatched by skills)
 - 2 hooks (SessionStart bootstrap + ATLAS pre-load, Stop wrap reminder)
 - A marketplace manifest for distribution
 
@@ -77,6 +77,22 @@ Every skill MUST have:
 2. Clear instructions Claude can follow without ambiguity
 3. A "Red Flags" section for anti-rationalization (build, review, debug at minimum)
 4. Chain-forward: suggest the next skill in the pipeline
+
+### Agent Models
+
+**Sonnet minimum, never Haiku.** Every agent (builders, reviewers, researchers,
+planners) runs Sonnet or higher. Turn count beats token price: a cheaper model
+that loops on misunderstandings costs more than one that gets it right the first
+time. Do not set `model: haiku` on any agent.
+
+### Release Naming
+
+Name releases by what they **do**, not after the source of inspiration. Never put
+competitor/plugin codenames (e.g. another plugin's brand) in commit messages,
+branch names, CHANGELOG entries, or PR titles/bodies. Continue the project's own
+lineage instead (e.g. "Lean Builder v3" → "Lean review pipeline"). The one allowed
+exception is the pre-existing `setup` skill's conflict-detection list, which names
+competing plugins functionally to warn about conflicts.
 
 ### Versioning
 

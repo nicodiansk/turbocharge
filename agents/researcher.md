@@ -5,7 +5,7 @@ description: |
   existing code, finding patterns, investigating architecture, or gathering context
   before planning. Fast, read-only, runs in background by default.
 disallowedTools: Write, Edit, NotebookEdit
-model: haiku
+model: sonnet
 memory: project
 background: true
 ---

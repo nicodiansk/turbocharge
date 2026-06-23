@@ -40,6 +40,24 @@ Each task MUST include:
 - If longer, break it into smaller tasks
 - Tasks are atomic — complete in themselves
 
+## Spec Self-Review (MANDATORY — before writing the plan to disk)
+
+After drafting the full plan and BEFORE you Write it to `docs/plans/`, run this
+3-point self-review on your own plan and fix every gap inline. No subagent, no
+re-review — you fix it yourself, now.
+
+1. **Spec coverage** — for every requirement in the source spec, point to the
+   exact task that implements it. Any requirement with no implementing task → add
+   the task now (don't just note the gap — close it).
+2. **Placeholder scan** — search the plan for `TODO`, `TBD`, `implement later`,
+   `add appropriate error handling`, `similar to Task N`, and any step missing a
+   real code sample. Replace each with concrete content.
+3. **Type consistency** — verify every function/method signature and property
+   name introduced in an early task matches its usage in later tasks
+   (e.g. `clearLayers()` vs `clearFullLayers()`). Reconcile mismatches.
+
+Only after all three pass do you write the plan file.
+
 ## Plan Format
 
 ```markdown

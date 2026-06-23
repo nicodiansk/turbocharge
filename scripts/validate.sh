@@ -83,7 +83,7 @@ echo ""
 
 # 3. Check agents
 echo "--- Agents ---"
-EXPECTED_AGENTS="builder spec-reviewer quality-reviewer code-reviewer planner researcher"
+EXPECTED_AGENTS="builder task-reviewer code-reviewer planner researcher"
 for agent in $EXPECTED_AGENTS; do
     agent_file="$PLUGIN_DIR/agents/$agent.md"
     if [[ -f "$agent_file" ]]; then
@@ -101,6 +101,12 @@ for agent in $EXPECTED_AGENTS; do
             pass "agents/$agent.md — has memory field"
         else
             warn "agents/$agent.md — missing memory field"
+        fi
+        # Sonnet floor — never Haiku (see CLAUDE.md Agent Models)
+        if grep -qiE "^model:[[:space:]]*haiku" "$agent_file"; then
+            error "agents/$agent.md — 'model: haiku' is banned (Sonnet floor; see CLAUDE.md Agent Models)"
+        else
+            pass "agents/$agent.md — no banned haiku model"
         fi
     else
         error "agents/$agent.md — not found"

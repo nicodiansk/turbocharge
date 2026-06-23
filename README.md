@@ -6,14 +6,14 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square&color=58a6ff&labelColor=0d1117" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/claude_code-plugin-7c3aed.svg?style=flat-square&labelColor=0d1117" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/skills-10-3b82f6.svg?style=flat-square&labelColor=0d1117" alt="10 Skills">
-  <img src="https://img.shields.io/badge/agents-6-8b5cf6.svg?style=flat-square&labelColor=0d1117" alt="6 Agents">
+  <img src="https://img.shields.io/badge/agents-5-8b5cf6.svg?style=flat-square&labelColor=0d1117" alt="5 Agents">
 </p>
 
 ---
 
 You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that contradict each other, and a `planner-actually-good.md` you wrote at 2 AM. Claude picks whichever it finds first. You can't remember which is current. Neither can Claude.
 
-**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 6 agents, 2 hooks. One system to install, nothing to maintain.
+**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 5 agents, 2 hooks. One system to install, nothing to maintain.
 
 ## Install
 
@@ -80,13 +80,13 @@ builder (Sonnet) → self-review → commit
 **With `--reviewed` flag — for security-sensitive or unfamiliar codebases:**
 
 ```
-builder (Sonnet) → spec-reviewer (Haiku) → quality-reviewer (Haiku)
-                        ↓ issues?                ↓ issues?
-                   back to builder           back to builder
-                    (max 2 cycles)            (max 2 cycles)
+builder (Sonnet) → task-reviewer (Sonnet) — Spec + Quality verdicts
+                        ↓ issues?
+                   back to builder
+                    (max 2 cycles)
 ```
 
-Every 3 tasks, the pipeline checkpoints with you for feedback. After all tasks, chain to `/turbocharge:review` for the final holistic assessment.
+Every N tasks (default 3, set with `--checkpoint=N`; `--checkpoint=0` runs straight through), the pipeline checkpoints with you for feedback. After all tasks, chain to `/turbocharge:review` for the final holistic assessment.
 
 **Multi-track mode** — independent tasks can run in parallel with coordinated builders. Requires Agent Teams (experimental):
 
@@ -106,9 +106,8 @@ Dispatched by skills. You never invoke them directly.
 |:------|:-----|:------|
 | **builder** | TDD implementation, self-review, commits | Sonnet |
 | **planner** | Task breakdown, verifies entity names against codebase | inherit |
-| **researcher** | Fast background codebase exploration | Haiku |
-| **spec-reviewer** | Verifies implementation matches spec (opt-in) | Haiku |
-| **quality-reviewer** | Code quality and production readiness (opt-in) | Haiku |
+| **researcher** | Fast background codebase exploration | Sonnet |
+| **task-reviewer** | Spec + Quality verdicts on a task diff (opt-in) | Sonnet |
 | **code-reviewer** | Holistic pre-merge assessment | Sonnet |
 
 All agents have `memory: project` for persistent codebase knowledge across sessions.
@@ -155,7 +154,7 @@ turbocharge/
 │   └── marketplace.json         # Distribution config
 ├── skills/                      # 10 skill definitions
 │   └── <skill-name>/SKILL.md
-├── agents/                      # 6 agent definitions
+├── agents/                      # 5 agent definitions
 │   └── <agent-name>.md
 ├── hooks/
 │   ├── hooks.json               # Hook registration

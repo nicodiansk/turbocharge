@@ -26,8 +26,7 @@ Scan `~/.claude/agents/` for agent definitions that overlap with turbocharge age
 | planner | planner, architect |
 | code-reviewer | code-reviewer |
 | researcher | explorer, investigator |
-| spec-reviewer | — |
-| quality-reviewer | — |
+| task-reviewer | spec-reviewer, quality-reviewer |
 
 Also check for: session-wrapper, session-wrap, build-error-resolver (covered by turbocharge:debug)
 
@@ -78,7 +77,7 @@ Run the validation script if available:
 
 Or manually check:
 - All 10 skills have SKILL.md files
-- All 6 agents have .md files
+- All 5 agents have .md files
 - hooks/hooks.json exists
 - .claude-plugin/plugin.json exists and has correct version
 
@@ -163,7 +162,7 @@ If ATLAS.md does not exist, offer: `/turbocharge:atlas` to generate the navigati
 TURBOCHARGE SETUP AUDIT
 =======================
 
-Plugin Health: ✅ OK (10 skills, 6 agents, hooks configured)
+Plugin Health: ✅ OK (10 skills, 5 agents, hooks configured)
 
 Conflicts Found:
   🔴 ~/.claude/agents/session-wrapper-agent.md → covered by turbocharge:wrap

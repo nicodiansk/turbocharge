@@ -1,7 +1,7 @@
 ---
 name: build
-description: Use when you have an implementation plan ready to execute. Dispatches builder agents (Sonnet) per task with self-review. Opt-in review chain (spec + quality reviewers on Haiku) for high-risk tasks. Supports single-track and multi-track parallel execution.
-argument-hint: "[plan-file] [--reviewed]"
+description: Use when you have an implementation plan ready to execute. Dispatches builder agents (Sonnet) per task with self-review. Opt-in review (single Sonnet task-reviewer, two verdicts) for high-risk tasks. Supports single-track and multi-track parallel execution.
+argument-hint: "[plan-file] [--reviewed] [--checkpoint=N]"
 ---
 
 # Build
@@ -23,16 +23,17 @@ NO TASK MARKED COMPLETE WITHOUT BUILDER SELF-REVIEW AND PASSING TESTS
 3. If concerns: raise them before starting
 4. Count tasks, identify dependencies, determine execution mode
 5. Check if `--reviewed` is in $ARGUMENTS — if so, enable review chain for all tasks
+6. Parse `--checkpoint=N` from $ARGUMENTS (default `N=3`). `--checkpoint=0` or `--no-checkpoint` disables the human-wait between batches (use only for small/low-risk plans).
 
 ## Step 2: Choose Execution Mode
 
 **Standard** (default): Builder implements each task with self-review. No separate reviewer agents.
 - Spawn builder (Sonnet) per task
 - Builder self-reviews using its built-in checklist
-- 3-task batches with human checkpoint
+- Batches of N tasks (default 3, set via `--checkpoint=N`) with a human checkpoint; `--checkpoint=0` runs straight through with no wait
 
 **Reviewed** (`--reviewed` flag, or user says "with reviews"): For high-risk, security-sensitive, or unfamiliar codebases.
-- Same as Standard, plus: spec-reviewer (Haiku) + quality-reviewer (Haiku) after each task
+- Same as Standard, plus: one task-reviewer (Sonnet) after each task — reads the diff once and emits two verdicts (Spec + Quality)
 - Leaner dispatch: pass plan file path + task line range + git diff only — no narrative summaries
 - Max 2 review cycles per task — escalate to user if unresolved
 
@@ -40,7 +41,7 @@ NO TASK MARKED COMPLETE WITHOUT BUILDER SELF-REVIEW AND PASSING TESTS
 - Spawn Agent Team with specialized builders
 - Each builder owns a set of non-overlapping files
 - Builders communicate via shared task list
-- Reviewer blocked until builders complete
+- Per-task review (`--reviewed`) is NOT supported in multi-track — parallel, interleaved commits make per-task `BEFORE_SHA..HEAD` diff ranges unreliable. Run `/turbocharge:review` after the team completes for a holistic diff review instead.
 - Requires user confirmation before spawning team
 
 **How to decide:**
@@ -63,53 +64,70 @@ Spawn builder subagent (Sonnet) with:
 - Working directory
 - Prefix: `@CLAUDE.md` (conventions). Do NOT inject `@ATLAS.md` — builders read the spec and diff, not the navigation index.
 
+In **Reviewed** mode, record the pre-task SHA before dispatching: `BEFORE_SHA=$(git rev-parse HEAD)`. The task-reviewer diffs `$BEFORE_SHA..HEAD` to capture exactly this builder's output, regardless of how many commits (zero, one, or many) the builder makes.
+
 ### 3b. Mark Task Complete
 
-### 3c. After Batch (every 3 tasks)
+### 3c. After Batch (every N tasks, default 3)
 
 Report to human:
 - What was implemented in this batch
 - Current progress (N of M tasks complete)
+- Visibility: `agents spawned: A · models: sonnet×A · tasks: X/Y`
 
 Say: **"Batch complete. Ready for feedback."**
 
 **Wait for human approval before next batch.**
 
+> If `--checkpoint=0`, skip the wait and continue to the next batch automatically.
+
 ## Step 4: Execute — Reviewed
 
-Same as Step 3, with these additions after each builder completes:
+For each task in the batch, run this exact ordered sequence. **The task is not marked complete until its review passes** — never mark complete straight after the builder (that is the Step 3 flow, not this one):
 
-### 4a. Dispatch Spec Reviewer
-Spawn spec-reviewer subagent (Haiku) with:
+1. **Dispatch builder** — same as Step 3a. In Reviewed mode, record `BEFORE_SHA=$(git rev-parse HEAD)` *before* dispatching (Step 3a) so the reviewer diffs exactly this builder's output.
+2. **Dispatch task-reviewer** (Step 4a) and apply the disposition — loop the builder if Spec ❌ or any 🔴 Critical (max 2 cycles).
+3. **Dispatch researcher on demand** (Step 4b) only if the builder blocked on unclear context.
+4. **Mark the task complete** (Step 4c) — only after Spec ✅ with no unresolved 🔴 Critical.
+5. **After every N tasks, run the batch checkpoint** (Step 4d).
+
+The sub-steps below detail each stage:
+
+### 4a. Dispatch Task Reviewer
+Spawn one task-reviewer subagent (Sonnet) with:
 - Plan file path + task line range (reviewer reads the plan directly — do NOT paste requirements)
+- Git diff range for the task: `git diff $BEFORE_SHA..HEAD` (the SHA captured in Step 3a). Do NOT use `HEAD~1..HEAD` — it reviews the wrong code when a task makes zero or multiple commits.
 - Working directory to read actual code
-- Do NOT send the builder's narrative report — reviewer reads code, not claims
+- Do NOT send the builder's narrative report — the reviewer reads the diff, not claims
 
-**If spec-reviewer finds issues:** Resume the builder subagent with findings, re-review. **Max 2 cycles** — if still failing, escalate to user.
+The reviewer returns two verdicts:
+- `Spec: ✅ / ❌`
+- `Quality: Approved / Issues found / N/A` — N/A when Spec is ❌ (spec must pass before quality is assessed, so quality isn't wasted on code that will be rewritten)
 
-### 4b. Dispatch Quality Reviewer
-After spec passes, spawn quality-reviewer subagent (Haiku) with:
-- File paths changed
-- Git diff range (`git diff HEAD~1..HEAD`)
-- Do NOT send implementation summaries — reviewer reads code directly
+**Disposition:**
+- **Spec ❌:** Resume the builder with the spec gaps only (ignore quality — it's N/A), then re-review. **Max 2 cycles** — escalate to user if still failing.
+- **Spec ✅, Quality has any 🔴 Critical:** Resume the builder with the Critical findings **only**, then re-review. **Max 2 cycles.** Any 🟡 Important / 🟢 Minor findings that co-occur in the same review are NOT fixed in this loop — carry them forward to the next batch checkpoint (Step 4d) exactly as the bullet below does. Do not let them vanish just because a Critical was present.
+- **Spec ✅, Quality has only 🟡 Important / 🟢 Minor:** Do NOT loop. Carry these concerns into the next batch checkpoint (Step 4d) so the user decides whether to address them.
 
-**If critical issues found:** Resume builder with findings, re-review quality. **Max 2 cycles** — escalate to user if unresolved.
-
-### 4c. Dispatch Researcher (on demand)
+### 4b. Dispatch Researcher (on demand)
 If the builder blocks on unclear context, dispatch the researcher with `@ATLAS.md @CLAUDE.md` prefixed. Subagents do not inherit parent history — `@ATLAS.md` must ride on the dispatch prompt itself.
 
-### 4d. Mark Task Complete
+### 4c. Mark Task Complete
 
-### 4e. After Batch (every 3 tasks)
+### 4d. After Batch (every N tasks, default 3)
 
 Report to human:
 - What was implemented in this batch
 - Review results (issues found and fixed)
+- Accumulated 🟡 Important / 🟢 Minor quality concerns not yet addressed (from Step 4a)
 - Current progress (N of M tasks complete)
+- Visibility: `agents spawned: A · models: sonnet×A · tasks: X/Y`
 
 Say: **"Batch complete. Ready for feedback."**
 
 **Wait for human approval before next batch.**
+
+> If `--checkpoint=0`, skip the wait and continue to the next batch automatically.
 
 ## Step 5: Execute — Multi-Track (Agent Teams)
 
@@ -125,19 +143,22 @@ Spawn an Agent Team? This uses more tokens but is faster.
 ### 5b. Spawn Team
 - Create team with builders per track
 - Each builder gets their track's tasks
-- Add reviewer tasks blocked by builder tasks (dependency chains)
+- Builders self-review per task; per-task reviewers are not dispatched in multi-track (see Step 2) — holistic review comes after via `/turbocharge:review`
 - Builders communicate if they need to coordinate (API contracts, shared types)
 
 ### 5c. Monitor and Report
 - Wait for builders to complete
-- Reviewer tasks auto-unblock
 - Synthesize results for human review
+- Offer `/turbocharge:review` for holistic assessment of the combined diff
 
 ## Step 6: Complete
 
 After ALL tasks done:
 - Report completion summary
+- Print final visibility line: `agents spawned: A · models: sonnet×A · tasks: Y/Y`
 - Offer: "Ready for holistic code review?" → chains to `/turbocharge:review`
+
+> Visibility note: the orchestrator cannot read exact token counts. This line is the spawn/model/task summary (the measurable proxy), NOT a fabricated token number.
 
 ## Red Flags — STOP
 
