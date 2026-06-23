@@ -92,7 +92,7 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
   <img src="images/build-review-chain.svg" alt="Build execution: default builder + self-review, or the opt-in --reviewed chain with a Sonnet task-reviewer loop" width="100%">
 </p>
 
-By default each task runs `builder (Sonnet) → self-review → commit` — one spawn per task. For security-sensitive or unfamiliar code, the opt-in `--reviewed` flag adds a single Sonnet `task-reviewer` that loads the diff once and returns Spec + Quality verdicts; on issues it loops back to the builder for up to two cycles (2–4 spawns per task).
+By default each task runs `builder (Sonnet) → self-review → commit` — one spawn per task. For security-sensitive or unfamiliar code, the opt-in `--reviewed` flag adds a single Sonnet `task-reviewer` that loads the diff once and returns Spec + Quality verdicts; on issues it loops back to the builder for up to two cycles (2–6 spawns per task).
 
 Every N tasks (default 3, set with `--checkpoint=N`; `--checkpoint=0` runs straight through), the pipeline checkpoints with you for feedback. After all tasks, chain to `/turbocharge:review` for the final holistic assessment.
 

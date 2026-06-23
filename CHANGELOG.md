@@ -7,19 +7,15 @@ README visuals refresh — value/positioning diagram, terminal mockups, accurate
 ### Added
 - `images/before-after.svg`: scattered-config vs. single-pipeline diagram, embedded under the README intro.
 - `images/brainstorm-session.svg`: hand-authored terminal mockup of a brainstorm session (announce → dialogue → captured doc → chain-forward).
-- `images/build-review-chain.svg`: accurate SVG of default vs. `--reviewed` task execution; replaces the ASCII diagrams in "How Build Works".
+- `images/build-review-chain.svg`: accurate SVG of default vs. `--reviewed` task execution (2–6 spawns/task on the failure path); replaces the ASCII diagrams in "How Build Works".
 - `README.md`: "Why a Pipeline" section sharpening the positioning.
+- `scripts/tests/t_svg_roster_counts.sh`: asserts each SVG's "N skills · N agents · N hooks" tagline matches ground truth (skills/agents from `plugin.json`, hooks from `hooks.json`) — guards against the next stale-count regression.
 
 ### Changed
 - `CLAUDE.md`: document the planner's deliberate `model: inherit` carve-out (rides the orchestrator model, ≥ Sonnet in normal use) so it no longer reads as a contradiction of the Sonnet-floor rule.
 
 ### Fixed
 - `images/hero-banner-v2.svg`: agent count corrected 6 → 5 (missed in the 2.7.0 roster update; now matches `plugin.json` and the README badge).
-- `images/build-review-chain.svg`: loop-back arrowhead now lands on the builder box; verdict pills kept inside the task-reviewer node; spawn annotation reads 2–4 (failure path), not 2.
-- `images/before-after.svg`: pipeline-spine gradient switched to vertical so it renders on GitHub's Chromium engine (a horizontal gradient on a zero-width vertical line paints nothing); removed an unused filter.
-
-### Added (tests)
-- `scripts/tests/t_svg_roster_counts.sh`: asserts each SVG's "N skills · N agents · N hooks" tagline matches `plugin.json` — guards against the next stale-count regression.
 
 ### Removed
 - `images/build-review-chain.png` (orphaned and stale — depicted the `spec-reviewer`/`quality-reviewer` agents removed in 2.7.0) and `images/story-output.png` (orphaned, unreferenced). Replaced by version-controlled SVGs.
