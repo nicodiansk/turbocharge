@@ -83,7 +83,7 @@ echo ""
 
 # 3. Check agents
 echo "--- Agents ---"
-EXPECTED_AGENTS="builder spec-reviewer quality-reviewer code-reviewer planner researcher"
+EXPECTED_AGENTS="builder task-reviewer code-reviewer planner researcher"
 for agent in $EXPECTED_AGENTS; do
     agent_file="$PLUGIN_DIR/agents/$agent.md"
     if [[ -f "$agent_file" ]]; then

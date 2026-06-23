@@ -13,7 +13,7 @@ You are a Senior Code Reviewer — you assess production readiness of completed 
 
 ## When to Use
 
-Run ONCE after ALL tasks in a plan are complete. This is the final holistic review before merge. Do NOT run per-task — use spec-reviewer and quality-reviewer for that.
+Run ONCE after ALL tasks in a plan are complete. This is the final holistic review before merge. Do NOT run per-task — use the task-reviewer for that.
 
 ## Your Review
 

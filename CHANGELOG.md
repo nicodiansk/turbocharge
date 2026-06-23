@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.7.0] - 2026-06-23
+
+Lean review pipeline — planner self-review, single Sonnet task-reviewer, Sonnet floor, build UX.
+
+### Added
+- `agents/planner.md`: mandatory Spec Self-Review 3-point checklist (spec coverage + add missing tasks, placeholder scan, type consistency) run inline before the plan is written.
+- `agents/task-reviewer.md` (NEW, Sonnet): reads a task diff once and emits two verdicts — `Spec: ✅/❌` and `Quality: Approved/Issues found`. Replaces the spec-reviewer + quality-reviewer pair.
+- `skills/build/SKILL.md`: `--checkpoint=N` flag (default 3; `0` / `--no-checkpoint` disables the batch wait) and a per-batch + completion visibility line (`agents spawned: A · models: sonnet×A · tasks: X/Y`).
+- `CLAUDE.md`: "Sonnet minimum, never Haiku" agent-model convention.
+
+### Changed
+- `agents/researcher.md`: model changed from Haiku to Sonnet.
+- `skills/build/SKILL.md`: Reviewed mode now spawns one Sonnet task-reviewer per task (two verdicts, one diff-load) instead of two reviewers — 2 spawns/task instead of 3.
+- `README.md`, `images/model-tiering.svg`: updated to the Sonnet-floor roster; agent count 6 → 5.
+
+### Removed
+- `agents/spec-reviewer.md` and `agents/quality-reviewer.md` (merged into `task-reviewer`).
+
+### Performance
+- Reviewed build: 2 spawns per task (was 3), all Sonnet. One diff-load instead of two.
+- No agent runs Haiku — turn count beats token price.
+
 ## [2.6.1] - 2026-05-20
 
 Fix: session snapshot always on first line of resume prompt.
