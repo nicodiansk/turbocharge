@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.7.3] - 2026-06-23
+
+Description consistency — every project-level description now states the full roster.
+
+### Changed
+- `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`: plugin description now reads "10 skills, 5 agents, 2 hooks" (hooks count added) so the manifest, marketplace, and the GitHub About all agree on the roster.
+
 ## [2.7.2] - 2026-06-23
 
 Directory-readiness — leaner SessionStart payload, read-only hook attestation.
