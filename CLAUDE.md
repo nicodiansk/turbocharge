@@ -85,6 +85,12 @@ planners) runs Sonnet or higher. Turn count beats token price: a cheaper model
 that loops on misunderstandings costs more than one that gets it right the first
 time. Do not set `model: haiku` on any agent.
 
+The planner is the one deliberate `model: inherit`: it rides the orchestrator's
+session model so architectural planning gets your strongest available model
+(Opus when you orchestrate on Opus, Sonnet otherwise) — never below the Sonnet
+floor in normal use, and portable to setups without Opus access. Every other
+agent hard-pins `model: sonnet`.
+
 ### Release Naming
 
 Name releases by what they **do**, not after the source of inspiration. Never put

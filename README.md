@@ -15,6 +15,10 @@ You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that c
 
 **Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 5 agents, 2 hooks. One system to install, nothing to maintain.
 
+<p align="center">
+  <img src="images/before-after.svg" alt="Before: scattered, contradictory config. After: one ordered pipeline." width="100%">
+</p>
+
 ## Install
 
 ```bash
@@ -27,6 +31,12 @@ Restart Claude Code, then start building:
 ```bash
 /turbocharge:brainstorm I want to build a CLI tool that manages git worktrees
 ```
+
+Every skill announces itself, does one job well, and hands you the next step:
+
+<p align="center">
+  <img src="images/brainstorm-session.svg" alt="A brainstorm session: Socratic dialogue, a captured design doc, and a chain-forward to /turbocharge:story" width="92%">
+</p>
 
 <details>
 <summary>Other install methods</summary>
@@ -69,22 +79,20 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 | **ship** | `/turbocharge:ship` | Test verification, then merge / PR / keep / discard |
 | **wrap** | `/turbocharge:wrap` | Session continuity — captures state, generates resume prompt |
 
+## Why a Pipeline
+
+- **One source of truth.** No competing `planner-v2.md` files, no rules that contradict each other. Install once, update once.
+- **Each step gates the next.** Requirements before stories, stories before plans, plans before code. The skill you skipped is usually the bug you ship.
+- **Right model for each role.** Builders, reviewers, and researchers run on Sonnet — fast and focused. Your orchestration session runs whatever model you've configured, so you can reach for a more capable one on the planning and judgment calls.
+- **Drop in anywhere.** Already have a plan? Start at `build`. Hit a bug? `debug`. Wrapping up? `wrap`. You're never forced through the whole chain.
+
 ## How Build Works
 
-**Default — builder only (fast, lean):**
+<p align="center">
+  <img src="images/build-review-chain.svg" alt="Build execution: default builder + self-review, or the opt-in --reviewed chain with a Sonnet task-reviewer loop" width="100%">
+</p>
 
-```
-builder (Sonnet) → self-review → commit
-```
-
-**With `--reviewed` flag — for security-sensitive or unfamiliar codebases:**
-
-```
-builder (Sonnet) → task-reviewer (Sonnet) — Spec + Quality verdicts
-                        ↓ issues?
-                   back to builder
-                    (max 2 cycles)
-```
+By default each task runs `builder (Sonnet) → self-review → commit` — one spawn per task. For security-sensitive or unfamiliar code, the opt-in `--reviewed` flag adds a single Sonnet `task-reviewer` that loads the diff once and returns Spec + Quality verdicts; on issues it loops back to the builder for up to two cycles (2–6 spawns per task).
 
 Every N tasks (default 3, set with `--checkpoint=N`; `--checkpoint=0` runs straight through), the pipeline checkpoints with you for feedback. After all tasks, chain to `/turbocharge:review` for the final holistic assessment.
 
