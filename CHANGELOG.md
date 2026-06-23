@@ -8,6 +8,26 @@ Directory-readiness — leaner SessionStart payload, read-only hook attestation.
 - `hooks/session-bootstrap.md`: replaced the 10-row skill table with a one-line pipeline summary + `/help` pointer. Standing per-session context cost ~434 → ~306 tokens (~30% lighter; the skill table duplicated descriptions Claude Code already loads). Red Flags and Critical Rules retained — they add anti-rationalization behavior Claude Code's skill descriptions don't. All 10 skills still named (pipeline line + red flags).
 - `hooks/session-start.sh`: header now attests the hook is read-only (stdout only, no writes, no network) for plugin-directory safety screening.
 
+## [2.7.1] - 2026-06-23
+
+README visuals refresh — value/positioning diagram, terminal mockups, accurate build chain.
+
+### Added
+- `images/before-after.svg`: scattered-config vs. single-pipeline diagram, embedded under the README intro.
+- `images/brainstorm-session.svg`: hand-authored terminal mockup of a brainstorm session (announce → dialogue → captured doc → chain-forward).
+- `images/build-review-chain.svg`: accurate SVG of default vs. `--reviewed` task execution (2–6 spawns/task on the failure path); replaces the ASCII diagrams in "How Build Works".
+- `README.md`: "Why a Pipeline" section sharpening the positioning.
+- `scripts/tests/t_svg_roster_counts.sh`: asserts each SVG's "N skills · N agents · N hooks" tagline matches ground truth (skills/agents from `plugin.json`, hooks from `hooks.json`) — guards against the next stale-count regression.
+
+### Changed
+- `CLAUDE.md`: document the planner's deliberate `model: inherit` carve-out (rides the orchestrator model, ≥ Sonnet in normal use) so it no longer reads as a contradiction of the Sonnet-floor rule.
+
+### Fixed
+- `images/hero-banner-v2.svg`: agent count corrected 6 → 5 (missed in the 2.7.0 roster update; now matches `plugin.json` and the README badge).
+
+### Removed
+- `images/build-review-chain.png` (orphaned and stale — depicted the `spec-reviewer`/`quality-reviewer` agents removed in 2.7.0) and `images/story-output.png` (orphaned, unreferenced). Replaced by version-controlled SVGs.
+
 ## [2.7.0] - 2026-06-23
 
 Lean review pipeline — planner self-review, single Sonnet task-reviewer, Sonnet floor, build UX.
