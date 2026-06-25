@@ -7,6 +7,7 @@ description: |
   spec-reviewer + quality-reviewer pair (one spawn, one diff-load).
 disallowedTools: Write, Edit, NotebookEdit
 model: sonnet
+effort: medium
 memory: project
 ---
 
