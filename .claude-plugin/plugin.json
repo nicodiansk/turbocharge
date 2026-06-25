@@ -2,7 +2,7 @@
   "name": "turbocharge",
   "displayName": "Turbocharge",
   "description": "Engineering team orchestration for Claude Code. 10 skills, 5 agents, 2 hooks — single pipeline from brainstorm to shipped code.",
-  "version": "2.7.3",
+  "version": "2.8.0",
   "author": {
     "name": "Nicholas",
     "email": "nicholasprevitali96@gmail.com"
