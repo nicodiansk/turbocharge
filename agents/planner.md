@@ -6,6 +6,7 @@ description: |
   Use when requirements are clear and need systematic task breakdown.
 tools: Read, Write, Bash, Grep, Glob
 model: inherit
+effort: high
 memory: project
 ---
 
