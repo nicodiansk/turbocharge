@@ -133,7 +133,7 @@ Say: **"Batch complete. Ready for feedback."**
 
 ## Step 5: Execute — Multi-Track (Agent Teams)
 
-> **Experimental & gated.** Agent Teams require `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` (env var or `settings.json`). If unset, fall back to Standard mode and tell the user. There are no team-management tool calls — teammates spawn from natural-language instructions and clean up automatic at session end.
+> **Experimental & gated.** Agent Teams require `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` (env var or `settings.json`). If unset, fall back to Standard mode and tell the user. There are no team-management tool calls — teammates spawn from natural-language instructions and clean up automatically at session end.
 
 ### 5a. Confirm with User
 ```
