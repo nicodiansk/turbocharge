@@ -66,6 +66,8 @@ Spawn builder subagent (Sonnet) with:
 
 In **Reviewed** mode, record the pre-task SHA before dispatching: `BEFORE_SHA=$(git rev-parse HEAD)`. The task-reviewer diffs `$BEFORE_SHA..HEAD` to capture exactly this builder's output, regardless of how many commits (zero, one, or many) the builder makes.
 
+> **Builder isolation (design decision):** the builder agent intentionally does NOT set `isolation: worktree`. A worktree branches from the **default branch**, not the parent session's HEAD, and is auto-cleaned only when no changes are made — which would break this skill's `BEFORE_SHA=$(git rev-parse HEAD)` → `$BEFORE_SHA..HEAD` diff model (the reviewer would diff the wrong base) and would leave a populated, non-auto-cleaned worktree for ship/cleanup to manage. Worktree/branch management therefore stays in skill prose and the parent session, not in the agent frontmatter.
+
 ### 3b. Mark Task Complete
 
 ### 3c. After Batch (every N tasks, default 3)
@@ -131,25 +133,24 @@ Say: **"Batch complete. Ready for feedback."**
 
 ## Step 5: Execute — Multi-Track (Agent Teams)
 
+> **Experimental & gated.** Agent Teams require `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` (env var or `settings.json`). If unset, fall back to Standard mode and tell the user. There are no team-management tool calls — teammates spawn from natural-language instructions and clean up automatic at session end.
+
 ### 5a. Confirm with User
 ```
 This plan has independent tracks that could run in parallel:
 - Track A: [description] (Tasks X, Y, Z)
 - Track B: [description] (Tasks A, B, C)
 
-Spawn an Agent Team? This uses more tokens but is faster.
+Spawn an Agent Team (experimental, needs CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)?
+This uses more tokens but is faster.
 ```
 
-### 5b. Spawn Team
-- Create team with builders per track
-- Each builder gets their track's tasks
-- Builders self-review per task; per-task reviewers are not dispatched in multi-track (see Step 2) — holistic review comes after via `/turbocharge:review`
-- Builders communicate if they need to coordinate (API contracts, shared types)
-
-### 5c. Monitor and Report
-- Wait for builders to complete
-- Synthesize results for human review
-- Offer `/turbocharge:review` for holistic assessment of the combined diff
+### 5b. Spawn Teammates
+- In natural language, ask each teammate to act as the **builder** subagent type (reference it by name). Teammates honor the builder definition's `model` (Sonnet) and `tools`, but do NOT apply its preloaded `skills`/`mcpServers` — give each teammate the context it needs in the spawn instruction.
+- Assign each teammate a non-overlapping set of files (file ownership) so parallel, interleaved commits never touch the same path.
+- Teammates self-review per task; per-task reviewers are NOT dispatched in multi-track (see Step 2) — holistic review comes after via `/turbocharge:review`.
+- Per-task `--reviewed` remains unsupported in multi-track: interleaved commits make `BEFORE_SHA..HEAD` ranges unreliable.
+- Cleanup is automatic at session end — there is nothing to tear down manually.
 
 ## Step 6: Complete
 
