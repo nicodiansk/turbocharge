@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-wrap-reminder.md\""
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-wrap-reminder.sh\""
           }
         ]
       }
