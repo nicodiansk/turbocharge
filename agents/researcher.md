@@ -6,6 +6,8 @@ description: |
   before planning. Fast, read-only, runs in background by default.
 disallowedTools: Write, Edit, NotebookEdit
 model: sonnet
+effort: low
+maxTurns: 25
 memory: project
 background: true
 ---
