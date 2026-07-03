@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Engineering team orchestration plugins for Claude Code",
-    "version": "2.8.0"
+    "version": "2.8.1"
   },
   "plugins": [
     {
@@ -15,8 +15,8 @@
         "source": "url",
         "url": "https://github.com/nicodiansk/turbocharge.git"
       },
-      "description": "Engineering team orchestration for Claude Code. 10 skills, 5 agents, 2 hooks — single pipeline from brainstorm to shipped code.",
-      "version": "2.8.0",
+      "description": "Engineering team orchestration for Claude Code. 10 skills, 5 agents, 1 hook — single pipeline from brainstorm to shipped code.",
+      "version": "2.8.1",
       "strict": true
     }
   ]

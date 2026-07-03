@@ -11,7 +11,7 @@ A Claude Code plugin that replaces ad-hoc agents, scattered skills, and custom c
 This is a **plugin** for Claude Code — not a standalone app. It consists of:
 - 10 skills (SKILL.md files that define slash commands)
 - 5 agents (markdown agent definitions dispatched by skills)
-- 2 hooks (SessionStart bootstrap + ATLAS pre-load, Stop wrap reminder)
+- 1 hook (SessionStart bootstrap + ATLAS pre-load)
 - A marketplace manifest for distribution
 
 ### Architecture
@@ -49,7 +49,7 @@ Local dev:    claude --plugin-dir /path/to/turbocharge
 |------|------------|
 | **Skill** | A SKILL.md file in `skills/<name>/` — becomes `/turbocharge:<name>` |
 | **Agent** | A markdown file in `agents/` — dispatched by skills via the Agent tool |
-| **Hook** | Shell command executed at lifecycle events (SessionStart, Stop) |
+| **Hook** | Shell command executed at lifecycle events (SessionStart) |
 | **Marketplace** | GitHub repo with `.claude-plugin/marketplace.json` that indexes plugins — lives at the root of this repo (`nicodiansk/turbocharge`) as of v2.3.0; previously a sibling `turbocharge-marketplace` repo (deleted 2026-04-13) |
 | **Iron Law** | An enforced constraint (not a suggestion) baked into skill definitions |
 | **Red Flag** | Anti-rationalization table that catches Claude skipping process steps |

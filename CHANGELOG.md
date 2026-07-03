@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.8.1] - 2026-07-03
+
+Hook fix — remove the Stop wrap-reminder hook. The 2.8.0 Stop hook emitted `hookSpecificOutput.additionalContext`, which is **not a valid Stop output field**: current Claude Code rejects it as invalid JSON, and builds that parse it as a `block` decision loop the turn until `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP` force-ends it (observed in the wild). Because Stop fires at the end of *every* assistant turn, there is no non-looping way to inject a model-visible per-turn nudge; wrap guidance already ships in the SessionStart payload, so the hook is removed rather than reworked.
+
+### Removed
+- `hooks/stop-wrap-reminder.sh` and its `Stop` registration in `hooks/hooks.json` — invalid/looping Stop output (see above). Wrap is still nudged via the SessionStart Red Flags.
+- `scripts/tests/t_stop_wrap_nudge.sh` — asserted the now-removed hook's output shape.
+
+### Changed
+- Roster corrected to **1 hook** (SessionStart) across `plugin.json`, `marketplace.json`, `README.md`, `CLAUDE.md`, and the hero/before-after SVGs.
+- `scripts/tests/t_claudemd_hook_ref.sh`: now asserts the 1-hook inventory with no stale `Stop`/`2 hooks` references.
+- Version → 2.8.1 across `plugin.json` + `marketplace.json` (both fields).
+
 ## [2.8.0] - 2026-06-25
 
 Capability refresh — adopt Claude Code features shipped Jan–Jun 2026 (effort, maxTurns, agent-teams mechanics, displayName, context-aware Stop hook, real plugin-health tooling). Sonnet floor and version lockstep preserved; no new components.
