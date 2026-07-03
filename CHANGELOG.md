@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.8.0] - 2026-06-25
+
+Capability refresh — adopt Claude Code features shipped Jan–Jun 2026 (effort, maxTurns, agent-teams mechanics, displayName, context-aware Stop hook, real plugin-health tooling). Sonnet floor and version lockstep preserved; no new components.
+
+### Added
+- `agents/researcher.md`: `effort: low` + `maxTurns: 25` — bounds the fast/background explorer.
+- `agents/code-reviewer.md`: `effort: high` — deeper holistic pre-merge reasoning.
+- `agents/planner.md`: `effort: high` (keeps `model: inherit`).
+- `agents/task-reviewer.md`: `effort: medium`.
+- `.claude-plugin/plugin.json`: `displayName: "Turbocharge"` (v2.1.143+ field; `name` unchanged, marketplace lockstep unaffected).
+- `hooks/stop-wrap-reminder.sh`: context-aware Stop nudge emitting `hookSpecificOutput.additionalContext` so the model is steered to OFFER `/turbocharge:wrap`, not merely printed at. Read-only.
+- Content-shape tests: `t_agent_effort_caps.sh`, `t_build_multitrack_refresh.sh`, `t_plugin_displayname.sh`, `t_stop_wrap_nudge.sh`, `t_setup_plugin_tooling.sh`, `t_version_280.sh`, `t_changelog_280.sh`.
+
+### Changed
+- `skills/build/SKILL.md` (Step 5): replaced stale "Create team"/`TeamCreate`/`TeamDelete` prose with current Agent Teams mechanics — `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` gate, natural-language teammate spawn referencing the `builder` subagent by name (honors its `model`/`tools`, NOT its `skills`/`mcpServers`), file-ownership conflict avoidance, automatic session-end cleanup. Documented the builder no-self-isolation decision (worktree branches from default branch + only auto-cleans when unchanged → would break the `BEFORE_SHA..HEAD` reviewer diff; worktree management stays in skill prose).
+- `hooks/hooks.json`: Stop now runs `stop-wrap-reminder.sh` instead of `cat`-ing the prose file.
+- `skills/setup/SKILL.md`: plugin health/conflict audit now uses `claude plugin details turbocharge` and `claude plugin list --json`, and scans for competing orchestration plugins (not just `~/.claude/agents/`). `disable-model-invocation: true` retained.
+- Version → 2.8.0 across `plugin.json` + `marketplace.json` (both fields).
+
+### Removed
+- `hooks/stop-wrap-reminder.md` — superseded by the structured `.sh` hook.
+
 ## [2.7.3] - 2026-06-23
 
 Description consistency — every project-level description now states the full roster.

@@ -64,13 +64,13 @@ All orchestration goes through the turbocharge plugin...
 
 ### 4. Check for Plugin Conflicts
 
-Read `~/.claude/settings.json` and check `enabledPlugins`:
+Run `claude plugin list --json` to enumerate installed plugins and their enable state, then read `~/.claude/settings.json` `enabledPlugins`:
 - Are there disabled plugins cluttering the config? Offer to remove.
-- Are there other orchestration plugins enabled alongside turbocharge (superpowers, everything-claude-code)? Warn about conflicts.
+- Scan the installed-plugins list for competing **orchestration plugins** (e.g. superpowers, everything-claude-code) enabled alongside turbocharge — not just duplicate definitions in `~/.claude/agents/`. Warn about conflicts and explain the overlap.
 
 ### 5. Validate Turbocharge Plugin Health
 
-Run the validation script if available:
+Run `claude plugin details turbocharge` to confirm the plugin is installed, enabled, and to see its standing token cost. Then run the validation script if available:
 ```bash
 ./scripts/validate.sh
 ```
