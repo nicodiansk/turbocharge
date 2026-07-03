@@ -28,11 +28,11 @@ for svg in "$PLUGIN_DIR"/images/*.svg; do
         taglines_found=$((taglines_found+1))
         s=$(echo "$line" | grep -oE '[0-9]+ skills' | grep -oE '[0-9]+')
         a=$(echo "$line" | grep -oE '[0-9]+ agents' | grep -oE '[0-9]+')
-        h=$(echo "$line" | grep -oE '[0-9]+ hooks'  | grep -oE '[0-9]+')
+        h=$(echo "$line" | grep -oE '[0-9]+ hooks?' | grep -oE '[0-9]+')
         [ "$s" = "$SKILLS" ] || { echo "    $(basename "$svg"): roster says '$s skills', expected '$SKILLS'"; rc=1; }
         [ "$a" = "$AGENTS" ] || { echo "    $(basename "$svg"): roster says '$a agents', expected '$AGENTS'"; rc=1; }
         [ "$h" = "$HOOKS"  ] || { echo "    $(basename "$svg"): roster says '$h hooks', expected '$HOOKS'"; rc=1; }
-    done < <(grep -oE '[0-9]+ skills[^<]*[0-9]+ agents[^<]*[0-9]+ hooks' "$svg")
+    done < <(grep -oE '[0-9]+ skills[^<]*[0-9]+ agents[^<]*[0-9]+ hooks?' "$svg")
 done
 
 # The guard is only useful if it actually found taglines to check.

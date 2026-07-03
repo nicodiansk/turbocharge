@@ -137,5 +137,5 @@
   <text x="970" y="272" text-anchor="middle" fill="#30363d" font-family="'SF Mono', 'Fira Code', monospace" font-size="9">— run any time —</text>
 
   <!-- Bottom tagline -->
-  <text x="600" y="360" text-anchor="middle" fill="#8b949e" font-family="'SF Mono', 'Fira Code', monospace" font-size="13">10 skills · 5 agents · 2 hooks — a Claude Code plugin</text>
+  <text x="600" y="360" text-anchor="middle" fill="#8b949e" font-family="'SF Mono', 'Fira Code', monospace" font-size="13">10 skills · 5 agents · 1 hook — a Claude Code plugin</text>
 </svg>

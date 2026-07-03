@@ -8,5 +8,6 @@ assert_no_grep "$F" "pretool-read-codemap" || exit 1
 # hooks.json still parses as valid JSON
 if command -v jq >/dev/null 2>&1; then
     jq -e '.hooks.SessionStart' "$F" >/dev/null || { echo "    SessionStart missing"; exit 1; }
-    jq -e '.hooks.Stop' "$F" >/dev/null         || { echo "    Stop missing"; exit 1; }
+    jq -e '.hooks.Stop' "$F" >/dev/null 2>&1    && { echo "    Stop hook should be removed"; exit 1; }
 fi
+exit 0

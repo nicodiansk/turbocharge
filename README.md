@@ -13,7 +13,7 @@
 
 You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that contradict each other, and a `planner-actually-good.md` you wrote at 2 AM. Claude picks whichever it finds first. You can't remember which is current. Neither can Claude.
 
-**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 5 agents, 2 hooks. One system to install, nothing to maintain.
+**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 5 agents, 1 hook. One system to install, nothing to maintain.
 
 <p align="center">
   <img src="images/before-after.svg" alt="Before: scattered, contradictory config. After: one ordered pipeline." width="100%">
