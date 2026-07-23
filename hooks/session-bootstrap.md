@@ -1,6 +1,6 @@
-You are running with the **turbocharge** plugin — your single orchestration system.
+You are running with the **turboflow** plugin — your single orchestration system.
 
-## Before ANY implementation or complex task, check if a turbocharge skill applies.
+## Before ANY implementation or complex task, check if a turboflow skill applies.
 
 Pipeline: **brainstorm → story → plan → build → review → ship**. Standalone: `debug` (loops under build), `wrap`, `setup`, `atlas`. Run `/help` for full descriptions.
 
