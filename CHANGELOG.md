@@ -1,5 +1,28 @@
 # Changelog
 
+## [3.0.0] - 2026-07-23
+
+**BREAKING — plugin renamed `turbocharge` → `turboflow`.** The Anthropic community directory already lists a different author's `turbocharge`, so this plugin migrates to the free `turboflow` slug. The plugin `name` field IS the slash-command namespace: **every `/turbocharge:<skill>` is now `/turboflow:<skill>`.** The GitHub repo, `claude plugin marketplace add nicodiansk/turbocharge` install path, homepage, and repository URL are UNCHANGED — only the plugin/marketplace NAME migrated.
+
+### Migration guidance
+- Slash commands: `/turbocharge:build` → `/turboflow:build`, and likewise for every skill.
+- Local install id: `turboflow@turboflow` (was `turbocharge@turbocharge`).
+- Re-run `claude plugin update` to pick up the new namespace.
+
+### Changed
+- Manifests: `plugin.json` + `marketplace.json` `name`/`displayName`/marketplace-name → turboflow; all three `version` fields → 3.0.0. URLs unchanged.
+- All 6 skills, hooks, examples, `README.md`, `CLAUDE.md`: `/turbocharge:` → `/turboflow:`.
+- Full brand identity: SessionStart bootstrap, `hooks.json` status message, `setup` skill self-references, and colon-namespace refs (`turbocharge:build` etc.) → turboflow.
+- Template renamed `templates/CLAUDE-turbocharge.md` → `templates/CLAUDE-turboflow.md`; block markers `<!-- turbocharge:NAME -->` → `<!-- turboflow:NAME -->`.
+- Session snapshot file `.claude/turbocharge-session.json` → `.claude/turboflow-session.json` (wrap skill + SessionStart hook + tests).
+- Brand SVGs (`hero-banner-v2`, `before-after`, `brainstorm-session`) wordmarks → turboflow.
+- Tests/validator: `t_plugin_displayname.sh` name/displayName assertions, `t_setup_plugin_tooling.sh`, `validate.sh` STALE_REFS, and all session-file/marker/namespace test assertions rehomed to turboflow.
+
+### Unchanged (intentional)
+- GitHub repo `nicodiansk/turbocharge`, all `homepage`/`repository`/marketplace `url`, and the `marketplace add nicodiansk/turbocharge` install path.
+- Historical CHANGELOG entries (2.8.1 and earlier) retain their original `/turbocharge:` references and old filenames as accurate point-in-time records.
+- Dead `.gitignore` entries (`.turbocharge/…`, `turbocharge-marketplace/`) and the README Project-Structure tree label (`turbocharge/`, the git-clone dir).
+
 ## [2.8.1] - 2026-07-03
 
 Hook fix — remove the Stop wrap-reminder hook. The 2.8.0 Stop hook emitted `hookSpecificOutput.additionalContext`, which is **not a valid Stop output field**: current Claude Code rejects it as invalid JSON, and builds that parse it as a `block` decision loop the turn until `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP` force-ends it (observed in the wild). Because Stop fires at the end of *every* assistant turn, there is no non-looping way to inject a model-visible per-turn nudge; wrap guidance already ships in the SessionStart payload, so the hook is removed rather than reworked.
