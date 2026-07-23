@@ -17,4 +17,4 @@ assert_grep "$F" "templates/CLAUDE-turbocharge.md" || exit 1
 assert_grep "$F" "<!-- turbocharge:"              || exit 1
 assert_grep "$F" "180 lines"                      || exit 1
 # Chains forward to atlas
-assert_grep "$F" "/turbocharge:atlas"             || exit 1
+assert_grep "$F" "/turboflow:atlas"               || exit 1

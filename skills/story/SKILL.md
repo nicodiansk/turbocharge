@@ -148,7 +148,7 @@ Run each story through all 6 criteria. Fix failures. Re-split if needed.
 
 - Save to `docs/plans/YYYY-MM-DD-<feature>-stories.md`
 - Commit
-- Offer: "Ready for implementation planning?" → chains to `/turbocharge:plan`
+- Offer: "Ready for implementation planning?" → chains to `/turboflow:plan`
 
 ## Workflow Position
 

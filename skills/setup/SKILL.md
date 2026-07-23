@@ -154,7 +154,7 @@ After writing, if CLAUDE.md exceeds 180 lines, warn the user and suggest extract
 
 ### 6. Chain Forward
 
-If ATLAS.md does not exist, offer: `/turbocharge:atlas` to generate the navigation index. This closes the bootstrap loop: `/init → /turbocharge:setup → /turbocharge:atlas`.
+If ATLAS.md does not exist, offer: `/turboflow:atlas` to generate the navigation index. This closes the bootstrap loop: `/init → /turboflow:setup → /turboflow:atlas`.
 
 ## Report Format
 
@@ -184,8 +184,8 @@ Apply fixes? [list specific changes, ask for confirmation]
 ## After Setup
 
 Offer to chain:
-- `/turbocharge:brainstorm` if user has an idea to explore
-- `/turbocharge:plan` if user has requirements ready
+- `/turboflow:brainstorm` if user has an idea to explore
+- `/turboflow:plan` if user has requirements ready
 - Nothing if user just wanted the audit
 
 ## Red Flags

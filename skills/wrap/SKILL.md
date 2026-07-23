@@ -61,14 +61,14 @@ Decisions to Remember:
 - [key decision]: [rationale]
 
 Start With:
-/turbocharge:[skill] [args]
+/turboflow:[skill] [args]
 ```
 
 **MANDATORY:** `@.claude/turbocharge-session.json` MUST appear on the first line of every resume prompt — it is not optional context, it is the session state. Do not move it to "Context Files" or omit it.
 
 ### 5.5. Atlas + CodeMap Freshness (MANDATORY)
 Before generating the resume prompt:
-1. **Always run `/turbocharge:atlas`** to refresh the domain map — do not skip, even if changes seem minor.
+1. **Always run `/turboflow:atlas`** to refresh the domain map — do not skip, even if changes seem minor.
 2. **If `.codemap/` exists**, run `codemap update` (or note it in the resume prompt if watch mode is active).
 
 Include in the resume prompt:
@@ -121,7 +121,7 @@ Write `.claude/turbocharge-session.json` in the project root (the standard Claud
   "branch": "master",
   "current_task": "ATLAS reshape design",
   "blockers": [],
-  "next_steps": ["Chain to /turbocharge:plan", "Break into tasks"],
+  "next_steps": ["Chain to /turboflow:plan", "Break into tasks"],
   "open_files": ["skills/atlas/SKILL.md"]
 }
 ```

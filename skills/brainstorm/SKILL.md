@@ -41,8 +41,8 @@ NO IMPLEMENTATION WITHOUT UNDERSTANDING REQUIREMENTS FIRST
 ### 5. Save and Continue
 - Write design to `docs/plans/YYYY-MM-DD-<topic>-design.md`
 - Commit the design document
-- Offer: "Ready for story breakdown?" → chains to `/turbocharge:story`
-- Or: "Ready for implementation planning?" → chains to `/turbocharge:plan`
+- Offer: "Ready for story breakdown?" → chains to `/turboflow:story`
+- Or: "Ready for implementation planning?" → chains to `/turboflow:plan`
 
 ## Red Flags — STOP
 

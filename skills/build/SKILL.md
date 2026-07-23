@@ -41,14 +41,14 @@ NO TASK MARKED COMPLETE WITHOUT BUILDER SELF-REVIEW AND PASSING TESTS
 - Spawn Agent Team with specialized builders
 - Each builder owns a set of non-overlapping files
 - Builders communicate via shared task list
-- Per-task review (`--reviewed`) is NOT supported in multi-track — parallel, interleaved commits make per-task `BEFORE_SHA..HEAD` diff ranges unreliable. Run `/turbocharge:review` after the team completes for a holistic diff review instead.
+- Per-task review (`--reviewed`) is NOT supported in multi-track — parallel, interleaved commits make per-task `BEFORE_SHA..HEAD` diff ranges unreliable. Run `/turboflow:review` after the team completes for a holistic diff review instead.
 - Requires user confirmation before spawning team
 
 **How to decide:**
 - Default to Standard — covers 80% of tasks
 - Use Reviewed for: unfamiliar codebase, security-sensitive code, complex integrations
 - Use Multi-track for independent tracks touching different files
-- When in doubt, start Standard — user can always run `/turbocharge:review` after
+- When in doubt, start Standard — user can always run `/turboflow:review` after
 
 **Ask the user** if the choice isn't obvious.
 
@@ -148,7 +148,7 @@ This uses more tokens but is faster.
 ### 5b. Spawn Teammates
 - In natural language, ask each teammate to act as the **builder** subagent type (reference it by name). Teammates honor the builder definition's `model` (Sonnet) and `tools`, but do NOT apply its preloaded `skills`/`mcpServers` — give each teammate the context it needs in the spawn instruction.
 - Assign each teammate a non-overlapping set of files (file ownership) so parallel, interleaved commits never touch the same path.
-- Teammates self-review per task; per-task reviewers are NOT dispatched in multi-track (see Step 2) — holistic review comes after via `/turbocharge:review`.
+- Teammates self-review per task; per-task reviewers are NOT dispatched in multi-track (see Step 2) — holistic review comes after via `/turboflow:review`.
 - Per-task `--reviewed` remains unsupported in multi-track: interleaved commits make `BEFORE_SHA..HEAD` ranges unreliable.
 - Cleanup is automatic at session end — there is nothing to tear down manually.
 
@@ -157,7 +157,7 @@ This uses more tokens but is faster.
 After ALL tasks done:
 - Report completion summary
 - Print final visibility line: `agents spawned: A · models: sonnet×A · tasks: Y/Y`
-- Offer: "Ready for holistic code review?" → chains to `/turbocharge:review`
+- Offer: "Ready for holistic code review?" → chains to `/turboflow:review`
 
 > Visibility note: the orchestrator cannot read exact token counts. This line is the spawn/model/task summary (the measurable proxy), NOT a fabricated token number.
 
