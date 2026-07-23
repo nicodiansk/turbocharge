@@ -15,7 +15,7 @@
     <circle cx="64" cy="49" r="6" fill="#ff5f56"/>
     <circle cx="84" cy="49" r="6" fill="#ffbd2e"/>
     <circle cx="104" cy="49" r="6" fill="#27c93f"/>
-    <text x="500" y="54" text-anchor="middle" fill="#6e7681" font-size="12">claude — turbocharge</text>
+    <text x="500" y="54" text-anchor="middle" fill="#6e7681" font-size="12">claude — turboflow</text>
   </g>
 
   <!-- Terminal content -->
