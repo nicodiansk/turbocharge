@@ -7,11 +7,24 @@ docs/
 # Report data (private usage analytics)
 report.html
 
+# Scratch/screenshot images — repo art lives in images/ as SVG; PNGs are strays
+/*.png
+images/*.png
+
 # Turbocharge session snapshot (per-user, zero-tool-call resume)
 .claude/turbocharge-session.json
 
+# Per-user Claude local state — NOT team-shared (unlike .claude/settings.json,
+# which stays committable). Deliberately scoped to these items, not all of .claude/.
+.claude/settings.local.json
+.claude/agent-memory/
+.claude/worktrees/
+
 # Codemap index (local, auto-generated)
 .codemap/
+
+# Stray third-party tool clone (github.com/AZidan/codemap) — not part of this plugin
+/codemap/
 
 # Session state (user-specific, not committed)
 .turbocharge/memory/
