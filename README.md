@@ -13,7 +13,7 @@
 
 You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that contradict each other, and a `planner-actually-good.md` you wrote at 2 AM. Claude picks whichever it finds first. You can't remember which is current. Neither can Claude.
 
-**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 5 agents, 1 hook. One system to install, nothing to maintain.
+**Turboflow replaces all of it** with a single opinionated pipeline: 10 skills, 5 agents, 1 hook. One system to install, nothing to maintain.
 
 <p align="center">
   <img src="images/before-after.svg" alt="Before: scattered, contradictory config. After: one ordered pipeline." width="100%">
@@ -23,19 +23,19 @@ You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that c
 
 ```bash
 claude plugin marketplace add nicodiansk/turbocharge
-claude plugin install turbocharge@turbocharge
+claude plugin install turboflow@turboflow
 ```
 
 Restart Claude Code, then start building:
 
 ```bash
-/turbocharge:brainstorm I want to build a CLI tool that manages git worktrees
+/turboflow:brainstorm I want to build a CLI tool that manages git worktrees
 ```
 
 Every skill announces itself, does one job well, and hands you the next step:
 
 <p align="center">
-  <img src="images/brainstorm-session.svg" alt="A brainstorm session: Socratic dialogue, a captured design doc, and a chain-forward to /turbocharge:story" width="92%">
+  <img src="images/brainstorm-session.svg" alt="A brainstorm session: Socratic dialogue, a captured design doc, and a chain-forward to /turboflow:story" width="92%">
 </p>
 
 <details>
@@ -48,7 +48,7 @@ claude --plugin-dir ./turbocharge
 
 **Update:**
 ```bash
-claude plugin update turbocharge@turbocharge
+claude plugin update turboflow@turboflow
 ```
 </details>
 
@@ -68,16 +68,16 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 
 | Skill | Command | What it does |
 |:------|:--------|:-------------|
-| **setup** | `/turbocharge:setup` | Audits config for conflicting agents/skills/rules. Bootstraps `CLAUDE.md`. |
-| **atlas** | `/turbocharge:atlas` | Generates `ATLAS.md` domain map. Pre-loaded every session. |
-| **brainstorm** | `/turbocharge:brainstorm` | Socratic requirements discovery before implementation |
-| **story** | `/turbocharge:story` | INVEST-compliant story breakdown with acceptance criteria |
-| **plan** | `/turbocharge:plan` | Bite-sized task decomposition — 2-5 min tasks, exact paths, complete code |
-| **build** | `/turbocharge:build` | Plan execution with Sonnet builder + self-review. Opt-in review chain (`--reviewed`) for high-risk tasks. |
-| **review** | `/turbocharge:review` | Holistic pre-merge code review against the original plan |
-| **debug** | `/turbocharge:debug` | Systematic 4-phase root-cause investigation — no fix until cause is proven |
-| **ship** | `/turbocharge:ship` | Test verification, then merge / PR / keep / discard |
-| **wrap** | `/turbocharge:wrap` | Session continuity — captures state, generates resume prompt |
+| **setup** | `/turboflow:setup` | Audits config for conflicting agents/skills/rules. Bootstraps `CLAUDE.md`. |
+| **atlas** | `/turboflow:atlas` | Generates `ATLAS.md` domain map. Pre-loaded every session. |
+| **brainstorm** | `/turboflow:brainstorm` | Socratic requirements discovery before implementation |
+| **story** | `/turboflow:story` | INVEST-compliant story breakdown with acceptance criteria |
+| **plan** | `/turboflow:plan` | Bite-sized task decomposition — 2-5 min tasks, exact paths, complete code |
+| **build** | `/turboflow:build` | Plan execution with Sonnet builder + self-review. Opt-in review chain (`--reviewed`) for high-risk tasks. |
+| **review** | `/turboflow:review` | Holistic pre-merge code review against the original plan |
+| **debug** | `/turboflow:debug` | Systematic 4-phase root-cause investigation — no fix until cause is proven |
+| **ship** | `/turboflow:ship` | Test verification, then merge / PR / keep / discard |
+| **wrap** | `/turboflow:wrap` | Session continuity — captures state, generates resume prompt |
 
 ## Why a Pipeline
 
@@ -94,7 +94,7 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 
 By default each task runs `builder (Sonnet) → self-review → commit` — one spawn per task. For security-sensitive or unfamiliar code, the opt-in `--reviewed` flag adds a single Sonnet `task-reviewer` that loads the diff once and returns Spec + Quality verdicts; on issues it loops back to the builder for up to two cycles (2–6 spawns per task).
 
-Every N tasks (default 3, set with `--checkpoint=N`; `--checkpoint=0` runs straight through), the pipeline checkpoints with you for feedback. After all tasks, chain to `/turbocharge:review` for the final holistic assessment.
+Every N tasks (default 3, set with `--checkpoint=N`; `--checkpoint=0` runs straight through), the pipeline checkpoints with you for feedback. After all tasks, chain to `/turboflow:review` for the final holistic assessment.
 
 **Multi-track mode** — independent tasks can run in parallel with coordinated builders. Requires Agent Teams (experimental):
 
@@ -125,29 +125,29 @@ All agents have `memory: project` for persistent codebase knowledge across sessi
 | Hook | When | What |
 |:-----|:-----|:-----|
 | **SessionStart** | Start of session | Loads `ATLAS.md` Where to Look table, injects CodeMap stats when `.codemap/` present, restores session snapshot, flags missing files, checks ATLAS staleness |
-| **Stop** | End of session | Reminds you to run `/turbocharge:wrap` before closing |
+| **Stop** | End of session | Reminds you to run `/turboflow:wrap` before closing |
 
 ## Quick Start Examples
 
 ```bash
 # Full pipeline from scratch
-/turbocharge:brainstorm I want to build a REST API for managing bookmarks
+/turboflow:brainstorm I want to build a REST API for managing bookmarks
 
 # Jump to planning with existing requirements
-/turbocharge:plan docs/plans/my-feature-stories.md
+/turboflow:plan docs/plans/my-feature-stories.md
 
 # Debug a specific issue
-/turbocharge:debug The auth middleware is rejecting valid tokens
+/turboflow:debug The auth middleware is rejecting valid tokens
 
 # Wrap up your session
-/turbocharge:wrap
+/turboflow:wrap
 ```
 
 See [`examples/`](examples/) for sample outputs from each stage.
 
 ## What to Remove After Installing
 
-Turbocharge replaces scattered config. `/turbocharge:setup` handles this, but in short:
+Turboflow replaces scattered config. `/turboflow:setup` handles this, but in short:
 
 - Agents in `~/.claude/agents/` (planner, code-reviewer, tdd-guide, session-wrappers)
 - Commands in `.claude/commands/` for story-authoring, task-breakdown, session-wrap
