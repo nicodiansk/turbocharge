@@ -138,7 +138,7 @@ The interview must be completable in under 90 seconds.
 
 ### 3. Render and Append
 
-Read `${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE-turbocharge.md`. Substitute answers (test command, naming style, file-header convention, domain terms). Each block is delimited by `<!-- turbocharge:NAME -->` and `<!-- /turbocharge:NAME -->`.
+Read `${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE-turboflow.md`. Substitute answers (test command, naming style, file-header convention, domain terms). Each block is delimited by `<!-- turboflow:NAME -->` and `<!-- /turboflow:NAME -->`.
 
 - If CLAUDE.md exists and contains a block with the same marker → replace between markers, leave surrounding content untouched.
 - If CLAUDE.md exists and does not contain that block → append to end of file.

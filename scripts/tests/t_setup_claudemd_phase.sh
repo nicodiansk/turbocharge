@@ -13,8 +13,8 @@ assert_grep "$F" "File-header convention"         || exit 1
 assert_grep "$F" "Naming style"                   || exit 1
 assert_grep "$F" "Debug protocol strictness"      || exit 1
 assert_grep "$F" "domain terms"                   || exit 1
-assert_grep "$F" "templates/CLAUDE-turbocharge.md" || exit 1
-assert_grep "$F" "<!-- turbocharge:"              || exit 1
+assert_grep "$F" "templates/CLAUDE-turboflow.md" || exit 1
+assert_grep "$F" "<!-- turboflow:"              || exit 1
 assert_grep "$F" "180 lines"                      || exit 1
 # Chains forward to atlas
 assert_grep "$F" "/turboflow:atlas"               || exit 1
