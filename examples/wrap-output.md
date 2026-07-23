@@ -1,6 +1,6 @@
 # Example: Wrap Output
 
-This is a sample session wrap produced by `/turbocharge:wrap`.
+This is a sample session wrap produced by `/turboflow:wrap`.
 
 ---
 
@@ -22,8 +22,8 @@ This is a sample session wrap produced by `/turbocharge:wrap`.
 
 ## Next Steps
 1. Complete Task 6 (clean --dry-run flag)
-2. Run `/turbocharge:review` for holistic code review
-3. Run `/turbocharge:ship` to create PR
+2. Run `/turboflow:review` for holistic code review
+3. Run `/turboflow:ship` to create PR
 
 ## Resume Prompt
 
@@ -53,5 +53,5 @@ Decisions to Remember:
 - Cobra for CLI framework
 
 Start With:
-/turbocharge:build docs/plans/2026-03-19-worktree-cli.md (continue from Task 6)
+/turboflow:build docs/plans/2026-03-19-worktree-cli.md (continue from Task 6)
 ```

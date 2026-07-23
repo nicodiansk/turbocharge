@@ -21,7 +21,7 @@
   <!-- Terminal content -->
   <g font-size="14.5">
     <!-- command -->
-    <text x="70" y="100"><tspan fill="#7ee787">❯</tspan> <tspan fill="#e6edf3">/turbocharge:brainstorm</tspan> <tspan fill="#8b949e">a CLI tool to manage git worktrees</tspan></text>
+    <text x="70" y="100"><tspan fill="#7ee787">❯</tspan> <tspan fill="#e6edf3">/turboflow:brainstorm</tspan> <tspan fill="#8b949e">a CLI tool to manage git worktrees</tspan></text>
 
     <!-- announce -->
     <text x="70" y="138"><tspan fill="#a78bfa">●</tspan> <tspan fill="#c9d1d9">Using brainstorm to explore this idea before implementation.</tspan></text>
@@ -42,6 +42,6 @@
     <text x="108" y="416" fill="#8b949e" font-size="13">Problem · Users · Constraints · 3 approaches · Decision · Architecture</text>
 
     <line x1="90" y1="434" x2="910" y2="434" stroke="#21262d" stroke-width="1"/>
-    <text x="90" y="460"><tspan fill="#a78bfa">→</tspan> <tspan fill="#c9d1d9">Next step:</tspan> <tspan fill="#58a6ff">/turbocharge:story</tspan></text>
+    <text x="90" y="460"><tspan fill="#a78bfa">→</tspan> <tspan fill="#c9d1d9">Next step:</tspan> <tspan fill="#58a6ff">/turboflow:story</tspan></text>
   </g>
 </svg>

@@ -1,6 +1,6 @@
 # Example: Plan Output
 
-This is a sample implementation plan produced by `/turbocharge:plan`.
+This is a sample implementation plan produced by `/turboflow:plan`.
 
 ---
 
