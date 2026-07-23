@@ -30,7 +30,7 @@ if [ -f "ATLAS.md" ]; then
         fi
         if [ -n "$CURRENT" ] && [ "$STORED" != "$CURRENT" ]; then
             echo ""
-            echo "ATLAS.md may be stale — project structure changed since last generation. Consider running /turbocharge:atlas to update."
+            echo "ATLAS.md may be stale — project structure changed since last generation. Consider running /turboflow:atlas to update."
         fi
     fi
 fi

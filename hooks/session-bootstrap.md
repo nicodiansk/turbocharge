@@ -6,11 +6,11 @@ Pipeline: **brainstorm → story → plan → build → review → ship**. Stand
 
 ## Red Flags — thoughts that mean you SHOULD use a skill:
 
-- "This is just a quick fix" → Use `/turbocharge:debug` — quick fixes mask root causes
-- "I already know what to build" → Use `/turbocharge:plan` — plans prevent wrong assumptions
-- "Let me just write the code" → Use `/turbocharge:build` — it enforces TDD and review chains
-- "I'll review it later" → Use `/turbocharge:review` — later never comes
-- "We can wrap up quickly" → Use `/turbocharge:wrap` — ad-hoc wraps lose context
+- "This is just a quick fix" → Use `/turboflow:debug` — quick fixes mask root causes
+- "I already know what to build" → Use `/turboflow:plan` — plans prevent wrong assumptions
+- "Let me just write the code" → Use `/turboflow:build` — it enforces TDD and review chains
+- "I'll review it later" → Use `/turboflow:review` — later never comes
+- "We can wrap up quickly" → Use `/turboflow:wrap` — ad-hoc wraps lose context
 
 ## Critical rules:
 
