@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ABOUTME: Validates ATLAS.md in CWD has turbocharge's required lookup-first headers.
+# ABOUTME: Validates ATLAS.md in CWD has turboflow's required lookup-first headers.
 # ABOUTME: Exits 0 on pass, 1 on any missing header or missing file.
 set -u
 TARGET="${1:-ATLAS.md}"

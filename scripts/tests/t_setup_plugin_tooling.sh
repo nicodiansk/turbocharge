@@ -5,7 +5,7 @@ source "$PLUGIN_DIR/scripts/tests/helpers.sh"
 F="$PLUGIN_DIR/skills/setup/SKILL.md"
 assert_file "$F" || exit 1
 
-assert_grep "$F" "claude plugin details turbocharge" || exit 1
+assert_grep "$F" "claude plugin details turboflow" || exit 1
 assert_grep "$F" "claude plugin list --json"          || exit 1
 # Scans for competing orchestration PLUGINS, not only ~/.claude/agents/
 assert_grep "$F" "orchestration plugin"               || exit 1

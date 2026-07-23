@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ABOUTME: Aggregator for all content-shape tests for turbocharge plugin.
+# ABOUTME: Aggregator for all content-shape tests for turboflow plugin.
 # ABOUTME: Each test file in scripts/tests/t_*.sh is sourced; non-zero exit fails the run.
 set -u
 TESTS_DIR="$(cd "$(dirname "$0")" && pwd)"
