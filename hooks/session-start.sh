@@ -43,10 +43,10 @@ if [ -d ".codemap" ] && command -v codemap >/dev/null 2>&1; then
     echo "--- end CodeMap ---"
 fi
 
-if [ -f ".claude/turbocharge-session.json" ]; then
+if [ -f ".claude/turboflow-session.json" ]; then
     echo ""
     echo "--- Session snapshot (previous /wrap) ---"
-    cat ".claude/turbocharge-session.json"
+    cat ".claude/turboflow-session.json"
     echo "--- end snapshot ---"
 fi
 
