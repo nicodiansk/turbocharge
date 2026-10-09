@@ -61,5 +61,9 @@ fi
 
 if [ ! -f "CLAUDE.md" ]; then
     echo ""
-    cat "$HOOK_DIR/missing-claudemd-nudge.md"
+    if [ -f "AGENTS.md" ]; then
+        cat "$HOOK_DIR/agentsmd-only-nudge.md"
+    else
+        cat "$HOOK_DIR/missing-claudemd-nudge.md"
+    fi
 fi
