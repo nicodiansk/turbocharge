@@ -10,4 +10,12 @@ for p in '**Decision:**' '**Test:**' '**Verify:**' 'Decisions, not code'; do
 done
 grep -qi "complete code" "$S"                       && { echo "    plan skill still asks for complete code"; exit 1; }
 grep -qF "[complete implementation code]" "$S"      && { echo "    plan skill still has the complete-code task template"; exit 1; }
+
+P="$PLUGIN_DIR/agents/planner.md"
+assert_file "$P" || exit 1
+for p in 'Lane disjointness' '**Decision:**' '**Lane:**'; do
+    grep -qF "$p" "$P" || { echo "    planner.md missing: $p"; exit 1; }
+done
+grep -qi "complete code" "$P"         && { echo "    planner.md still asks for complete code"; exit 1; }
+grep -qF "Complete code snippets" "$P" && { echo "    planner.md still requires complete code snippets"; exit 1; }
 exit 0
