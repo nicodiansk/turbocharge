@@ -1,5 +1,24 @@
 # Changelog
 
+## [3.0.2] - 2026-10-09
+
+Directory-ready: the plugin now passes `claude plugin validate --strict` and documents what its hook does, ahead of submission to the claude.ai plugin directory. No user action is needed.
+
+### Changed
+- This repo's `CLAUDE.md` moved to `.claude/CLAUDE.md`. A `CLAUDE.md` at the plugin root is not loaded as plugin context, and `claude plugin validate` warns on it, which fails `--strict`. Claude Code still loads `.claude/CLAUDE.md` as project memory. `.gitignore` now ignores only a root `/CLAUDE.md`; the old bare entry also matched `.claude/CLAUDE.md` (`t_no_root_claudemd.sh`).
+- The version lives only in `.claude-plugin/plugin.json`. `marketplace.json` drops `metadata.version` and `plugins[0].version`: plugin.json wins over the marketplace entry, and the docs advise setting it in one place. The three-field lockstep rule is retired. `t_version_lockstep.sh` now fails if `marketplace.json` carries any version, and it uses grep, so it never skips without jq. `t_version_301.sh` → `t_version_302.sh`.
+- `scripts/validate.sh` runs `claude plugin validate --strict`. When the `claude` CLI is missing, it prints a visible warning instead of skipping silently (`t_validate_sh_strict.sh`).
+
+### Added
+- `README.md`: a **What the hook does** section, which says the SessionStart hook is read-only, writes nothing, changes no settings or permissions, and makes no network calls. It lists every file the hook reads and the one command it may run, `codemap stats` (`t_readme_hook_disclosure.sh`).
+
+### Fixed
+- `hooks/session-start.sh`: `CLAUDE.md`, `.claude/CLAUDE.md` and `CLAUDE.local.md` now each count as "a CLAUDE.md exists", matching the AGENTS.md rule in the Claude Code docs. Before, a project that kept its instructions in `.claude/CLAUDE.md` got a false "No CLAUDE.md" nudge, or the AGENTS.md-only nudge although Claude Code was not reading AGENTS.md (`t_claudemd_variants.sh`).
+- `@CLAUDE.md` does not resolve for such projects either. The dispatch prefixes in build (builder and researcher), plan and review, and wrap's resume prompt, now use `@.claude/CLAUDE.md` there. `setup` edits whichever file exists and never creates a second (`t_claudemd_dotclaude_refs.sh`).
+
+### Unchanged (intentional)
+- The 3.0.x `.claude/turbocharge-session.json` fallback stays until 3.1, as announced.
+
 ## [3.0.1] - 2026-10-09
 
 Repo rename: the GitHub repo moved from `nicodiansk/turbocharge` to `nicodiansk/turboflow`, so it matches the plugin and marketplace name 3.0.0 introduced. GitHub redirects the old URLs, so existing installs, `claude plugin update turboflow@turboflow`, and `claude plugin marketplace add nicodiansk/turbocharge` keep working. No user action is needed. New installs use `claude plugin marketplace add nicodiansk/turboflow`.
