@@ -8,12 +8,14 @@ grep -qF '| Lane | Owns files | Tasks | After | Executor | Effort |' "$S" || { e
 for p in '**Decision:**' '**Test:**' '**Verify:**' 'Decisions, not code'; do
     grep -qF "$p" "$S" || { echo "    plan skill missing: $p"; exit 1; }
 done
+grep -qF 'full repo-relative paths' "$S"            || { echo "    plan skill must require full repo-relative paths in Owns files"; exit 1; }
 grep -qi "complete code" "$S"                       && { echo "    plan skill still asks for complete code"; exit 1; }
+grep -qF 'detailed implementation plan' "$S"        && { echo "    plan skill intro still says 'detailed'"; exit 1; }
 grep -qF "[complete implementation code]" "$S"      && { echo "    plan skill still has the complete-code task template"; exit 1; }
 
 P="$PLUGIN_DIR/agents/planner.md"
 assert_file "$P" || exit 1
-for p in 'Lane disjointness' '**Decision:**' '**Lane:**'; do
+for p in 'Lane disjointness' '**Decision:**' '**Lane:**' 'full repo-relative paths'; do
     grep -qF "$p" "$P" || { echo "    planner.md missing: $p"; exit 1; }
 done
 grep -qi "complete code" "$P"         && { echo "    planner.md still asks for complete code"; exit 1; }

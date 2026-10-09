@@ -49,7 +49,8 @@ You get one **lane**: a set of plan tasks that own a set of files. Run its tasks
 Other lanes may be running at the same time in the same working tree.
 - **Touch only your lane's files.** Never stage, stash, reset, or check out anything else.
 - **Run only your tasks' tests.** Do NOT run the full suite: other lanes may be mid-edit, so it would fail on their half-written files. The orchestrator runs the full suite once, after every lane finishes.
-- **Commit by pathspec:** `git add <your new files>` (a pathspec commit can't take untracked files), then `git commit -m "<message>" -- <lane paths>`. Never `git commit -a`, `git add -A`, or `git add .`.
+- **Commit by pathspec:** `git add <your new files>` (a pathspec commit can't take untracked files), then `git commit -m "<message>" -- <this task's files>` — the paths this task created, changed, deleted, or renamed. Not the whole lane: a lane path that doesn't exist yet makes the commit fail. Never `git commit -a`, `git add -A`, or `git add .`.
+- **Stashing commit hooks:** if a commit hook stashes unstaged changes (the `pre-commit` framework, `.pre-commit-config.yaml`; lint-staged), stop and report instead of committing — it would stash other lanes' in-flight edits.
 - If git reports `index.lock`, another lane is committing: wait a moment and retry once.
 - **Fix rounds arrive by `SendMessage`.** After you report, the orchestrator may resume you with failing output from the full suite or a reviewer. Fix only what it names, rerun those tests, and commit the same way.
 

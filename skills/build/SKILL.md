@@ -23,7 +23,7 @@ NO BUILD COMPLETE WITHOUT THE FULL SUITE GREEN AT THE JOIN
 2. Review critically — identify concerns or questions
 3. If concerns: raise them before starting
 4. Read the plan's **Lanes table** (`| Lane | Owns files | Tasks | After | Executor | Effort |`). **No Lanes table** (a legacy plan) → treat the whole plan as one sequential lane and route it in Step 2 like any other.
-5. Parse flags from $ARGUMENTS: `--inline` / `--delegate` (Step 2), `--reviewed` (Step 6), `--checkpoint` (human wait after each lane; off by default).
+5. Parse flags from $ARGUMENTS: `--inline` / `--delegate` (Step 2), `--reviewed` (Step 6), `--checkpoint` (human wait after each lane; off by default). Legacy forms: `--checkpoint=N` means `--checkpoint`; `--checkpoint=0` and `--no-checkpoint` mean no pauses, the default.
 
 ## Step 2: Route Lanes
 
@@ -40,7 +40,9 @@ Start from the plan's Executor hint, then override:
 - `--inline` runs every lane inline; `--delegate` gives every lane a builder.
 - If a lane's route isn't obvious, ask the user.
 
-**Overlap:** lanes with no `After` path between them run at the same time — builder lanes in the background while the main session works the inline lanes. A lane with `After` starts only when every lane it names has finished.
+**Overlap:** lanes with no `After` path between them run at the same time — builder lanes in the background while the main session works the inline lanes. A lane with `After` starts only when every lane it names has finished (Step 5).
+
+**No overlap with stashing commit hooks:** if the project's commit hooks stash unstaged changes — the `pre-commit` framework (`.pre-commit-config.yaml`), lint-staged — run lanes one at a time. A pathspec commit leaves every other lane's in-flight edits unstaged, and the hook would stash them out from under that lane.
 
 Announce the routing before executing:
 ```
@@ -60,11 +62,13 @@ For each builder lane that is ready (its `After` lanes are done), spawn one buil
 - **Lane rules**, stated in the prompt:
   - Touch only the lane's files. Never stage, stash, reset, or check out anything else.
   - Per task: RED → GREEN on that task's own test. Do NOT run the full suite — other lanes are mid-edit, so it would see their half-written files.
-  - Commit per task, scoped to the lane: `git add <new files>` (a pathspec commit can't take untracked files), then `git commit -m "<message>" -- <lane paths>`. Never `git commit -a` or `git add -A`.
+  - Commit per task, scoped to the task: `git add <new files>` (a pathspec commit can't take untracked files), then `git commit -m "<message>" -- <this task's files>` — the paths the task created, changed, deleted, or renamed. Don't pass the whole lane: a lane path that doesn't exist yet makes the commit fail. Never `git commit -a` or `git add -A`.
   - If git reports `index.lock`, wait a moment and retry once.
   - Report per task: commit SHA and test result.
 
-Dispatch each builder **without** a `name` parameter. A named Agent spawn joins the session's implicit team as a teammate; lane builders must stay plain subagents.
+Dispatch each builder **without** a `name` parameter. A named Agent spawn joins the session's implicit team as a teammate when Agent Teams are enabled; lane builders must stay plain subagents. Note each builder's agent ID against its lane — with no `name`, `SendMessage` fix rounds (Steps 5c and 6) address it by agent ID.
+
+With `--reviewed`, record the lane's `BEFORE_SHA` first (Step 6), before spawning its builder.
 
 Builders run in the background (Claude Code 2.1.198+): the Agent call returns as soon as the builder starts. Do not wait here — go to Step 4.
 
@@ -74,17 +78,20 @@ If a builder blocks on unclear context, dispatch the researcher with `@ATLAS.md 
 
 ## Step 4: Run Inline Lanes
 
-While builder lanes run, the main session works through the inline lanes, task by task:
+While builder lanes run, the main session works through the inline lanes, task by task. With `--reviewed`, record the lane's `BEFORE_SHA` first (Step 6), before its first task.
 1. Read the task's Decision and Test assertions from the plan.
 2. Write the test from the assertions and run it — it must fail for the reason the task names (RED).
 3. Implement the Decision. Run the test — GREEN.
-4. Commit by pathspec: `git add <new files>`, then `git commit -m "<message>" -- <lane paths>`.
+4. Commit by pathspec: `git add <new files>`, then `git commit -m "<message>" -- <this task's files>`.
 
 Inline lanes follow the same lane rules: only the lane's files, no full suite while builder lanes are in flight.
 
-After each lane, report one line: `lane <name> ✓ · tasks a–b · commits N`. With `--checkpoint`, stop after each lane and wait for human approval before the next.
-
 ## Step 5: Join
+
+**After every lane finishes** — an inline lane's last commit, or a builder lane's completion notification:
+1. Report one line: `lane <name> ✓ · tasks a–b · commits N`.
+2. With `--checkpoint`, stop and wait for human approval before starting anything new.
+3. Start every lane whose `After` lanes have all finished — Step 3 for a builder lane, Step 4 for an inline lane.
 
 ### 5a. Wait for the Completion Notifications
 
@@ -145,8 +152,9 @@ After the full gate is green:
 | Skipping builder self-review | Builder has a checklist — use it |
 | Spawning a builder for a tiny exact-text lane | ~25k tokens and 30–90 s of cold start to type what the plan already decided — run it inline |
 | Running the full suite while builder lanes are in flight | It sees other lanes' half-written files and fails for nothing — run it once at the join |
-| Unscoped `git commit`, `git commit -a`, or `git add -A` during overlap | Sweeps another lane's files into your commit — always `git commit -m … -- <lane paths>` |
+| Unscoped `git commit`, `git commit -a`, or `git add -A` during overlap | Sweeps another lane's files into your commit — always `git commit -m … -- <this task's files>` |
 | Overlapping lanes that share a file or an `After` dependency | Two writers on one file, or a lane built on unfinished work |
+| Overlapping lanes in a repo whose commit hooks stash (`.pre-commit-config.yaml`, lint-staged) | The hook stashes other lanes' in-flight edits mid-write — run lanes one at a time |
 | Spawning a new builder for a fix round | The lane's builder still has its context and a warm cache — resume it with `SendMessage` |
 | Skipping Reviewed mode for security-sensitive code | Save tokens, lose safety |
 | Using Reviewed mode for trivial lanes | Wastes tokens on mechanical checks |

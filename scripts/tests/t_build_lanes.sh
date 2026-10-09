@@ -34,6 +34,24 @@ for p in 'git add -A' 'in flight' 'SendMessage' 'exact-text lane'; do
     printf '%s' "$RF" | grep -qF -- "$p" || { echo "    Red Flags missing: $p"; rc=1; }
 done
 
+# Review fixes (3.1.0): pathspec = the task's files (a lane path that doesn't exist yet makes git commit fail);
+# dependent lanes get started; stash-based pre-commit hooks disable overlap; fix rounds need the builder's agent ID.
+for p in \
+    "-- <this task's files>" \
+    'whose `After` lanes have all finished' \
+    '.pre-commit-config.yaml' \
+    'agent ID' \
+    '--no-checkpoint' \
+    'After every lane finishes' \
+    'when Agent Teams are enabled'; do
+    grep -qF -- "$p" "$F" || { echo "    build missing: $p"; rc=1; }
+done
+N=$(grep -oF 'record the lane'"'"'s `BEFORE_SHA` first' "$F" | wc -l)
+[ "$N" -ge 2 ] || { echo "    Steps 3 and 4 must both say to record the lane's BEFORE_SHA first ($N)"; rc=1; }
+TR="$PLUGIN_DIR/agents/task-reviewer.md"
+grep -qF 'completes a task' "$TR" && { echo "    task-reviewer still triggers per task"; rc=1; }
+grep -qF 'lane' "$TR"            || { echo "    task-reviewer must review a lane diff"; rc=1; }
+
 # Builder isolation decision (carried over): no worktree self-isolation; lanes share one tree.
 assert_grep "$F" "isolation: worktree" || rc=1
 assert_grep "$F" "default branch"      || rc=1

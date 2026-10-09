@@ -44,7 +44,7 @@ Target ≈1.5 KB per task. If a task needs more words than that, it is two tasks
 
 Group tasks into lanes in a `## Lanes` table after the header:
 `| Lane | Owns files | Tasks | After | Executor | Effort |`
-- No file belongs to two lanes — test files included. Tasks inside a lane run in order.
+- Owns files lists full repo-relative paths (build diffs and reviews each lane by them). No file belongs to two lanes — test files included. Tasks inside a lane run in order.
 - `After` lists lanes that must finish first. Lanes with no `After` path between them may overlap.
 - Executor `inline` for mechanical lanes (content edits, exact text given, ≤3 tasks); `builder` for real logic or judgment calls. Effort `low`/`medium`/`high` for builder lanes.
 

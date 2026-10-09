@@ -9,7 +9,7 @@ argument-hint: "[stories-or-requirements-file]"
 
 # Create Implementation Plan
 
-Read the requirements at $ARGUMENTS and create a detailed implementation plan.
+Read the requirements at $ARGUMENTS and create a lean implementation plan.
 
 ## Plan Document Header
 
@@ -25,12 +25,12 @@ Every plan MUST start with:
 ## Lanes
 | Lane | Owns files | Tasks | After | Executor | Effort |
 |------|-----------|-------|-------|----------|--------|
-| [name] | `exact/paths`, `tests/…` | 1–3 | — | inline | — |
-| [name] | `exact/paths`, `tests/…` | 4–6 | [lane] | builder | medium |
+| [name] | `src/full/path.py`, `tests/full/test_path.py` | 1–3 | — | inline | — |
+| [name] | `src/other/module.py`, `tests/other/test_module.py` | 4–6 | [lane] | builder | medium |
 ```
 
 **Lanes** let `/turboflow:build` run independent work side by side and skip a builder spawn for mechanical work:
-- A lane owns a set of files. **No file belongs to two lanes** — test files included.
+- A lane owns a set of files, listed as full repo-relative paths — build diffs and reviews each lane by them. **No file belongs to two lanes** — test files included.
 - Tasks inside a lane run in order. `After` names lanes that must finish first; lanes with no `After` path between them may overlap.
 - **Executor** is a hint: `inline` for mechanical lanes (content edits, exact text given, ≤3 tasks) that the main session applies directly; `builder` for real logic or lanes with judgment calls, run by one builder for the whole lane.
 - **Effort** (`low`/`medium`/`high`) applies to builder lanes; use `—` for inline.
