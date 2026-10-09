@@ -4,7 +4,7 @@ description: |
   Senior holistic reviewer for pre-merge assessment. Reviews entire git diff against
   the original plan for architecture alignment, design quality, and production readiness.
   Run ONCE after ALL tasks complete, not per-task. Reports merge readiness with reasoning.
-disallowedTools: Write, Edit, NotebookEdit
+disallowedTools: Write, Edit, NotebookEdit, Agent
 model: sonnet
 effort: high
 memory: project
