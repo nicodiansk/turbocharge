@@ -64,13 +64,25 @@ Spawn builder subagent (Sonnet) with:
 - Working directory
 - Prefix: `@CLAUDE.md` (conventions). Do NOT inject `@ATLAS.md` — builders read the spec and diff, not the navigation index.
 
+Dispatch the builder **without** a `name` parameter. A named Agent spawn joins the session's implicit team as a teammate when Agent Teams are enabled (Step 5); single-track builders must stay plain subagents.
+
 In **Reviewed** mode, record the pre-task SHA before dispatching: `BEFORE_SHA=$(git rev-parse HEAD)`. The task-reviewer diffs `$BEFORE_SHA..HEAD` to capture exactly this builder's output, regardless of how many commits (zero, one, or many) the builder makes.
 
 > **Builder isolation (design decision):** the builder agent intentionally does NOT set `isolation: worktree`. A worktree branches from the **default branch**, not the parent session's HEAD, and is auto-cleaned only when no changes are made — which would break this skill's `BEFORE_SHA=$(git rev-parse HEAD)` → `$BEFORE_SHA..HEAD` diff model (the reviewer would diff the wrong base) and would leave a populated, non-auto-cleaned worktree for ship/cleanup to manage. Worktree/branch management therefore stays in skill prose and the parent session, not in the agent frontmatter.
 
-### 3b. Mark Task Complete
+### 3b. Wait for the Completion Notification
 
-### 3c. After Batch (every N tasks, default 3)
+Subagents run in the background (Claude Code 2.1.198+): the Agent call returns as soon as the builder starts, not when it finishes. After every dispatch, **stop and wait for that builder's completion notification.** Until it arrives, do NOT:
+- dispatch the next builder,
+- capture the next `BEFORE_SHA`,
+- dispatch a task-reviewer (Step 4a), or
+- mark the task complete.
+
+The same rule holds for every task-reviewer dispatch, researcher dispatch, and builder resume (fix rounds): act on a subagent's result only after its completion notification arrives.
+
+### 3c. Mark Task Complete
+
+### 3d. After Batch (every N tasks, default 3)
 
 Report to human:
 - What was implemented in this batch
@@ -87,8 +99,8 @@ Say: **"Batch complete. Ready for feedback."**
 
 For each task in the batch, run this exact ordered sequence. **The task is not marked complete until its review passes** — never mark complete straight after the builder (that is the Step 3 flow, not this one):
 
-1. **Dispatch builder** — same as Step 3a. In Reviewed mode, record `BEFORE_SHA=$(git rev-parse HEAD)` *before* dispatching (Step 3a) so the reviewer diffs exactly this builder's output.
-2. **Dispatch task-reviewer** (Step 4a) and apply the disposition — loop the builder if Spec ❌ or any 🔴 Critical (max 2 cycles).
+1. **Dispatch builder** — same as Step 3a. In Reviewed mode, record `BEFORE_SHA=$(git rev-parse HEAD)` *before* dispatching (Step 3a) so the reviewer diffs exactly this builder's output. Then wait for the builder's completion notification (Step 3b).
+2. **Dispatch task-reviewer** (Step 4a), wait for its completion notification, then apply the disposition — loop the builder if Spec ❌ or any 🔴 Critical (max 2 cycles).
 3. **Dispatch researcher on demand** (Step 4b) only if the builder blocked on unclear context.
 4. **Mark the task complete** (Step 4c) — only after Spec ✅ with no unresolved 🔴 Critical.
 5. **After every N tasks, run the batch checkpoint** (Step 4d).
@@ -174,6 +186,7 @@ After ALL tasks done:
 | No batch reporting | Human can't review progress |
 | Auto-continuing after batch | Must wait for human approval |
 | Review loop >2 cycles | Escalate to user, don't keep retrying |
+| Next builder/reviewer dispatched before the previous subagent's completion notification | Subagents run in the background — the Agent call returning is not the task finishing. Builders race on one tree; the reviewer diffs a half-written task |
 
 ### Rationalizations That Mean You're Wrong
 
