@@ -5,9 +5,25 @@
 **BREAKING — plugin renamed `turbocharge` → `turboflow`.** The Anthropic community directory already lists a different author's `turbocharge`, so this plugin migrates to the free `turboflow` slug. The plugin `name` field IS the slash-command namespace: **every `/turbocharge:<skill>` is now `/turboflow:<skill>`.** The GitHub repo, `claude plugin marketplace add nicodiansk/turbocharge` install path, homepage, and repository URL are UNCHANGED — only the plugin/marketplace NAME migrated.
 
 ### Migration guidance
-- Slash commands: `/turbocharge:build` → `/turboflow:build`, and likewise for every skill.
-- Local install id: `turboflow@turboflow` (was `turbocharge@turbocharge`).
-- Re-run `claude plugin update` to pick up the new namespace.
+
+**Requires Claude Code 2.1.288 or later.** Slash commands: `/turbocharge:build` → `/turboflow:build`, and likewise for every skill.
+
+`marketplace.json` now carries `renames: {"turbocharge": "turboflow"}`, so Claude Code follows the plugin rename and rewrites `enabledPlugins`/`pluginConfigs` keys. The marketplace **name** has no such mechanism: an existing install keeps its local marketplace key, `turbocharge`. Pick one path:
+
+- **Quick** — keep the old marketplace key:
+  ```bash
+  claude plugin marketplace update turbocharge
+  claude plugin install turboflow@turbocharge
+  ```
+- **Clean (recommended)** — match the documented install id:
+  ```bash
+  claude plugin marketplace remove turbocharge
+  claude plugin marketplace add nicodiansk/turbocharge
+  claude plugin install turboflow@turboflow
+  ```
+  then run `/reload-plugins` in any open session. **Warning:** `marketplace remove` also uninstalls the plugin and deletes its saved options and data.
+
+Both paths: update personal rules, permissions, and scripts naming `turbocharge:*` or `/turbocharge:<skill>` (for example `~/.claude/rules/**` and `Skill(turbocharge:…)` permission entries). Your last `/wrap` snapshot carries over: SessionStart still reads `.claude/turbocharge-session.json` when the new file is absent (3.0.x only).
 
 ### Changed
 - Manifests: `plugin.json` + `marketplace.json` `name`/`displayName`/marketplace-name → turboflow; all three `version` fields → 3.0.0. URLs unchanged.

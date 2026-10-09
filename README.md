@@ -21,6 +21,8 @@ You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that c
 
 ## Install
 
+Requires **Claude Code 2.1.288 or later** (`claude --version`).
+
 ```bash
 claude plugin marketplace add nicodiansk/turbocharge
 claude plugin install turboflow@turboflow
@@ -51,6 +53,29 @@ claude --plugin-dir ./turbocharge
 claude plugin update turboflow@turboflow
 ```
 </details>
+
+### Upgrading from turbocharge 2.x
+
+3.0.0 renamed the plugin and its marketplace from `turbocharge` to `turboflow`, so every `/turbocharge:<skill>` is now `/turboflow:<skill>`. Claude Code follows the plugin rename on its own, but an existing install keeps its old marketplace key, `turbocharge`. Pick one path:
+
+**Quick** — keep the old marketplace key:
+
+```bash
+claude plugin marketplace update turbocharge
+claude plugin install turboflow@turbocharge
+```
+
+**Clean (recommended)** — match the install id above:
+
+```bash
+claude plugin marketplace remove turbocharge
+claude plugin marketplace add nicodiansk/turbocharge
+claude plugin install turboflow@turboflow
+```
+
+Then run `/reload-plugins` in any open session. Note that `marketplace remove` also uninstalls the plugin and deletes its saved options and data.
+
+Either way, update personal rules, permissions, and scripts that mention `turbocharge:*` or `/turbocharge:<skill>`. Full notes are in the [CHANGELOG](CHANGELOG.md).
 
 ## The Pipeline
 
@@ -125,7 +150,6 @@ All agents have `memory: project` for persistent codebase knowledge across sessi
 | Hook | When | What |
 |:-----|:-----|:-----|
 | **SessionStart** | Start of session | Loads `ATLAS.md` Where to Look table, injects CodeMap stats when `.codemap/` present, restores session snapshot, flags missing files, checks ATLAS staleness |
-| **Stop** | End of session | Reminds you to run `/turboflow:wrap` before closing |
 
 ## Quick Start Examples
 
