@@ -151,6 +151,22 @@ All agents have `memory: project` for persistent codebase knowledge across sessi
 |:-----|:-----|:-----|
 | **SessionStart** | Start of session | Loads `ATLAS.md` Where to Look table, injects CodeMap stats when `.codemap/` present, restores session snapshot, flags a missing CLAUDE.md (AGENTS.md-aware) or ATLAS.md, checks ATLAS staleness. Each section is capped so the output stays under Claude Code's 10,000-char inline limit |
 
+### What the hook does
+
+`hooks/session-start.sh` runs once when a session starts. It is read-only: it prints text to stdout, which Claude Code adds to the session context, and does nothing else. It writes no files, changes no settings or permissions, and makes no network calls. Nothing leaves your machine.
+
+| It reads | Why |
+|:---------|:----|
+| The plugin's own `hooks/*.md` | Bootstrap text and setup nudges |
+| `ATLAS.md` | Its Where to Look table and its `atlas-hash` footer |
+| `.claude/turboflow-session.json` | The snapshot your last `/turboflow:wrap` wrote. 3.0.x also falls back to the pre-3.0.0 name, `.claude/turbocharge-session.json` |
+| Whether `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md` or `AGENTS.md` exist | To pick a setup nudge. Their contents are not read |
+| Top-level file and folder names | Hashed with `md5sum` (or `md5` on macOS) to spot a stale `ATLAS.md` |
+
+| It runs | When |
+|:--------|:-----|
+| `codemap stats` | Only when the project has a `.codemap/` index and the `codemap` CLI is installed |
+
 ## Quick Start Examples
 
 ```bash
