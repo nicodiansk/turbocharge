@@ -62,7 +62,6 @@ printf '# ATLAS\n\n## Where to Look\n\n| a | b | c |\n' > ATLAS.md
 SNAP_SRC=$(wc -c < .claude/turboflow-session.json | tr -d ' ')
 OUT="$(bash "$F" 2>&1 || true)"
 cleanup
-SNAP_EMITTED=$(printf '%s\n' "$OUT" | grep -c '^BIGSNAP_LINE_' || true)
 SNAP_BYTES=$(printf '%s\n' "$OUT" | grep '^BIGSNAP_LINE_' | wc -c | tr -d ' ')
 [ "$SNAP_BYTES" -gt 2500 ] || { echo "    snapshot got only $SNAP_BYTES bytes (source $SNAP_SRC), expected > 2500"; exit 1; }
 TOTAL=$(printf '%s' "$OUT" | wc -c | tr -d ' ')
