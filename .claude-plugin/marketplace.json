@@ -8,6 +8,9 @@
     "description": "Engineering team orchestration plugins for Claude Code",
     "version": "3.0.0"
   },
+  "renames": {
+    "turbocharge": "turboflow"
+  },
   "plugins": [
     {
       "name": "turboflow",
