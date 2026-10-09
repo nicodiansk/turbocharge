@@ -64,7 +64,7 @@ Start With:
 /turboflow:[skill] [args]
 ```
 
-**MANDATORY:** `@.claude/turboflow-session.json` MUST appear on the first line of every resume prompt — it is not optional context, it is the session state. Do not move it to "Context Files" or omit it.
+**MANDATORY:** `@.claude/turboflow-session.json` MUST appear on the first line of every resume prompt — it is not optional context, it is the session state. Do not move it to "Context Files" or omit it. If the project keeps CLAUDE.md at `.claude/CLAUDE.md`, write `@.claude/CLAUDE.md` in place of `@CLAUDE.md`.
 
 ### 5.5. Atlas + CodeMap Freshness (MANDATORY)
 Before generating the resume prompt:
@@ -79,7 +79,7 @@ Navigation: @ATLAS.md is current. CodeMap index: run `codemap validate` if unsur
 ### 6. Encode Session Learnings
 Before generating the resume prompt, check: did the user correct any misunderstandings or wrong approaches during this session? If so:
 - **Update memory files** with corrections that apply to future sessions (domain concepts, preferences, conventions)
-- **Update CLAUDE.md** if the correction reveals a missing rule or domain term that would prevent the same mistake
+- **Update CLAUDE.md** (`./CLAUDE.md`, or `./.claude/CLAUDE.md` if the project keeps it there — never create a second) if the correction reveals a missing rule or domain term that would prevent the same mistake
 - Don't save ephemeral task details — only save what future sessions need to know
 
 Examples of things worth encoding:

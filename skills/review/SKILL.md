@@ -30,7 +30,7 @@ Dispatch the code-reviewer agent with this prefix so the subagent sees the navig
 @CLAUDE.md (conventions, rules)
 ```
 
-Omit either reference if the file doesn't exist. Exception: if CLAUDE.md is missing but `AGENTS.md` exists, use `@AGENTS.md` in its place.
+Omit either reference if the file doesn't exist. Exception: if CLAUDE.md is missing but `AGENTS.md` exists, use `@AGENTS.md` in its place. `.claude/CLAUDE.md` counts as a CLAUDE.md: if the project keeps it there, use `@.claude/CLAUDE.md`.
 
 ## Your Review
 

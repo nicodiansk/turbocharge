@@ -80,7 +80,9 @@ if [ -n "$SNAPSHOT" ]; then
     echo "--- end snapshot ---"
 fi
 
-if [ ! -f "CLAUDE.md" ]; then
+# Claude Code loads ./CLAUDE.md or ./.claude/CLAUDE.md, and its AGENTS.md rule also
+# counts CLAUDE.local.md as "a CLAUDE.md exists" — any of the three means no nudge.
+if [ ! -f "CLAUDE.md" ] && [ ! -f ".claude/CLAUDE.md" ] && [ ! -f "CLAUDE.local.md" ]; then
     echo ""
     if [ -f "AGENTS.md" ]; then
         cat "$HOOK_DIR/agentsmd-only-nudge.md"

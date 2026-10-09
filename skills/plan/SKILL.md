@@ -32,7 +32,7 @@ Before planning, preload domain context. When dispatching the planner agent, pre
 @CLAUDE.md (conventions, rules, domain vocabulary)
 ```
 
-If either file does not exist, omit the corresponding `@` reference. Exception: if CLAUDE.md is missing but `AGENTS.md` exists, use `@AGENTS.md` in its place. `@` references auto-read on dispatch so the subagent receives them in context; subagents do NOT inherit parent conversation history.
+If either file does not exist, omit the corresponding `@` reference. Exception: if CLAUDE.md is missing but `AGENTS.md` exists, use `@AGENTS.md` in its place. `.claude/CLAUDE.md` counts as a CLAUDE.md: if the project keeps it there, use `@.claude/CLAUDE.md`. `@` references auto-read on dispatch so the subagent receives them in context; subagents do NOT inherit parent conversation history.
 
 **Token discipline:** Do NOT paste file contents or summaries into the dispatch prompt — send task description, file paths, and line ranges only. The planner reads actual files in its own context. Duplicating content in the dispatch wastes tokens (same pattern as build skill).
 

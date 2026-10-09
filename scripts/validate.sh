@@ -102,9 +102,9 @@ for agent in $EXPECTED_AGENTS; do
         else
             warn "agents/$agent.md — missing memory field"
         fi
-        # Sonnet floor — never Haiku (see CLAUDE.md Agent Models)
+        # Sonnet floor — never Haiku (see .claude/CLAUDE.md Agent Models)
         if grep -qiE "^model:[[:space:]]*haiku" "$agent_file"; then
-            error "agents/$agent.md — 'model: haiku' is banned (Sonnet floor; see CLAUDE.md Agent Models)"
+            error "agents/$agent.md — 'model: haiku' is banned (Sonnet floor; see .claude/CLAUDE.md Agent Models)"
         else
             pass "agents/$agent.md — no banned haiku model"
         fi
@@ -150,6 +150,21 @@ if [ -f "$PLUGIN_DIR/ATLAS.md" ]; then
     fi
     echo ""
 fi
+
+# 5c. Claude Code's own validator in strict mode (warnings fail) — the directory-submission bar.
+# A missing CLI is a visible warning, never a silent skip.
+echo "--- claude plugin validate --strict ---"
+if command -v claude >/dev/null 2>&1; then
+    if STRICT_OUT=$(claude plugin validate "$PLUGIN_DIR" --strict 2>&1); then
+        pass "claude plugin validate --strict passed"
+    else
+        error "claude plugin validate --strict failed:"
+        printf '%s\n' "$STRICT_OUT" | sed 's/^/         /'
+    fi
+else
+    warn "claude CLI not found — skipped claude plugin validate --strict"
+fi
+echo ""
 
 # 6. Content-shape tests
 echo "--- Content-Shape Tests ---"
