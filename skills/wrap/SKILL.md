@@ -64,7 +64,7 @@ Start With:
 /turboflow:[skill] [args]
 ```
 
-**MANDATORY:** `@.claude/turboflow-session.json` MUST appear on the first line of every resume prompt — it is not optional context, it is the session state. Do not move it to "Context Files" or omit it.
+**MANDATORY:** `@.claude/turboflow-session.json` MUST appear on the first line of every resume prompt — it is not optional context, it is the session state. Do not move it to "Context Files" or omit it. If the project keeps CLAUDE.md at `.claude/CLAUDE.md`, write `@.claude/CLAUDE.md` in place of `@CLAUDE.md`.
 
 ### 5.5. Atlas + CodeMap Freshness (MANDATORY)
 Before generating the resume prompt:
