@@ -1,6 +1,6 @@
 # Changelog
 
-## [3.0.0] - 2026-07-23
+## [3.0.0] - 2026-10-09
 
 **BREAKING — plugin renamed `turbocharge` → `turboflow`.** The Anthropic community directory already lists a different author's `turbocharge`, so this plugin migrates to the free `turboflow` slug. The plugin `name` field IS the slash-command namespace: **every `/turbocharge:<skill>` is now `/turboflow:<skill>`.** The GitHub repo, `claude plugin marketplace add nicodiansk/turbocharge` install path, homepage, and repository URL are UNCHANGED — only the plugin/marketplace NAME migrated.
 
@@ -38,6 +38,7 @@ Both paths: update personal rules, permissions, and scripts naming `turbocharge:
 - `marketplace.json`: top-level `renames: {"turbocharge": "turboflow"}` so existing installs follow the plugin rename (`t_marketplace_renames.sh`).
 - `hooks/agentsmd-only-nudge.md`: SessionStart shows it instead of the missing-CLAUDE.md nudge when a project has `AGENTS.md` but no `CLAUDE.md` — Claude Code reads AGENTS.md only while no CLAUDE.md exists (`t_agentsmd_nudge.sh`).
 - `scripts/tests/helpers.sh`: `frontmatter` helper (CRLF-safe YAML frontmatter extraction).
+- `hooks/session-start.sh`: falls back to `.claude/turbocharge-session.json` when `.claude/turboflow-session.json` is absent (3.0.x only, removed in 3.1); `wrap` writes only the new name (`t_session_snapshot_fallback.sh`).
 
 ### Fixed — Claude Code 2.1.143 → 2.1.295 behavior changes
 - `skills/build/SKILL.md` Step 3b: subagents now run in the background, so build waits for each builder's and task-reviewer's completion notification before the next dispatch, `BEFORE_SHA` capture, review, or completion mark. New Red Flag row. Single-track builders are dispatched without a `name`, because a named spawn becomes a teammate (`t_build_background_wait.sh`).
@@ -45,9 +46,10 @@ Both paths: update personal rules, permissions, and scripts naming `turbocharge:
 - `agents/{researcher,task-reviewer,code-reviewer}.md`: `Agent` added to `disallowedTools`, since subagents may nest to depth 3 by default. builder and planner keep `tools:` allowlists without Agent (`t_agent_no_nested_spawn.sh`).
 - `skills/build/SKILL.md` Step 5: Agent Teams prose describes the one implicit team, `name`-param teammate spawns (`subagent_type: turboflow:builder`), and 2.1.288 as the reason plugin teammates keep the builder definition. Teammate spawn prompts must not name a model, because that overrides the builder's Sonnet pin (`t_build_multitrack_refresh.sh` updated). Full multi-track rework deferred to 3.1.
 - AGENTS.md coexistence: when only AGENTS.md exists, `setup` creates CLAUDE.md with `@AGENTS.md` as its first line. When both exist and CLAUDE.md lacks the import, `setup` offers to add it. Every subagent dispatch prefix (build's builder and researcher, plan's planner, review's code-reviewer) falls back to `@AGENTS.md` when there is no CLAUDE.md (`t_setup_agentsmd.sh`, `t_dispatch_agentsmd_prefix.sh`).
-- `README.md` Hooks table: removed the stale **Stop** row. The Stop hook was removed in 2.8.1 but the README still listed it (`t_claudemd_hook_ref.sh` now guards README too).
 - `hooks/session-start.sh`: per-section caps (ATLAS Where to Look 3,500 B, session snapshot 2,500 B, CodeMap stats 1,200 B), cut at line boundaries with a `…truncated — Read <file> for the rest` marker, keep the output under Claude Code's 10,000-char inline limit. Past that limit only a 2,000-char preview reaches the model (`t_session_start_output_cap.sh`).
-- `hooks/session-start.sh`: falls back to `.claude/turbocharge-session.json` when `.claude/turboflow-session.json` is absent (3.0.x only, removed in 3.1); `wrap` writes only the new name (`t_session_snapshot_fallback.sh`).
+
+### Fixed — docs and tests
+- `README.md` Hooks table: removed the stale **Stop** row. The Stop hook was removed in 2.8.1 but the README still listed it (`t_claudemd_hook_ref.sh` now guards README too). The SessionStart row now mentions the AGENTS.md-aware nudge and the per-section output caps.
 - `scripts/tests/t_no_titlecase_brand.sh`: no longer matches its own ABOUTME line once the file is tracked.
 
 ### Unchanged (intentional)

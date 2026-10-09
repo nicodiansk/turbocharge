@@ -149,7 +149,7 @@ All agents have `memory: project` for persistent codebase knowledge across sessi
 
 | Hook | When | What |
 |:-----|:-----|:-----|
-| **SessionStart** | Start of session | Loads `ATLAS.md` Where to Look table, injects CodeMap stats when `.codemap/` present, restores session snapshot, flags missing files, checks ATLAS staleness |
+| **SessionStart** | Start of session | Loads `ATLAS.md` Where to Look table, injects CodeMap stats when `.codemap/` present, restores session snapshot, flags a missing CLAUDE.md (AGENTS.md-aware) or ATLAS.md, checks ATLAS staleness. Each section is capped so the output stays under Claude Code's 10,000-char inline limit |
 
 ## Quick Start Examples
 
