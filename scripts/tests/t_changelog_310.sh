@@ -10,7 +10,7 @@ grep -m1 "^## \[" "$F" | grep -q "^## \[3\.1\.0\]" || { echo "    [3.1.0] is not
 SECTION="$(mktemp)"
 awk '/^## \[3\.1\.0\]/{f=1; next} f && /^## \[/{exit} f' "$F" > "$SECTION"
 rc=0
-for p in "Lanes" "--inline" "--delegate" "SendMessage" "cacheTtl" "turbocharge-session.json" "Agent Teams"; do
+for p in "Lanes" "--inline" "--delegate" "SendMessage" "cacheTtl" "turbocharge-session.json" "Agent Teams" "rename it to"; do
     grep -qF -- "$p" "$SECTION" || { echo "    [3.1.0] section missing: $p"; rc=1; }
 done
 rm -f "$SECTION"

@@ -9,7 +9,7 @@ rc=0
 for p in 'lane' '--inline' '--delegate' 'full-suite' 'resume'; do
     grep -qF -- "$p" "$R" || { echo "    README missing: $p"; rc=1; }
 done
-for p in 'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS' 'complete code' 'turbocharge-session'; do
+for p in 'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS' 'complete code' 'turbocharge-session' 'on a task diff'; do
     grep -qF -- "$p" "$R" && { echo "    README still has: $p"; rc=1; }
 done
 grep -qF 'each lane' "$SVG" || { echo "    build diagram title must say 'each lane'"; rc=1; }

@@ -141,7 +141,7 @@ Dispatched by skills. You never invoke them directly.
 | **builder** | TDD implementation, self-review, commits | Sonnet |
 | **planner** | Task breakdown, verifies entity names against codebase | inherit |
 | **researcher** | Fast background codebase exploration | Sonnet |
-| **task-reviewer** | Spec + Quality verdicts on a task diff (opt-in) | Sonnet |
+| **task-reviewer** | Spec + Quality verdicts on a lane diff (opt-in) | Sonnet |
 | **code-reviewer** | Holistic pre-merge assessment | Sonnet |
 
 All agents have `memory: project` for persistent codebase knowledge across sessions.
