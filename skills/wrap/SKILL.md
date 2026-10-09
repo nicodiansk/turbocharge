@@ -79,7 +79,7 @@ Navigation: @ATLAS.md is current. CodeMap index: run `codemap validate` if unsur
 ### 6. Encode Session Learnings
 Before generating the resume prompt, check: did the user correct any misunderstandings or wrong approaches during this session? If so:
 - **Update memory files** with corrections that apply to future sessions (domain concepts, preferences, conventions)
-- **Update CLAUDE.md** if the correction reveals a missing rule or domain term that would prevent the same mistake
+- **Update CLAUDE.md** (`./CLAUDE.md`, or `./.claude/CLAUDE.md` if the project keeps it there — never create a second) if the correction reveals a missing rule or domain term that would prevent the same mistake
 - Don't save ephemeral task details — only save what future sessions need to know
 
 Examples of things worth encoding:
