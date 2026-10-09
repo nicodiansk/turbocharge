@@ -7,8 +7,8 @@
     "name": "Nicholas",
     "email": "nicholasprevitali96@gmail.com"
   },
-  "homepage": "https://github.com/nicodiansk/turbocharge",
-  "repository": "https://github.com/nicodiansk/turbocharge",
+  "homepage": "https://github.com/nicodiansk/turboflow",
+  "repository": "https://github.com/nicodiansk/turboflow",
   "license": "MIT",
   "keywords": ["orchestration", "agents", "tdd", "code-review", "product-development", "workflow", "team"]
 }
