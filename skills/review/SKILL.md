@@ -3,6 +3,7 @@ name: review
 description: Use before merging to verify completed work meets requirements and quality standards. Dispatches code-reviewer for holistic assessment of the full git diff against the original plan.
 context: fork
 agent: code-reviewer
+background: false
 argument-hint: "[plan-or-description]"
 ---
 
