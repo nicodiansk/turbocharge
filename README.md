@@ -24,7 +24,7 @@ You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that c
 Requires **Claude Code 2.1.288 or later** (`claude --version`).
 
 ```bash
-claude plugin marketplace add nicodiansk/turbocharge
+claude plugin marketplace add nicodiansk/turboflow
 claude plugin install turboflow@turboflow
 ```
 
@@ -45,7 +45,7 @@ Every skill announces itself, does one job well, and hands you the next step:
 
 **Local development (per-session):**
 ```bash
-claude --plugin-dir ./turbocharge
+claude --plugin-dir ./turboflow
 ```
 
 **Update:**
@@ -69,7 +69,7 @@ claude plugin install turboflow@turbocharge
 
 ```bash
 claude plugin marketplace remove turbocharge
-claude plugin marketplace add nicodiansk/turbocharge
+claude plugin marketplace add nicodiansk/turboflow
 claude plugin install turboflow@turboflow
 ```
 
@@ -180,7 +180,7 @@ Turboflow replaces scattered config. `/turboflow:setup` handles this, but in sho
 ## Project Structure
 
 ```
-turbocharge/
+turboflow/
 ├── .claude-plugin/
 │   ├── plugin.json              # Plugin manifest
 │   └── marketplace.json         # Distribution config

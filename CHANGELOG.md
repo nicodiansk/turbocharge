@@ -1,5 +1,21 @@
 # Changelog
 
+## [3.0.1] - 2026-10-09
+
+Repo rename: the GitHub repo moved from `nicodiansk/turbocharge` to `nicodiansk/turboflow`, so it matches the plugin and marketplace name 3.0.0 introduced. GitHub redirects the old URLs, so existing installs, `claude plugin update turboflow@turboflow`, and `claude plugin marketplace add nicodiansk/turbocharge` keep working. No user action is needed. New installs use `claude plugin marketplace add nicodiansk/turboflow`.
+
+### Changed
+- `.claude-plugin/plugin.json`: `homepage` and `repository` → `https://github.com/nicodiansk/turboflow`.
+- `.claude-plugin/marketplace.json`: plugin source `url` → `https://github.com/nicodiansk/turboflow.git`.
+- All three `version` fields → 3.0.1.
+- `README.md`: Install and Clean-migration `marketplace add` → `nicodiansk/turboflow`, local dev `--plugin-dir ./turboflow`, and Project Structure tree label → `turboflow/`.
+- `CLAUDE.md`: Distribution block (source repo, install, local dev), the Marketplace domain term, and the Publishing Flow push target → `nicodiansk/turboflow`.
+- Tests: `t_version_300.sh` → `t_version_301.sh`. `t_migration_docs.sh` now checks that the README re-add uses `nicodiansk/turboflow`, while the [3.0.0] entry keeps the path it shipped with. New `t_changelog_301.sh`, plus `t_no_old_repo_path.sh`, which fails if any tracked file except CHANGELOG.md names the old repo path or clone dir. The historical `turbocharge-marketplace` sibling repo may still be named.
+
+### Unchanged (intentional)
+- Local marketplace and plugin keys are not the repo, so they stay: the `renames` map and the README Quick migration path (`marketplace update turbocharge`, `install turboflow@turbocharge`).
+- The 3.0.x session-snapshot fallback, the dead `.gitignore` entries, and every earlier CHANGELOG entry. The [3.0.0] entry's "repo unchanged" notes were true at release.
+
 ## [3.0.0] - 2026-10-09
 
 **BREAKING — plugin renamed `turbocharge` → `turboflow`.** The Anthropic community directory already lists a different author's `turbocharge`, so this plugin migrates to the free `turboflow` slug. The plugin `name` field IS the slash-command namespace: **every `/turbocharge:<skill>` is now `/turboflow:<skill>`.** The GitHub repo, `claude plugin marketplace add nicodiansk/turbocharge` install path, homepage, and repository URL are UNCHANGED — only the plugin/marketplace NAME migrated.
