@@ -43,10 +43,19 @@ if [ -d ".codemap" ] && command -v codemap >/dev/null 2>&1; then
     echo "--- end CodeMap ---"
 fi
 
+# Session snapshot. Pre-3.0.0 /wrap wrote .claude/turbocharge-session.json;
+# fall back to it so upgraders keep their resume state.
+# MIGRATION FALLBACK (3.0.x only) — remove in 3.1.
+SNAPSHOT=""
 if [ -f ".claude/turboflow-session.json" ]; then
+    SNAPSHOT=".claude/turboflow-session.json"
+elif [ -f ".claude/turbocharge-session.json" ]; then
+    SNAPSHOT=".claude/turbocharge-session.json"
+fi
+if [ -n "$SNAPSHOT" ]; then
     echo ""
     echo "--- Session snapshot (previous /wrap) ---"
-    cat ".claude/turboflow-session.json"
+    cat "$SNAPSHOT"
     echo "--- end snapshot ---"
 fi
 
