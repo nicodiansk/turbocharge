@@ -12,7 +12,7 @@ One-time audit and cleanup to make turboflow your single orchestration system.
 
 ## The Goal
 
-Turbocharge replaces ad-hoc agents, scattered skills, and custom commands with one pipeline. This setup finds and removes the overlap so Claude doesn't get confused about which system to use.
+Turboflow replaces ad-hoc agents, scattered skills, and custom commands with one pipeline. This setup finds and removes the overlap so Claude doesn't get confused about which system to use.
 
 ## Audit Steps
 
@@ -20,7 +20,7 @@ Turbocharge replaces ad-hoc agents, scattered skills, and custom commands with o
 
 Scan `~/.claude/agents/` for agent definitions that overlap with turboflow agents:
 
-| Turbocharge Agent | Conflicts With |
+| Turboflow Agent | Conflicts With |
 |-------------------|----------------|
 | builder | tdd-guide, implementer |
 | planner | planner, architect |
@@ -36,7 +36,7 @@ Also check for: session-wrapper, session-wrap, build-error-resolver (covered by 
 
 Scan `.claude/commands/` (project level) for commands that overlap with turboflow skills:
 
-| Turbocharge Skill | Conflicts With |
+| Turboflow Skill | Conflicts With |
 |-------------------|----------------|
 | wrap | session-wrap, wrap-up, session-wrapper |
 | story | story-author, user-story, story-writer |
@@ -68,7 +68,7 @@ Run `claude plugin list --json` to enumerate installed plugins and their enable 
 - Are there disabled plugins cluttering the config? Offer to remove.
 - Scan the installed-plugins list for competing **orchestration plugins** (e.g. superpowers, everything-claude-code) enabled alongside turboflow — not just duplicate definitions in `~/.claude/agents/`. Warn about conflicts and explain the overlap.
 
-### 5. Validate Turbocharge Plugin Health
+### 5. Validate Turboflow Plugin Health
 
 Run `claude plugin details turboflow` to confirm the plugin is installed, enabled, and to see its standing token cost. Then run the validation script if available:
 ```bash
@@ -91,7 +91,7 @@ Scan `~/.claude/rules/common/` for rules that conflict with turboflow's iron law
 
 **Action:** List missing rules and offer to add them.
 
-### 7. Check for Global Rules / Turbocharge Overlap
+### 7. Check for Global Rules / Turboflow Overlap
 
 Scan `~/.claude/rules/common/` for files that duplicate what turboflow skills already enforce:
 

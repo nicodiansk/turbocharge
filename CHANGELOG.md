@@ -12,11 +12,11 @@
 ### Changed
 - Manifests: `plugin.json` + `marketplace.json` `name`/`displayName`/marketplace-name → turboflow; all three `version` fields → 3.0.0. URLs unchanged.
 - All 6 skills, hooks, examples, `README.md`, `CLAUDE.md`: `/turbocharge:` → `/turboflow:`.
-- Full brand identity: SessionStart bootstrap, `hooks.json` status message, `setup` skill self-references, and colon-namespace refs (`turbocharge:build` etc.) → turboflow.
+- Full brand identity: SessionStart bootstrap, `hooks.json` status message, `setup` skill self-references (prose, table headers, section titles), `validate.sh` banner, `.gitignore` comment, and colon-namespace refs (`turbocharge:build` etc.) → turboflow.
 - Template renamed `templates/CLAUDE-turbocharge.md` → `templates/CLAUDE-turboflow.md`; block markers `<!-- turbocharge:NAME -->` → `<!-- turboflow:NAME -->`.
 - Session snapshot file `.claude/turbocharge-session.json` → `.claude/turboflow-session.json` (wrap skill + SessionStart hook + tests).
 - Brand SVGs (`hero-banner-v2`, `before-after`, `brainstorm-session`) wordmarks → turboflow.
-- Tests/validator: `t_plugin_displayname.sh` name/displayName assertions, `t_setup_plugin_tooling.sh`, `validate.sh` STALE_REFS, and all session-file/marker/namespace test assertions rehomed to turboflow.
+- Tests/validator: `t_plugin_displayname.sh` name/displayName assertions, `t_setup_plugin_tooling.sh`, `validate.sh` STALE_REFS, and all session-file/marker/namespace test assertions rehomed to turboflow. New `t_no_titlecase_brand.sh` guards against title-case `Turbocharge` resurfacing in any tracked file (CHANGELOG exempt).
 
 ### Unchanged (intentional)
 - GitHub repo `nicodiansk/turbocharge`, all `homepage`/`repository`/marketplace `url`, and the `marketplace add nicodiansk/turbocharge` install path.

@@ -11,7 +11,7 @@ report.html
 /*.png
 images/*.png
 
-# Turbocharge session snapshot (per-user, zero-tool-call resume)
+# Turboflow session snapshot (per-user, zero-tool-call resume)
 .claude/turboflow-session.json
 
 # Per-user Claude local state — NOT team-shared (unlike .claude/settings.json,

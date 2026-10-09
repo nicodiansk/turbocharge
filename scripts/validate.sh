@@ -16,7 +16,7 @@ error() { red "  ERROR: $1"; ERRORS=$((ERRORS + 1)); }
 warn() { yellow "  WARN:  $1"; WARNINGS=$((WARNINGS + 1)); }
 pass() { green "  OK:    $1"; }
 
-echo "=== Turbocharge Plugin Validation ==="
+echo "=== Turboflow Plugin Validation ==="
 echo "Plugin directory: $PLUGIN_DIR"
 echo ""
 
