@@ -62,7 +62,7 @@ Spawn builder subagent (Sonnet) with:
 - Plan file path and task line range — do NOT paste plan content, builder reads the file directly
 - Context: where this task fits in the sequence, what previous tasks completed
 - Working directory
-- Prefix: `@CLAUDE.md` (conventions). Do NOT inject `@ATLAS.md` — builders read the spec and diff, not the navigation index.
+- Prefix: `@CLAUDE.md` (conventions) — or `@AGENTS.md` if the project has no CLAUDE.md. Do NOT inject `@ATLAS.md` — builders read the spec and diff, not the navigation index.
 
 Dispatch the builder **without** a `name` parameter. A named Agent spawn joins the session's implicit team as a teammate when Agent Teams are enabled (Step 5); single-track builders must stay plain subagents.
 
@@ -124,7 +124,7 @@ The reviewer returns two verdicts:
 - **Spec ✅, Quality has only 🟡 Important / 🟢 Minor:** Do NOT loop. Carry these concerns into the next batch checkpoint (Step 4d) so the user decides whether to address them.
 
 ### 4b. Dispatch Researcher (on demand)
-If the builder blocks on unclear context, dispatch the researcher with `@ATLAS.md @CLAUDE.md` prefixed. Subagents do not inherit parent history — `@ATLAS.md` must ride on the dispatch prompt itself.
+If the builder blocks on unclear context, dispatch the researcher with `@ATLAS.md @CLAUDE.md` prefixed — or `@ATLAS.md @AGENTS.md` if the project has no CLAUDE.md. Subagents do not inherit parent history — `@ATLAS.md` must ride on the dispatch prompt itself.
 
 ### 4c. Mark Task Complete
 
