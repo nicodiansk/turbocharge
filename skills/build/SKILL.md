@@ -145,7 +145,7 @@ Say: **"Batch complete. Ready for feedback."**
 
 ## Step 5: Execute — Multi-Track (Agent Teams)
 
-> **Experimental & gated.** Agent Teams require `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` (env var or `settings.json`). If unset, fall back to Standard mode and tell the user. There are no team-management tool calls — teammates spawn from natural-language instructions and clean up automatically at session end.
+> **Experimental & gated.** Agent Teams require `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` (env var or `settings.json`). If unset, fall back to Standard mode and tell the user. There are no team-management tool calls: each session has one implicit team, and any Agent spawn that passes a `name` joins it as a teammate. Teammates clean up automatically at session end.
 
 ### 5a. Confirm with User
 ```
@@ -158,7 +158,8 @@ This uses more tokens but is faster.
 ```
 
 ### 5b. Spawn Teammates
-- In natural language, ask each teammate to act as the **builder** subagent type (reference it by name). Teammates honor the builder definition's `model` (Sonnet) and `tools`, but do NOT apply its preloaded `skills`/`mcpServers` — give each teammate the context it needs in the spawn instruction.
+- Spawn each teammate with the Agent tool: `subagent_type: turboflow:builder` plus a `name` per track (e.g. `track-a`). The `name` is what makes the spawn a teammate, and it is why single-track builders (Step 3a) are dispatched without one.
+- Since Claude Code 2.1.288, a plugin agent spawned by name as a teammate keeps its own definition. It always keeps its `model` (Sonnet) and `tools`. In-process teammates, the default, also keep its `disallowedTools`, `effort` and prompt body. That is why multi-track teammates still behave like the **builder** agent. Do NOT name a model in the teammate's spawn prompt, because a model named there overrides the definition's Sonnet pin. The definition's `skills` are never applied, and `mcpServers` applies only to split-pane teammates, so give each teammate the context it needs in its spawn prompt.
 - Assign each teammate a non-overlapping set of files (file ownership) so parallel, interleaved commits never touch the same path.
 - Teammates self-review per task; per-task reviewers are NOT dispatched in multi-track (see Step 2) — holistic review comes after via `/turboflow:review`.
 - Per-task `--reviewed` remains unsupported in multi-track: interleaved commits make `BEFORE_SHA..HEAD` ranges unreliable.
