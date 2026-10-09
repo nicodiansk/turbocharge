@@ -7,14 +7,15 @@ Directory-ready: the plugin now passes `claude plugin validate --strict` and doc
 ### Changed
 - This repo's `CLAUDE.md` moved to `.claude/CLAUDE.md`. A `CLAUDE.md` at the plugin root is not loaded as plugin context, and `claude plugin validate` warns on it, which fails `--strict`. Claude Code still loads `.claude/CLAUDE.md` as project memory. `.gitignore` now ignores only a root `/CLAUDE.md`; the old bare entry also matched `.claude/CLAUDE.md` (`t_no_root_claudemd.sh`).
 - The version lives only in `.claude-plugin/plugin.json`. `marketplace.json` drops `metadata.version` and `plugins[0].version`: plugin.json wins over the marketplace entry, and the docs advise setting it in one place. The three-field lockstep rule is retired. `t_version_lockstep.sh` now fails if `marketplace.json` carries any version, and it uses grep, so it never skips without jq. `t_version_301.sh` → `t_version_302.sh`.
-- `scripts/validate.sh` runs `claude plugin validate --strict`. When the `claude` CLI is missing, it prints a visible warning instead of skipping silently (`t_validate_sh_strict.sh`).
+- `scripts/validate.sh` runs `claude plugin validate --strict` and prints the validator's findings when it fails. When the `claude` CLI is missing, it prints a visible warning instead of skipping silently (`t_validate_sh_strict.sh`).
 
 ### Added
-- `README.md`: a **What the hook does** section, which says the SessionStart hook is read-only, writes nothing, changes no settings or permissions, and makes no network calls. It lists every file the hook reads and the one command it may run, `codemap stats` (`t_readme_hook_disclosure.sh`).
+- `README.md`: a **What the hook does** section for the directory's security review. It says when the SessionStart hook runs (start, resume, clear, compact), that it is read-only, writes nothing, changes no settings or permissions, and sends nothing over the network itself, and that what it prints becomes session context. It lists every file the hook reads and the one command it may run, `codemap stats` (`t_readme_hook_disclosure.sh`).
 
 ### Fixed
-- `hooks/session-start.sh`: `CLAUDE.md`, `.claude/CLAUDE.md` and `CLAUDE.local.md` now each count as "a CLAUDE.md exists", matching the AGENTS.md rule in the Claude Code docs. Before, a project that kept its instructions in `.claude/CLAUDE.md` got a false "No CLAUDE.md" nudge, or the AGENTS.md-only nudge although Claude Code was not reading AGENTS.md (`t_claudemd_variants.sh`).
-- `@CLAUDE.md` does not resolve for such projects either. The dispatch prefixes in build (builder and researcher), plan and review, and wrap's resume prompt, now use `@.claude/CLAUDE.md` there. `setup` edits whichever file exists and never creates a second (`t_claudemd_dotclaude_refs.sh`).
+- `hooks/session-start.sh`: `CLAUDE.md`, `.claude/CLAUDE.md` and `CLAUDE.local.md` in the working directory now each count as "a CLAUDE.md exists". These are the files the Claude Code docs count for the AGENTS.md rule, though the docs also look in parent directories and the hook does not. Before, a project that kept its instructions in `.claude/CLAUDE.md` got a false "No CLAUDE.md" nudge, or the AGENTS.md-only nudge although Claude Code was not reading AGENTS.md (`t_claudemd_variants.sh`).
+- `@CLAUDE.md` does not resolve for such projects either. In build (builder and researcher prefixes), plan and review, `.claude/CLAUDE.md` now counts as a CLAUDE.md and is prefixed as `@.claude/CLAUDE.md`. wrap uses it in the resume prompt and edits it in place, and atlas reads it. `setup` edits whichever file exists and never creates a second. Imports resolve relative to the importing file, so inside `.claude/CLAUDE.md` setup writes `@../AGENTS.md` (`t_claudemd_dotclaude_refs.sh`).
+- `t_version_302.sh` checks with grep, so a missed version bump is caught even without jq.
 
 ### Unchanged (intentional)
 - The 3.0.x `.claude/turbocharge-session.json` fallback stays until 3.1, as announced.

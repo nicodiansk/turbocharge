@@ -16,6 +16,7 @@ for p in \
     "CLAUDE.local.md" \
     "plugin.json" \
     "What the hook does" \
+    "@../AGENTS.md" \
     "t_version_lockstep.sh"; do
     grep -qF -- "$p" "$SECTION" || { echo "    [3.0.2] section missing: $p"; rc=1; }
 done

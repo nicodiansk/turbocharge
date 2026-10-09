@@ -153,7 +153,7 @@ All agents have `memory: project` for persistent codebase knowledge across sessi
 
 ### What the hook does
 
-`hooks/session-start.sh` runs once when a session starts. It is read-only: it prints text to stdout, which Claude Code adds to the session context, and does nothing else. It writes no files, changes no settings or permissions, and makes no network calls. Nothing leaves your machine.
+`hooks/session-start.sh` runs whenever a session starts, resumes, or is cleared or compacted. It is read-only: it prints text to stdout and does nothing else. It writes no files, changes no settings or permissions, and sends nothing over the network itself. What it prints becomes part of the session context, so it reaches the model like any file Claude reads.
 
 | It reads | Why |
 |:---------|:----|

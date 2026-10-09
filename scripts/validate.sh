@@ -155,10 +155,11 @@ fi
 # A missing CLI is a visible warning, never a silent skip.
 echo "--- claude plugin validate --strict ---"
 if command -v claude >/dev/null 2>&1; then
-    if claude plugin validate "$PLUGIN_DIR" --strict >/dev/null 2>&1; then
+    if STRICT_OUT=$(claude plugin validate "$PLUGIN_DIR" --strict 2>&1); then
         pass "claude plugin validate --strict passed"
     else
-        error "claude plugin validate --strict failed — run it to see why"
+        error "claude plugin validate --strict failed:"
+        printf '%s\n' "$STRICT_OUT" | sed 's/^/         /'
     fi
 else
     warn "claude CLI not found — skipped claude plugin validate --strict"
