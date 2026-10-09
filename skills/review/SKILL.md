@@ -3,6 +3,7 @@ name: review
 description: Use before merging to verify completed work meets requirements and quality standards. Dispatches code-reviewer for holistic assessment of the full git diff against the original plan.
 context: fork
 agent: code-reviewer
+background: false
 argument-hint: "[plan-or-description]"
 ---
 
@@ -29,7 +30,7 @@ Dispatch the code-reviewer agent with this prefix so the subagent sees the navig
 @CLAUDE.md (conventions, rules)
 ```
 
-Omit either reference if the file doesn't exist.
+Omit either reference if the file doesn't exist. Exception: if CLAUDE.md is missing but `AGENTS.md` exists, use `@AGENTS.md` in its place.
 
 ## Your Review
 
@@ -52,7 +53,7 @@ Omit either reference if the file doesn't exist.
    - **Issues** — Critical / Important / Minor with `file:line` references
    - **Assessment** — Ready to merge? Yes / No / With fixes
 
-After review, offer: "Ready to ship?" → chains to `/turbocharge:ship`
+After review, offer: "Ready to ship?" → chains to `/turboflow:ship`
 
 ## Red Flags — Rationalizations That Mean You're Doing a Shallow Review
 

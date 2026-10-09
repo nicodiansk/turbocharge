@@ -16,7 +16,7 @@ error() { red "  ERROR: $1"; ERRORS=$((ERRORS + 1)); }
 warn() { yellow "  WARN:  $1"; WARNINGS=$((WARNINGS + 1)); }
 pass() { green "  OK:    $1"; }
 
-echo "=== Turbocharge Plugin Validation ==="
+echo "=== Turboflow Plugin Validation ==="
 echo "Plugin directory: $PLUGIN_DIR"
 echo ""
 
@@ -116,7 +116,7 @@ echo ""
 
 # 4. Check for broken cross-references
 echo "--- Cross-References ---"
-STALE_REFS="turbocharge:test-driven-development turbocharge:session-memory turbocharge:executing-plans turbocharge:using-turbocharge turbocharge:writing-plans turbocharge:brainstorming turbocharge:story-breakdown turbocharge:systematic-debugging turbocharge:finishing-a-development-branch turbocharge:requesting-code-review"
+STALE_REFS="turboflow:test-driven-development turboflow:session-memory turboflow:executing-plans turboflow:using-turboflow turboflow:writing-plans turboflow:brainstorming turboflow:story-breakdown turboflow:systematic-debugging turboflow:finishing-a-development-branch turboflow:requesting-code-review"
 found_stale=0
 for ref in $STALE_REFS; do
     matches=$(grep -rl "$ref" "$PLUGIN_DIR/skills/" "$PLUGIN_DIR/agents/" 2>/dev/null || true)

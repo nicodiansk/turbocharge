@@ -42,7 +42,7 @@ When you detect a session is ending (goodbye, thanks, natural stopping point, co
 Generate a self-contained prompt the user can paste into a fresh session. Use `@` references for files so Claude reads them automatically.
 
 ```
-@CLAUDE.md @ATLAS.md @.claude/turbocharge-session.json  Continue [PROJECT] - [CURRENT TASK]
+@CLAUDE.md @ATLAS.md @.claude/turboflow-session.json  Continue [PROJECT] - [CURRENT TASK]
 
 Branch: `branch-name`
 
@@ -61,14 +61,14 @@ Decisions to Remember:
 - [key decision]: [rationale]
 
 Start With:
-/turbocharge:[skill] [args]
+/turboflow:[skill] [args]
 ```
 
-**MANDATORY:** `@.claude/turbocharge-session.json` MUST appear on the first line of every resume prompt — it is not optional context, it is the session state. Do not move it to "Context Files" or omit it.
+**MANDATORY:** `@.claude/turboflow-session.json` MUST appear on the first line of every resume prompt — it is not optional context, it is the session state. Do not move it to "Context Files" or omit it.
 
 ### 5.5. Atlas + CodeMap Freshness (MANDATORY)
 Before generating the resume prompt:
-1. **Always run `/turbocharge:atlas`** to refresh the domain map — do not skip, even if changes seem minor.
+1. **Always run `/turboflow:atlas`** to refresh the domain map — do not skip, even if changes seem minor.
 2. **If `.codemap/` exists**, run `codemap update` (or note it in the resume prompt if watch mode is active).
 
 Include in the resume prompt:
@@ -113,7 +113,7 @@ Dropped entries are not archived separately — file-based memory is lossy by de
 
 ### 9. Session Snapshot JSON
 
-Write `.claude/turbocharge-session.json` in the project root (the standard Claude Code project-state directory — same place `.claude/settings.json` and `.claude/settings.local.json` live):
+Write `.claude/turboflow-session.json` in the project root (the standard Claude Code project-state directory — same place `.claude/settings.json` and `.claude/settings.local.json` live):
 
 ```json
 {
@@ -121,16 +121,16 @@ Write `.claude/turbocharge-session.json` in the project root (the standard Claud
   "branch": "master",
   "current_task": "ATLAS reshape design",
   "blockers": [],
-  "next_steps": ["Chain to /turbocharge:plan", "Break into tasks"],
+  "next_steps": ["Chain to /turboflow:plan", "Break into tasks"],
   "open_files": ["skills/atlas/SKILL.md"]
 }
 ```
 
 The SessionStart hook cats this on next session so resume is zero-tool-call.
 
-**Gitignore check (MANDATORY):** Before writing the snapshot, verify `.claude/turbocharge-session.json` is in the project `.gitignore`. If not, add exactly this line:
+**Gitignore check (MANDATORY):** Before writing the snapshot, verify `.claude/turboflow-session.json` is in the project `.gitignore`. If not, add exactly this line:
 ```
-.claude/turbocharge-session.json
+.claude/turboflow-session.json
 ```
 This is per-user session-local state — do NOT exclude all of `.claude/` because `settings.json` is team-shared.
 

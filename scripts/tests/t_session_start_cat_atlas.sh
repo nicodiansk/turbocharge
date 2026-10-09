@@ -26,10 +26,10 @@ cd - >/dev/null
 echo "$OUT" | grep -q "UNIQUE_ATLAS_MARKER_37812" || { echo "    session-start.sh did not output Where to Look section"; rm -rf "$TMP"; exit 1; }
 echo "$OUT" | grep -q "UNIQUE_MODULE_MARKER_55555" && { echo "    session-start.sh leaked Module Map (should be lazy)"; rm -rf "$TMP"; exit 1; }
 echo "$OUT" | grep -q "Full ATLAS.md available" || { echo "    session-start.sh missing lazy-load hint"; rm -rf "$TMP"; exit 1; }
-# When turbocharge-session.json snapshot exists, hook must cat it too
+# When turboflow-session.json snapshot exists, hook must cat it too
 cd "$TMP"
 mkdir -p ".claude"
-cat > ".claude/turbocharge-session.json" <<'EOF'
+cat > ".claude/turboflow-session.json" <<'EOF'
 {"marker":"UNIQUE_SESSION_MARKER_99123"}
 EOF
 OUT="$(bash "$F" 2>&1 || true)"

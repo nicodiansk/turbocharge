@@ -1,5 +1,62 @@
 # Changelog
 
+## [3.0.0] - 2026-10-09
+
+**BREAKING — plugin renamed `turbocharge` → `turboflow`.** The Anthropic community directory already lists a different author's `turbocharge`, so this plugin migrates to the free `turboflow` slug. The plugin `name` field IS the slash-command namespace: **every `/turbocharge:<skill>` is now `/turboflow:<skill>`.** The GitHub repo, `claude plugin marketplace add nicodiansk/turbocharge` install path, homepage, and repository URL are UNCHANGED — only the plugin/marketplace NAME migrated.
+
+### Migration guidance
+
+**Requires Claude Code 2.1.288 or later.** Slash commands: `/turbocharge:build` → `/turboflow:build`, and likewise for every skill.
+
+`marketplace.json` now carries `renames: {"turbocharge": "turboflow"}`, so Claude Code follows the plugin rename and rewrites `enabledPlugins`/`pluginConfigs` keys. The marketplace **name** has no such mechanism: an existing install keeps its local marketplace key, `turbocharge`. Pick one path:
+
+- **Quick** — keep the old marketplace key:
+  ```bash
+  claude plugin marketplace update turbocharge
+  claude plugin install turboflow@turbocharge
+  ```
+- **Clean (recommended)** — match the documented install id:
+  ```bash
+  claude plugin marketplace remove turbocharge
+  claude plugin marketplace add nicodiansk/turbocharge
+  claude plugin install turboflow@turboflow
+  ```
+  then run `/reload-plugins` in any open session. **Warning:** `marketplace remove` also uninstalls the plugin and deletes its saved options and data.
+
+Both paths: update personal rules, permissions, and scripts naming `turbocharge:*` or `/turbocharge:<skill>` (for example `~/.claude/rules/**` and `Skill(turbocharge:…)` permission entries). Your last `/wrap` snapshot carries over: SessionStart still reads `.claude/turbocharge-session.json` when the new file is absent (3.0.x only).
+
+### Changed
+- Manifests: `plugin.json` + `marketplace.json` `name`/`displayName`/marketplace-name → turboflow; all three `version` fields → 3.0.0. URLs unchanged.
+- All 6 skills, hooks, examples, `README.md`, `CLAUDE.md`: `/turbocharge:` → `/turboflow:`.
+- Full brand identity: SessionStart bootstrap, `hooks.json` status message, `setup` skill self-references (prose, table headers, section titles), `validate.sh` banner, `.gitignore` comment, and colon-namespace refs (`turbocharge:build` etc.) → turboflow.
+- Template renamed `templates/CLAUDE-turbocharge.md` → `templates/CLAUDE-turboflow.md`; block markers `<!-- turbocharge:NAME -->` → `<!-- turboflow:NAME -->`.
+- Session snapshot file `.claude/turbocharge-session.json` → `.claude/turboflow-session.json` (wrap skill + SessionStart hook + tests).
+- Brand SVGs (`hero-banner-v2`, `before-after`, `brainstorm-session`) wordmarks → turboflow.
+- Tests/validator: `t_plugin_displayname.sh` name/displayName assertions, `t_setup_plugin_tooling.sh`, `validate.sh` STALE_REFS, and all session-file/marker/namespace test assertions rehomed to turboflow. New `t_no_titlecase_brand.sh` guards against title-case `Turbocharge` resurfacing in any tracked file (CHANGELOG exempt).
+
+### Added
+- `marketplace.json`: top-level `renames: {"turbocharge": "turboflow"}` so existing installs follow the plugin rename (`t_marketplace_renames.sh`).
+- `hooks/agentsmd-only-nudge.md`: SessionStart shows it instead of the missing-CLAUDE.md nudge when a project has `AGENTS.md` but no `CLAUDE.md` — Claude Code reads AGENTS.md only while no CLAUDE.md exists (`t_agentsmd_nudge.sh`).
+- `scripts/tests/helpers.sh`: `frontmatter` helper (CRLF-safe YAML frontmatter extraction).
+- `hooks/session-start.sh`: falls back to `.claude/turbocharge-session.json` when `.claude/turboflow-session.json` is absent (3.0.x only, removed in 3.1); `wrap` writes only the new name, and `.gitignore` keeps the old name ignored for 3.0.x (`t_session_snapshot_fallback.sh`, `t_gitignore_session.sh`).
+
+### Fixed — Claude Code 2.1.143 → 2.1.295 behavior changes
+- `skills/build/SKILL.md` Step 3b: subagents now run in the background, so build waits for each builder's and task-reviewer's completion notification before the next dispatch, `BEFORE_SHA` capture, review, or completion mark. New Red Flag row. Single-track builders are dispatched without a `name`, because a named spawn becomes a teammate (`t_build_background_wait.sh`).
+- `skills/plan/SKILL.md`, `skills/review/SKILL.md`: `background: false`. Forked skills run in the background since 2.1.218; plan and review must block (`t_forked_skills_block.sh`).
+- `agents/{researcher,task-reviewer,code-reviewer}.md`: `Agent` added to `disallowedTools`, since subagents may nest to depth 3 by default. builder and planner keep `tools:` allowlists without Agent (`t_agent_no_nested_spawn.sh`).
+- `skills/build/SKILL.md` Step 5: Agent Teams prose describes the one implicit team, `name`-param teammate spawns (`subagent_type: turboflow:builder`), and 2.1.288 as the reason plugin teammates keep the builder definition. Teammate spawn prompts must not name a model, because that overrides the builder's Sonnet pin (`t_build_multitrack_refresh.sh` updated). Full multi-track rework deferred to 3.1.
+- AGENTS.md coexistence: when only AGENTS.md exists, `setup` creates CLAUDE.md with `@AGENTS.md` as its first line. When both exist and CLAUDE.md lacks the import, `setup` offers to add it. Every subagent dispatch prefix (build's builder and researcher, plan's planner, review's code-reviewer) falls back to `@AGENTS.md` when there is no CLAUDE.md (`t_setup_agentsmd.sh`, `t_dispatch_agentsmd_prefix.sh`).
+- `hooks/session-start.sh`: per-section caps (ATLAS Where to Look 3,500 B, session snapshot 2,500 B, CodeMap stats 1,200 B), cut at line boundaries with a `…truncated — Read <file> for the rest` marker, keep the output under Claude Code's 10,000-char inline limit. Past that limit only a 2,000-char preview reaches the model (`t_session_start_output_cap.sh`).
+
+### Fixed — docs and tests
+- `README.md` Hooks table: removed the stale **Stop** row. The Stop hook was removed in 2.8.1 but the README still listed it (`t_claudemd_hook_ref.sh` now guards README too). The SessionStart row now mentions the AGENTS.md-aware nudge and the per-section output caps.
+- `scripts/tests/t_no_titlecase_brand.sh`: no longer matches its own ABOUTME line once the file is tracked.
+
+### Unchanged (intentional)
+- GitHub repo `nicodiansk/turbocharge`, all `homepage`/`repository`/marketplace `url`, and the `marketplace add nicodiansk/turbocharge` install path.
+- Historical CHANGELOG entries (2.8.1 and earlier) retain their original `/turbocharge:` references and old filenames as accurate point-in-time records.
+- Dead `.gitignore` entries (`.turbocharge/…`, `turbocharge-marketplace/`) and the README Project-Structure tree label (`turbocharge/`, the git-clone dir).
+
 ## [2.8.1] - 2026-07-03
 
 Hook fix — remove the Stop wrap-reminder hook. The 2.8.0 Stop hook emitted `hookSpecificOutput.additionalContext`, which is **not a valid Stop output field**: current Claude Code rejects it as invalid JSON, and builds that parse it as a `block` decision loop the turn until `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP` force-ends it (observed in the wild). Because Stop fires at the end of *every* assistant turn, there is no non-looping way to inject a model-visible per-turn nudge; wrap guidance already ships in the SessionStart payload, so the hook is removed rather than reworked.

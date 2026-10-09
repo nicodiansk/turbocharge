@@ -60,7 +60,7 @@
   </g>
 
   <!-- Title -->
-  <text x="600" y="105" text-anchor="middle" fill="#e6edf3" font-family="'SF Mono', 'Fira Code', 'Cascadia Code', monospace" font-size="48" font-weight="700" letter-spacing="6">turbocharge</text>
+  <text x="600" y="105" text-anchor="middle" fill="#e6edf3" font-family="'SF Mono', 'Fira Code', 'Cascadia Code', monospace" font-size="48" font-weight="700" letter-spacing="6">turboflow</text>
   <text x="600" y="140" text-anchor="middle" fill="#8b949e" font-family="'SF Mono', 'Fira Code', monospace" font-size="16" letter-spacing="1">One plugin. One pipeline. No conflicts.</text>
 
   <!-- Pipeline flow — main line glow -->

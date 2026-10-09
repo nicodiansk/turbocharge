@@ -122,11 +122,11 @@
   <text x="1052" y="150" text-anchor="middle" fill="#7ee787" font-size="13" font-weight="600">10 skills · 5 agents · 1 hook</text>
   <text x="1052" y="174" text-anchor="middle" fill="#8b949e" font-size="12">One to install. One to update.</text>
   <line x1="948" y1="186" x2="1157" y2="186" stroke="#7ee787" stroke-width="0.6" stroke-opacity="0.18"/>
-  <text x="1052" y="204" text-anchor="middle" fill="#6e7681" font-size="10.5">plugin install turbocharge@turbocharge</text>
+  <text x="1052" y="204" text-anchor="middle" fill="#6e7681" font-size="10.5">plugin install turboflow@turboflow</text>
 
   <text x="1052" y="252" text-anchor="middle" fill="#7ee787" font-size="13" font-weight="600">One source of truth.</text>
   <text x="1052" y="274" text-anchor="middle" fill="#7ee787" font-size="13" font-weight="600">Always current.</text>
 
   <!-- bottom rule -->
-  <text x="600" y="500" text-anchor="middle" fill="#484f58" font-size="12">turbocharge — replace scattered config with a single engineering pipeline</text>
+  <text x="600" y="500" text-anchor="middle" fill="#484f58" font-size="12">turboflow — replace scattered config with a single engineering pipeline</text>
 </svg>

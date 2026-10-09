@@ -5,7 +5,7 @@ description: |
   Quality. Use proactively after builder completes a task in --reviewed mode.
   Reads the actual diff — does NOT trust builder reports. Replaces the former
   spec-reviewer + quality-reviewer pair (one spawn, one diff-load).
-disallowedTools: Write, Edit, NotebookEdit
+disallowedTools: Write, Edit, NotebookEdit, Agent
 model: sonnet
 effort: medium
 memory: project

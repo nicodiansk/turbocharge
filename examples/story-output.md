@@ -1,6 +1,6 @@
 # Example: Story Output
 
-This is a sample stories document produced by `/turbocharge:story`.
+This is a sample stories document produced by `/turboflow:story`.
 
 ---
 
@@ -92,4 +92,4 @@ Developers managing multiple git worktrees need a simple CLI to list, create, re
 **Story Points: 3**
 
 ## Next Step
-Ready for implementation planning? → `/turbocharge:plan`
+Ready for implementation planning? → `/turboflow:plan`

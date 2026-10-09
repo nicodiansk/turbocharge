@@ -41,14 +41,14 @@ NO TASK MARKED COMPLETE WITHOUT BUILDER SELF-REVIEW AND PASSING TESTS
 - Spawn Agent Team with specialized builders
 - Each builder owns a set of non-overlapping files
 - Builders communicate via shared task list
-- Per-task review (`--reviewed`) is NOT supported in multi-track — parallel, interleaved commits make per-task `BEFORE_SHA..HEAD` diff ranges unreliable. Run `/turbocharge:review` after the team completes for a holistic diff review instead.
+- Per-task review (`--reviewed`) is NOT supported in multi-track — parallel, interleaved commits make per-task `BEFORE_SHA..HEAD` diff ranges unreliable. Run `/turboflow:review` after the team completes for a holistic diff review instead.
 - Requires user confirmation before spawning team
 
 **How to decide:**
 - Default to Standard — covers 80% of tasks
 - Use Reviewed for: unfamiliar codebase, security-sensitive code, complex integrations
 - Use Multi-track for independent tracks touching different files
-- When in doubt, start Standard — user can always run `/turbocharge:review` after
+- When in doubt, start Standard — user can always run `/turboflow:review` after
 
 **Ask the user** if the choice isn't obvious.
 
@@ -62,15 +62,27 @@ Spawn builder subagent (Sonnet) with:
 - Plan file path and task line range — do NOT paste plan content, builder reads the file directly
 - Context: where this task fits in the sequence, what previous tasks completed
 - Working directory
-- Prefix: `@CLAUDE.md` (conventions). Do NOT inject `@ATLAS.md` — builders read the spec and diff, not the navigation index.
+- Prefix: `@CLAUDE.md` (conventions) — or `@AGENTS.md` if the project has no CLAUDE.md. Do NOT inject `@ATLAS.md` — builders read the spec and diff, not the navigation index.
+
+Dispatch the builder **without** a `name` parameter. A named Agent spawn joins the session's implicit team as a teammate when Agent Teams are enabled (Step 5); single-track builders must stay plain subagents.
 
 In **Reviewed** mode, record the pre-task SHA before dispatching: `BEFORE_SHA=$(git rev-parse HEAD)`. The task-reviewer diffs `$BEFORE_SHA..HEAD` to capture exactly this builder's output, regardless of how many commits (zero, one, or many) the builder makes.
 
 > **Builder isolation (design decision):** the builder agent intentionally does NOT set `isolation: worktree`. A worktree branches from the **default branch**, not the parent session's HEAD, and is auto-cleaned only when no changes are made — which would break this skill's `BEFORE_SHA=$(git rev-parse HEAD)` → `$BEFORE_SHA..HEAD` diff model (the reviewer would diff the wrong base) and would leave a populated, non-auto-cleaned worktree for ship/cleanup to manage. Worktree/branch management therefore stays in skill prose and the parent session, not in the agent frontmatter.
 
-### 3b. Mark Task Complete
+### 3b. Wait for the Completion Notification
 
-### 3c. After Batch (every N tasks, default 3)
+Subagents run in the background (Claude Code 2.1.198+): the Agent call returns as soon as the builder starts, not when it finishes. After every dispatch, **stop and wait for that builder's completion notification.** Until it arrives, do NOT:
+- dispatch the next builder,
+- capture the next `BEFORE_SHA`,
+- dispatch a task-reviewer (Step 4a), or
+- mark the task complete.
+
+The same rule holds for every task-reviewer dispatch, researcher dispatch, and builder resume (fix rounds): act on a subagent's result only after its completion notification arrives.
+
+### 3c. Mark Task Complete
+
+### 3d. After Batch (every N tasks, default 3)
 
 Report to human:
 - What was implemented in this batch
@@ -87,8 +99,8 @@ Say: **"Batch complete. Ready for feedback."**
 
 For each task in the batch, run this exact ordered sequence. **The task is not marked complete until its review passes** — never mark complete straight after the builder (that is the Step 3 flow, not this one):
 
-1. **Dispatch builder** — same as Step 3a. In Reviewed mode, record `BEFORE_SHA=$(git rev-parse HEAD)` *before* dispatching (Step 3a) so the reviewer diffs exactly this builder's output.
-2. **Dispatch task-reviewer** (Step 4a) and apply the disposition — loop the builder if Spec ❌ or any 🔴 Critical (max 2 cycles).
+1. **Dispatch builder** — same as Step 3a. In Reviewed mode, record `BEFORE_SHA=$(git rev-parse HEAD)` *before* dispatching (Step 3a) so the reviewer diffs exactly this builder's output. Then wait for the builder's completion notification (Step 3b).
+2. **Dispatch task-reviewer** (Step 4a), wait for its completion notification, then apply the disposition — loop the builder if Spec ❌ or any 🔴 Critical (max 2 cycles).
 3. **Dispatch researcher on demand** (Step 4b) only if the builder blocked on unclear context.
 4. **Mark the task complete** (Step 4c) — only after Spec ✅ with no unresolved 🔴 Critical.
 5. **After every N tasks, run the batch checkpoint** (Step 4d).
@@ -112,7 +124,7 @@ The reviewer returns two verdicts:
 - **Spec ✅, Quality has only 🟡 Important / 🟢 Minor:** Do NOT loop. Carry these concerns into the next batch checkpoint (Step 4d) so the user decides whether to address them.
 
 ### 4b. Dispatch Researcher (on demand)
-If the builder blocks on unclear context, dispatch the researcher with `@ATLAS.md @CLAUDE.md` prefixed. Subagents do not inherit parent history — `@ATLAS.md` must ride on the dispatch prompt itself.
+If the builder blocks on unclear context, dispatch the researcher with `@ATLAS.md @CLAUDE.md` prefixed — or `@ATLAS.md @AGENTS.md` if the project has no CLAUDE.md. Subagents do not inherit parent history — `@ATLAS.md` must ride on the dispatch prompt itself.
 
 ### 4c. Mark Task Complete
 
@@ -133,7 +145,7 @@ Say: **"Batch complete. Ready for feedback."**
 
 ## Step 5: Execute — Multi-Track (Agent Teams)
 
-> **Experimental & gated.** Agent Teams require `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` (env var or `settings.json`). If unset, fall back to Standard mode and tell the user. There are no team-management tool calls — teammates spawn from natural-language instructions and clean up automatically at session end.
+> **Experimental & gated.** Agent Teams require `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` (env var or `settings.json`). If unset, fall back to Standard mode and tell the user. There are no team-management tool calls: each session has one implicit team, and any Agent spawn that passes a `name` joins it as a teammate. Teammates clean up automatically at session end.
 
 ### 5a. Confirm with User
 ```
@@ -146,9 +158,10 @@ This uses more tokens but is faster.
 ```
 
 ### 5b. Spawn Teammates
-- In natural language, ask each teammate to act as the **builder** subagent type (reference it by name). Teammates honor the builder definition's `model` (Sonnet) and `tools`, but do NOT apply its preloaded `skills`/`mcpServers` — give each teammate the context it needs in the spawn instruction.
+- Spawn each teammate with the Agent tool: `subagent_type: turboflow:builder` plus a `name` per track (e.g. `track-a`). The `name` is what makes the spawn a teammate, and it is why single-track builders (Step 3a) are dispatched without one.
+- Since Claude Code 2.1.288, a plugin agent spawned by name as a teammate keeps its own definition. It always keeps its `model` (Sonnet) and `tools`. In-process teammates, the default, also keep its `disallowedTools`, `effort` and prompt body. That is why multi-track teammates still behave like the **builder** agent. Do NOT name a model in the teammate's spawn prompt, because a model named there overrides the definition's Sonnet pin. The definition's `skills` are never applied, and `mcpServers` applies only to split-pane teammates, so give each teammate the context it needs in its spawn prompt.
 - Assign each teammate a non-overlapping set of files (file ownership) so parallel, interleaved commits never touch the same path.
-- Teammates self-review per task; per-task reviewers are NOT dispatched in multi-track (see Step 2) — holistic review comes after via `/turbocharge:review`.
+- Teammates self-review per task; per-task reviewers are NOT dispatched in multi-track (see Step 2) — holistic review comes after via `/turboflow:review`.
 - Per-task `--reviewed` remains unsupported in multi-track: interleaved commits make `BEFORE_SHA..HEAD` ranges unreliable.
 - Cleanup is automatic at session end — there is nothing to tear down manually.
 
@@ -157,7 +170,7 @@ This uses more tokens but is faster.
 After ALL tasks done:
 - Report completion summary
 - Print final visibility line: `agents spawned: A · models: sonnet×A · tasks: Y/Y`
-- Offer: "Ready for holistic code review?" → chains to `/turbocharge:review`
+- Offer: "Ready for holistic code review?" → chains to `/turboflow:review`
 
 > Visibility note: the orchestrator cannot read exact token counts. This line is the spawn/model/task summary (the measurable proxy), NOT a fabricated token number.
 
@@ -174,6 +187,7 @@ After ALL tasks done:
 | No batch reporting | Human can't review progress |
 | Auto-continuing after batch | Must wait for human approval |
 | Review loop >2 cycles | Escalate to user, don't keep retrying |
+| Next builder/reviewer dispatched before the previous subagent's completion notification | Subagents run in the background — the Agent call returning is not the task finishing. Builders race on one tree; the reviewer diffs a half-written task |
 
 ### Rationalizations That Mean You're Wrong
 

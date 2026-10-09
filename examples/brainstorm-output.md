@@ -1,6 +1,6 @@
 # Example: Brainstorm Output
 
-This is a sample design document produced by `/turbocharge:brainstorm`.
+This is a sample design document produced by `/turboflow:brainstorm`.
 
 ---
 
@@ -43,4 +43,4 @@ Approach 1 — thin wrapper. YAGNI on the database. We can add metadata later if
 - No config file needed
 
 ## Next Step
-Ready for story breakdown? → `/turbocharge:story`
+Ready for story breakdown? → `/turboflow:story`
