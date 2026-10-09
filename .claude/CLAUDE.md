@@ -102,8 +102,8 @@ competing plugins functionally to warn about conflicts.
 
 ### Versioning
 
-- Version lives in `.claude-plugin/plugin.json`
-- Marketplace manifest version must match after publishing
+- Version lives only in `.claude-plugin/plugin.json`; `marketplace.json` carries none (plugin.json wins over the marketplace entry, and the docs say to set it in one place). Guarded by `t_version_lockstep.sh`
+- Bump it every release — the claude.ai directory expects a new version for each update
 - Use semver: patch for fixes, minor for new skills/features, major for breaking changes
 
 ### Testing Locally
@@ -120,6 +120,6 @@ claude --plugin-dir .
 
 Single-repo as of v2.3.0. No cross-repo sync.
 
-1. Bump version in BOTH `.claude-plugin/plugin.json` AND `.claude-plugin/marketplace.json` (metadata.version and plugins[0].version — keep all three in lockstep)
+1. Bump `version` in `.claude-plugin/plugin.json` (the only place it lives)
 2. Update `CHANGELOG.md` with the new entry
 3. Commit + push to `nicodiansk/turboflow`. Users pick it up via `claude plugin update turboflow@turboflow`.

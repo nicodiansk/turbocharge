@@ -5,8 +5,7 @@
     "email": "nicholasprevitali96@gmail.com"
   },
   "metadata": {
-    "description": "Engineering team orchestration plugins for Claude Code",
-    "version": "3.0.1"
+    "description": "Engineering team orchestration plugins for Claude Code"
   },
   "renames": {
     "turbocharge": "turboflow"
@@ -19,7 +18,6 @@
         "url": "https://github.com/nicodiansk/turboflow.git"
       },
       "description": "Engineering team orchestration for Claude Code. 10 skills, 5 agents, 1 hook — single pipeline from brainstorm to shipped code.",
-      "version": "3.0.1",
       "strict": true
     }
   ]
