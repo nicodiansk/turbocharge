@@ -13,6 +13,8 @@ images/*.png
 
 # Turboflow session snapshot (per-user, zero-tool-call resume)
 .claude/turboflow-session.json
+# Pre-3.0.0 snapshot name — SessionStart still reads it in 3.0.x; remove with the fallback in 3.1
+.claude/turbocharge-session.json
 
 # Per-user Claude local state — NOT team-shared (unlike .claude/settings.json,
 # which stays committable). Deliberately scoped to these items, not all of .claude/.

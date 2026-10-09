@@ -38,7 +38,7 @@ Both paths: update personal rules, permissions, and scripts naming `turbocharge:
 - `marketplace.json`: top-level `renames: {"turbocharge": "turboflow"}` so existing installs follow the plugin rename (`t_marketplace_renames.sh`).
 - `hooks/agentsmd-only-nudge.md`: SessionStart shows it instead of the missing-CLAUDE.md nudge when a project has `AGENTS.md` but no `CLAUDE.md` — Claude Code reads AGENTS.md only while no CLAUDE.md exists (`t_agentsmd_nudge.sh`).
 - `scripts/tests/helpers.sh`: `frontmatter` helper (CRLF-safe YAML frontmatter extraction).
-- `hooks/session-start.sh`: falls back to `.claude/turbocharge-session.json` when `.claude/turboflow-session.json` is absent (3.0.x only, removed in 3.1); `wrap` writes only the new name (`t_session_snapshot_fallback.sh`).
+- `hooks/session-start.sh`: falls back to `.claude/turbocharge-session.json` when `.claude/turboflow-session.json` is absent (3.0.x only, removed in 3.1); `wrap` writes only the new name, and `.gitignore` keeps the old name ignored for 3.0.x (`t_session_snapshot_fallback.sh`, `t_gitignore_session.sh`).
 
 ### Fixed — Claude Code 2.1.143 → 2.1.295 behavior changes
 - `skills/build/SKILL.md` Step 3b: subagents now run in the background, so build waits for each builder's and task-reviewer's completion notification before the next dispatch, `BEFORE_SHA` capture, review, or completion mark. New Red Flag row. Single-track builders are dispatched without a `name`, because a named spawn becomes a teammate (`t_build_background_wait.sh`).
