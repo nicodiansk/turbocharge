@@ -140,9 +140,11 @@ The interview must be completable in under 90 seconds.
 
 Read `${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE-turboflow.md`. Substitute answers (test command, naming style, file-header convention, domain terms). Each block is delimited by `<!-- turboflow:NAME -->` and `<!-- /turboflow:NAME -->`.
 
+- If CLAUDE.md exists, `AGENTS.md` also exists, and CLAUDE.md has no `@AGENTS.md` line → offer to add `@AGENTS.md` as its first line. Claude Code ignores AGENTS.md whenever a CLAUDE.md exists, so without the import its instructions never load. Leave the file unchanged if the user declines.
 - If CLAUDE.md exists and contains a block with the same marker → replace between markers, leave surrounding content untouched.
 - If CLAUDE.md exists and does not contain that block → append to end of file.
-- If CLAUDE.md does not exist → suggest `/init` first, do not create a bare CLAUDE.md from the template alone.
+- If CLAUDE.md does not exist but `AGENTS.md` does → create CLAUDE.md with `@AGENTS.md` as its first line, then append the rendered blocks below it. Claude Code reads AGENTS.md only while no CLAUDE.md exists, so this import is what keeps AGENTS.md loading once CLAUDE.md is created.
+- If neither CLAUDE.md nor AGENTS.md exists → suggest `/init` first, do not create a bare CLAUDE.md from the template alone.
 
 ### 4. Show Diff, Confirm, Write
 
