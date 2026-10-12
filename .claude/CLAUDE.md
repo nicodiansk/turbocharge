@@ -41,7 +41,14 @@ Install:      claude plugin marketplace add nicodiansk/turbocharge
               claude plugin install turbocharge@turbocharge
 Update:       claude plugin update turbocharge@turbocharge
 Local dev:    claude --plugin-dir /path/to/turbocharge
+Directory:    claude.ai plugin directory listing "Turbocharge" (ours; submitted 2026-06-23,
+              published 2026-09-24). Managed at claude.ai/directory/manage; tracks `master`.
+              Each new version is scanned, then needs "Publish update" (a reviewer makes it live).
 ```
+
+**Name history:** 3.0.0–3.1.1 shipped as `turboflow` because we wrongly believed another author owned
+`turbocharge` in the directory; the listing was ours. 3.2.0 restored `turbocharge`. Never start a new
+directory submission. Never rename the plugin `name`: the listing and every install key off it.
 
 ### Domain Terms
 

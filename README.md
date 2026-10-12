@@ -23,6 +23,8 @@ You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that c
 
 Requires **Claude Code 2.1.288 or later** (`claude --version`).
 
+Install **Turbocharge** from Claude's plugin directory, where it's listed for Claude Code, or from this repo's marketplace:
+
 ```bash
 claude plugin marketplace add nicodiansk/turbocharge
 claude plugin install turbocharge@turbocharge
@@ -54,28 +56,30 @@ claude plugin update turbocharge@turbocharge
 ```
 </details>
 
-### Upgrading from turbocharge 2.x
+### Upgrading
 
-3.0.0 renamed the plugin and its marketplace from `turbocharge` to `turbocharge`, so every `/turbocharge:<skill>` is now `/turbocharge:<skill>`. Claude Code follows the plugin rename on its own, but an existing install keeps its old marketplace key, `turbocharge`. Pick one path:
+**From the directory, or from 2.x:** update as usual. Your commands stay `/turbocharge:<skill>`, and your session snapshot and setup's CLAUDE.md blocks carry over.
 
-**Quick** — keep the old marketplace key:
+**Coming from turboflow 3.0–3.1:** those releases shipped under the interim name `turboflow`. 3.2.0 restores `turbocharge`, so every `/turboflow:<skill>` is `/turbocharge:<skill>` again. Claude Code follows the plugin rename through the marketplace's `renames` map, but an existing install keeps its marketplace key, `turboflow`. Pick one path:
+
+**Quick** — keep the marketplace key:
 
 ```bash
-claude plugin marketplace update turbocharge
-claude plugin install turbocharge@turbocharge
+claude plugin marketplace update turboflow
+claude plugin install turbocharge@turboflow
 ```
 
 **Clean (recommended)** — match the install id above:
 
 ```bash
-claude plugin marketplace remove turbocharge
+claude plugin marketplace remove turboflow
 claude plugin marketplace add nicodiansk/turbocharge
 claude plugin install turbocharge@turbocharge
 ```
 
 Then run `/reload-plugins` in any open session. Note that `marketplace remove` also uninstalls the plugin and deletes its saved options and data.
 
-Either way, update personal rules, permissions, and scripts that mention `turbocharge:*` or `/turbocharge:<skill>`. Full notes are in the [CHANGELOG](CHANGELOG.md).
+Either way, update personal rules, permissions, and scripts that mention `turboflow:*` or `/turboflow:<skill>`. Your `.claude/turboflow-session.json` snapshot and setup's `<!-- turboflow:… -->` blocks keep working. Full notes are in the [CHANGELOG](CHANGELOG.md).
 
 ## The Pipeline
 
