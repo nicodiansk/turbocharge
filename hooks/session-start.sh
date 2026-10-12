@@ -71,16 +71,28 @@ emit_head() {
 }
 
 # emit_nudge — the CLAUDE.md / AGENTS.md nudge printed after the snapshot.
-# Claude Code loads ./CLAUDE.md or ./.claude/CLAUDE.md, and its AGENTS.md rule also
-# counts CLAUDE.local.md as "a CLAUDE.md exists" — any of the three means no nudge.
+# ./CLAUDE.md or ./.claude/CLAUDE.md → no nudge. CLAUDE.local.md also counts as "a
+# CLAUDE.md exists" for Claude Code's AGENTS.md rule, so with AGENTS.md beside it
+# (and no @AGENTS.md import) AGENTS.md is skipped — the one case it nudges about.
+# Only the working directory is checked; Claude Code also looks in parent directories,
+# so a session started in a monorepo subfolder can still see a false "No CLAUDE.md".
 emit_nudge() {
-    if [ ! -f "CLAUDE.md" ] && [ ! -f ".claude/CLAUDE.md" ] && [ ! -f "CLAUDE.local.md" ]; then
-        echo ""
-        if [ -f "AGENTS.md" ]; then
-            cat "$HOOK_DIR/agentsmd-only-nudge.md"
-        else
-            cat "$HOOK_DIR/missing-claudemd-nudge.md"
+    if [ -f "CLAUDE.md" ] || [ -f ".claude/CLAUDE.md" ]; then
+        return 0
+    fi
+    if [ -f "CLAUDE.local.md" ]; then
+        # Reads only CLAUDE.local.md's import lines, to see whether the nudge's fix is already in place.
+        if [ -f "AGENTS.md" ] && ! grep -qE '(^|[[:space:]])@(\./)?AGENTS\.md([[:space:]]|$)' "CLAUDE.local.md"; then
+            echo ""
+            cat "$HOOK_DIR/agentsmd-not-loaded-nudge.md"
         fi
+        return 0
+    fi
+    echo ""
+    if [ -f "AGENTS.md" ]; then
+        cat "$HOOK_DIR/agentsmd-only-nudge.md"
+    else
+        cat "$HOOK_DIR/missing-claudemd-nudge.md"
     fi
 }
 
@@ -97,11 +109,13 @@ if [ -n "$SNAPSHOT" ]; then
     NUDGE_BYTES=0
     [ -n "$NUDGE_OUT" ] && NUDGE_BYTES=$(printf '%s\n' "$NUDGE_OUT" | wc -c | tr -d ' ')
     SNAPSHOT_CAP=$((TOTAL_BUDGET - HEAD_BYTES - NUDGE_BYTES - SNAPSHOT_OVERHEAD))
-    [ "$SNAPSHOT_CAP" -lt 0 ] && SNAPSHOT_CAP=0
-    echo ""
-    echo "--- Session snapshot (previous /wrap) ---"
-    cap_section "$SNAPSHOT_CAP" "Read $SNAPSHOT" < "$SNAPSHOT"
-    echo "--- end snapshot ---"
+    # No budget left → skip the optional snapshot rather than print an empty block.
+    if [ "$SNAPSHOT_CAP" -gt 0 ]; then
+        echo ""
+        echo "--- Session snapshot (previous /wrap) ---"
+        cap_section "$SNAPSHOT_CAP" "Read $SNAPSHOT" < "$SNAPSHOT"
+        echo "--- end snapshot ---"
+    fi
 fi
 
 [ -n "$NUDGE_OUT" ] && printf '%s\n' "$NUDGE_OUT"

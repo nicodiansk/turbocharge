@@ -68,7 +68,8 @@ Each task MUST follow this format:
 
 - **Decisions, not code.** Record what to build and why; the builder or the main session writes the code. Include code only where the exact text *is* the decision — a regex, a signature, a JSON key, an error string — inline or in a fence of ≤10 lines. Target ≈1.5 KB per task.
 - Each task: **2-5 minutes** of work. If longer, split it.
-- **Exact file paths**, with line ranges for modifications — not "somewhere in src/"
+- **Exact file paths**, with line ranges for modifications — not "somewhere in src/". Line ranges are plan-time hints; build re-locates code by content when an earlier task in the lane shifts it
+- **Verify runs the task's own tests — never the full suite** while another lane can still be running: it would see that lane's half-written files. Build runs the full suite once, at the join; only a final lane that comes `After` every other lane may verify with it
 - **Test assertions, not test code** — each one names the input and the expected result, specific enough to write the test from
 - **Exact commands** with expected output
 - **TDD always** — every task names the test that fails before the change
