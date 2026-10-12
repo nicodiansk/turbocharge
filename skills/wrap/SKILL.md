@@ -113,7 +113,7 @@ Dropped entries are not archived separately — file-based memory is lossy by de
 
 ### 9. Session Snapshot JSON
 
-Write `.claude/turbocharge-session.json` in the project root (the standard Claude Code project-state directory — same place `.claude/settings.json` and `.claude/settings.local.json` live):
+Write `.claude/turbocharge-session.json` in the project root (the standard Claude Code project-state directory — same place `.claude/settings.json` and `.claude/settings.local.json` live). If a `.claude/turboflow-session.json` from 3.0–3.1 exists, delete it after writing: this snapshot supersedes it.
 
 ```json
 {

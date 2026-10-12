@@ -138,7 +138,7 @@ The interview must be completable in under 90 seconds.
 
 ### 3. Render and Append
 
-Read `${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE-turbocharge.md`. Substitute answers (test command, naming style, file-header convention, domain terms). Each block is delimited by `<!-- turbocharge:NAME -->` and `<!-- /turbocharge:NAME -->`. Versions 3.0–3.1 wrote the same blocks under `<!-- turboflow:NAME -->` / `<!-- /turboflow:NAME -->`: treat those as the same block — replace it in place and rewrite its markers to `turbocharge`; never append a duplicate.
+Read `${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE-turbocharge.md`. Substitute answers (test command, naming style, file-header convention, domain terms). Each block is delimited by `<!-- turbocharge:NAME -->` and `<!-- /turbocharge:NAME -->`. Versions 3.0–3.1 wrote the same blocks under `<!-- turboflow:NAME -->` / `<!-- /turboflow:NAME -->`: treat those as the same block — replace it in place and rewrite its markers to `turbocharge`; never append a duplicate. If both a `turbocharge:NAME` and a `turboflow:NAME` block exist (3.x setup appended a copy), update the turbocharge block and remove the turboflow duplicate.
 
 CLAUDE.md here means `./CLAUDE.md`, or `./.claude/CLAUDE.md` when the project keeps it there — edit the one that exists, never create a second. Imports resolve relative to the file that contains them, so inside `.claude/CLAUDE.md` the import is `@../AGENTS.md`: write that form wherever the bullets below say `@AGENTS.md`, and treat either form as the import already being present.
 

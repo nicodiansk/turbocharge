@@ -60,7 +60,10 @@ claude plugin update turbocharge@turbocharge
 
 **From the directory, or from 2.x:** update as usual. Your commands stay `/turbocharge:<skill>`, and your session snapshot and setup's CLAUDE.md blocks carry over.
 
-**Coming from turboflow 3.0–3.1:** those releases shipped under the interim name `turboflow`. 3.2.0 restores `turbocharge`, so every `/turboflow:<skill>` is `/turbocharge:<skill>` again. Claude Code follows the plugin rename through the marketplace's `renames` map, but an existing install keeps its marketplace key, `turboflow`. Pick one path:
+**Coming from turboflow 3.0–3.1:** those releases shipped under the interim name `turboflow`. 3.2.0 restores `turbocharge`, so every `/turboflow:<skill>` is `/turbocharge:<skill>` again. Claude Code follows the plugin rename through the marketplace's `renames` map, but an existing install keeps its marketplace key. Check it with `claude plugin marketplace list`:
+
+- **Key `turbocharge`** (you added the marketplace before 3.0.0): run `claude plugin marketplace update turbocharge`, then `claude plugin install turbocharge@turbocharge`. You're back on the standard install id.
+- **Key `turboflow`** (added at 3.0.0 or later): pick one path below.
 
 **Quick** — keep the marketplace key:
 
@@ -79,7 +82,7 @@ claude plugin install turbocharge@turbocharge
 
 Then run `/reload-plugins` in any open session. Note that `marketplace remove` also uninstalls the plugin and deletes its saved options and data.
 
-Either way, update personal rules, permissions, and scripts that mention `turboflow:*` or `/turboflow:<skill>`. Your `.claude/turboflow-session.json` snapshot and setup's `<!-- turboflow:… -->` blocks keep working. Full notes are in the [CHANGELOG](CHANGELOG.md).
+Either way, update personal rules, permissions, and scripts that mention `turboflow:*` or `/turboflow:<skill>`. Your `.claude/turboflow-session.json` snapshot (the newer of the two snapshot files loads, and the next `/turbocharge:wrap` retires it) and setup's `<!-- turboflow:… -->` blocks keep working. Full notes are in the [CHANGELOG](CHANGELOG.md).
 
 ## The Pipeline
 

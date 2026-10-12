@@ -18,6 +18,8 @@ assert_grep "$F" "<!-- turbocharge:"              || exit 1
 # 3.0–3.1 wrote blocks under turboflow markers: setup must adopt them, not append duplicates.
 grep -qF '<!-- turboflow:NAME -->' "$F" || { echo "    setup must recognize the 3.x <!-- turboflow:NAME --> markers"; exit 1; }
 assert_grep "$F" "never append a duplicate"       || exit 1
+# A 2.x -> 3.x project can hold both forms of one block: keep one.
+assert_grep "$F" "remove the turboflow duplicate" || exit 1
 assert_grep "$F" "180 lines"                      || exit 1
 # Chains forward to atlas
 assert_grep "$F" "/turbocharge:atlas"               || exit 1
