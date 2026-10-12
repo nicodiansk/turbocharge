@@ -6,8 +6,9 @@ P="$PLUGIN_DIR/.claude-plugin/plugin.json"
 C="$PLUGIN_DIR/CHANGELOG.md"
 assert_file "$P" || exit 1
 assert_file "$C" || exit 1
-V=$(sed -n 's/.*"version": "\([0-9][0-9.]*\)".*/\1/p' "$P" | head -1)
-CV=$(sed -n 's/^## \[\([0-9][0-9.]*\)\].*/\1/p' "$C" | head -1)
+# Tolerates any JSON spacing and pre-release/build suffixes; skips non-version headings like [Unreleased].
+V=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$P" | head -1)
+CV=$(sed -n 's/^## \[\([0-9][0-9A-Za-z.+-]*\)\].*/\1/p' "$C" | head -1)
 [ -n "$V" ]  || { echo "    plugin.json has no version"; exit 1; }
 [ -n "$CV" ] || { echo "    CHANGELOG has no ## [x.y.z] heading"; exit 1; }
 [ "$V" = "$CV" ] || { echo "    plugin.json version $V != newest CHANGELOG entry $CV"; exit 1; }

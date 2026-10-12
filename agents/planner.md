@@ -35,7 +35,7 @@ Each task MUST include:
 2. **Exact file paths** — with line ranges for modifications
 3. **Decision** — 1–4 lines: what changes and why (names, signatures, behavior, edge cases). Code only where the exact text *is* the decision, in a fence of ≤10 lines
 4. **Test assertions** — the test file plus bullets naming input → expected result, including the one that fails today
-5. **Verify** — the exact command and expected result, running the task's own tests: never the full suite (lanes may overlap; build runs the full suite once, at the join)
+5. **Verify** — the exact command and expected result, running the task's own tests: never the full suite while another lane can still be running (build runs the full suite once, at the join; only a final lane `After` every other lane may use it)
 6. **Commit** — the message
 
 Target ≈1.5 KB per task. If a task needs more words than that, it is two tasks.

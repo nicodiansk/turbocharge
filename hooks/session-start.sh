@@ -71,15 +71,18 @@ emit_head() {
 }
 
 # emit_nudge — the CLAUDE.md / AGENTS.md nudge printed after the snapshot.
-# Claude Code loads ./CLAUDE.md or ./.claude/CLAUDE.md, and its AGENTS.md rule also
-# counts CLAUDE.local.md as "a CLAUDE.md exists" — any of the three means no nudge.
+# ./CLAUDE.md or ./.claude/CLAUDE.md → no nudge. CLAUDE.local.md also counts as "a
+# CLAUDE.md exists" for Claude Code's AGENTS.md rule, so with AGENTS.md beside it
+# (and no @AGENTS.md import) AGENTS.md is skipped — the one case it nudges about.
 # Only the working directory is checked; Claude Code also looks in parent directories,
 # so a session started in a monorepo subfolder can still see a false "No CLAUDE.md".
 emit_nudge() {
-    [ -f "CLAUDE.md" ] || [ -f ".claude/CLAUDE.md" ] && return 0
+    if [ -f "CLAUDE.md" ] || [ -f ".claude/CLAUDE.md" ]; then
+        return 0
+    fi
     if [ -f "CLAUDE.local.md" ]; then
-        # CLAUDE.local.md counts as a CLAUDE.md, so Claude Code skips AGENTS.md.
-        if [ -f "AGENTS.md" ]; then
+        # Reads only CLAUDE.local.md's import lines, to see whether the nudge's fix is already in place.
+        if [ -f "AGENTS.md" ] && ! grep -qE '^[[:space:]]*@(\./)?AGENTS\.md' "CLAUDE.local.md"; then
             echo ""
             cat "$HOOK_DIR/agentsmd-not-loaded-nudge.md"
         fi
