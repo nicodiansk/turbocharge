@@ -29,7 +29,7 @@ Every plan MUST start with:
 | [name] | `src/other/module.py`, `tests/other/test_module.py` | 4–6 | [lane] | builder | medium |
 ```
 
-**Lanes** let `/turboflow:build` run independent work side by side and skip a builder spawn for mechanical work:
+**Lanes** let `/turbocharge:build` run independent work side by side and skip a builder spawn for mechanical work:
 - A lane owns a set of files, listed as full repo-relative paths — build diffs and reviews each lane by them. **No file belongs to two lanes** — test files included.
 - Tasks inside a lane run in order. `After` names lanes that must finish first; lanes with no `After` path between them may overlap.
 - **Executor** is a hint: `inline` for mechanical lanes (content edits, exact text given, ≤3 tasks) that the main session applies directly; `builder` for real logic or lanes with judgment calls, run by one builder for the whole lane.

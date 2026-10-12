@@ -16,7 +16,7 @@ run() {  # run LABEL [HOOK] — the hook must exit 0
 }
 echo "# x" > CLAUDE.md
 run "CLAUDE.md, no snapshot" || { cleanup; exit 1; }
-mkdir -p .claude; echo '{"a":1}' > .claude/turboflow-session.json
+mkdir -p .claude; echo '{"a":1}' > .claude/turbocharge-session.json
 run "CLAUDE.md + snapshot"   || { cleanup; exit 1; }
 rm -f CLAUDE.md
 run "no CLAUDE.md"           || { cleanup; exit 1; }

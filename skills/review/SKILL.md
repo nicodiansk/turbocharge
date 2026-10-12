@@ -53,7 +53,7 @@ Omit either reference if the file doesn't exist. Exception: if CLAUDE.md is miss
    - **Issues** — Critical / Important / Minor with `file:line` references
    - **Assessment** — Ready to merge? Yes / No / With fixes
 
-After review, offer: "Ready to ship?" → chains to `/turboflow:ship`
+After review, offer: "Ready to ship?" → chains to `/turbocharge:ship`
 
 ## Red Flags — Rationalizations That Mean You're Doing a Shallow Review
 

@@ -56,7 +56,7 @@ emit_head() {
             fi
             if [ -n "$CURRENT" ] && [ "$STORED" != "$CURRENT" ]; then
                 echo ""
-                echo "ATLAS.md may be stale — project structure changed since last generation. Consider running /turboflow:atlas to update."
+                echo "ATLAS.md may be stale — project structure changed since last generation. Consider running /turbocharge:atlas to update."
             fi
         fi
     fi
@@ -102,8 +102,17 @@ HEAD_OUT="$(emit_head)"
 NUDGE_OUT="$(emit_nudge)"
 printf '%s\n' "$HEAD_OUT"
 
+# Session snapshot: /wrap writes .claude/turbocharge-session.json (2.x and 3.2+). 3.0.0–3.1.1
+# wrote .claude/turboflow-session.json under the interim name and left any 2.x file behind, so
+# when both exist the newer one wins (a stale 2.x snapshot must not shadow a 3.x one).
+SNAPSHOT_TC=".claude/turbocharge-session.json"
+SNAPSHOT_TF=".claude/turboflow-session.json"
 SNAPSHOT=""
-[ -f ".claude/turboflow-session.json" ] && SNAPSHOT=".claude/turboflow-session.json"
+if [ -f "$SNAPSHOT_TC" ] && ! [ "$SNAPSHOT_TF" -nt "$SNAPSHOT_TC" ]; then
+    SNAPSHOT="$SNAPSHOT_TC"
+elif [ -f "$SNAPSHOT_TF" ]; then
+    SNAPSHOT="$SNAPSHOT_TF"
+fi
 if [ -n "$SNAPSHOT" ]; then
     HEAD_BYTES=$(printf '%s\n' "$HEAD_OUT" | wc -c | tr -d ' ')
     NUDGE_BYTES=0

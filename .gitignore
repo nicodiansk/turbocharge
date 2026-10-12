@@ -11,7 +11,9 @@ report.html
 /*.png
 images/*.png
 
-# Turboflow session snapshot (per-user, zero-tool-call resume)
+# Turbocharge session snapshot (per-user, zero-tool-call resume)
+.claude/turbocharge-session.json
+# 3.0.0–3.1.1 snapshot name — SessionStart still reads it as a fallback
 .claude/turboflow-session.json
 
 # Per-user Claude local state — NOT team-shared (unlike .claude/settings.json,
