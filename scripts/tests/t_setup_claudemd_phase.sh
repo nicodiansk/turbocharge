@@ -15,6 +15,9 @@ assert_grep "$F" "Debug protocol strictness"      || exit 1
 assert_grep "$F" "domain terms"                   || exit 1
 assert_grep "$F" "templates/CLAUDE-turbocharge.md" || exit 1
 assert_grep "$F" "<!-- turbocharge:"              || exit 1
+# 3.0–3.1 wrote blocks under turboflow markers: setup must adopt them, not append duplicates.
+grep -qF '<!-- turboflow:NAME -->' "$F" || { echo "    setup must recognize the 3.x <!-- turboflow:NAME --> markers"; exit 1; }
+assert_grep "$F" "never append a duplicate"       || exit 1
 assert_grep "$F" "180 lines"                      || exit 1
 # Chains forward to atlas
 assert_grep "$F" "/turbocharge:atlas"               || exit 1
