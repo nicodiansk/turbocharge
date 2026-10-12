@@ -1,24 +1,20 @@
 #!/usr/bin/env bash
-# ABOUTME: Asserts the README documents the paths from turboflow 3.0–3.1 back to turbocharge 3.2+ for both marketplace
-# ABOUTME: keys (turboflow, and turbocharge for pre-3.0 adds), and that the frozen [3.0.0] entry keeps its original 2.x paths.
+# ABOUTME: Asserts the README's Upgrading section serves the real audience (directory and 2.x users: update as usual)
+# ABOUTME: with no turboflow 3.0–3.1 migration (only the maintainer ever ran it), and the frozen [3.0.0] paths stay intact.
 source "$PLUGIN_DIR/scripts/tests/helpers.sh"
 README="$PLUGIN_DIR/README.md"
 assert_file "$README" || exit 1
 rc=0
+grep -qF "### Upgrading" "$README"      || { echo "    README missing the Upgrading section"; rc=1; }
+grep -qF "update as usual" "$README"    || { echo "    README must tell directory and 2.x users to update as usual"; rc=1; }
+grep -qF "2.1.288" "$README"            || { echo "    README must state the Claude Code floor"; rc=1; }
+# Nobody but the maintainer installed the interim turboflow releases: no migration steps for them.
 for p in \
-    "Coming from turboflow 3.0–3.1" \
-    "claude plugin marketplace list" \
-    "claude plugin marketplace update turboflow" \
+    "Coming from turboflow" \
     "claude plugin install turbocharge@turboflow" \
-    "claude plugin marketplace update turbocharge" \
-    "claude plugin marketplace remove turboflow" \
-    "claude plugin marketplace add nicodiansk/turbocharge" \
-    "claude plugin install turbocharge@turbocharge" \
-    "/reload-plugins" \
-    "2.1.288" \
-    "saved options and data" \
-    'turboflow:*'; do
-    grep -qF -- "$p" "$README" || { echo "    README missing: $p"; rc=1; }
+    "claude plugin marketplace update turboflow" \
+    "claude plugin marketplace remove turboflow"; do
+    grep -qF -- "$p" "$README" && { echo "    README still has turboflow migration text: $p"; rc=1; }
 done
 
 # History is frozen: the [3.0.0] entry keeps the 2.x -> 3.0.0 paths it shipped with.

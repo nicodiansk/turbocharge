@@ -10,6 +10,7 @@ Docs: the real directory install command, and a correction to the [3.2.0] notes.
 ### Changed
 - `README.md`: Install leads with the directory, using `claude plugin install turbocharge-nicodiansk@anthropic-plugin-directory` (Claude Code has that marketplace built in) and its `claude plugin update` counterpart. The repo marketplace comes second, for releases before the directory's review. A note says to install one copy, not both, since they register the same commands.
 - `.claude/CLAUDE.md`: the Distribution block gives the directory install id and how to check the live version. The name-history note is corrected.
+- `README.md`: the "Coming from turboflow 3.0–3.1" migration section is gone. Only the maintainer ever installed the interim turboflow releases, so the README's Upgrading section now speaks to directory and 2.x users alone. The compatibility code stays (the `renames` map, the snapshot fallback, setup's turboflow markers), and the [3.2.0] notes keep the migration steps.
 - `README.md`: the Discover hint says which listing to pick. The redundant Update stanza under "Other install methods" is removed, since each install path now carries its own update command. The Clean migration path names `turbocharge@turbocharge` explicitly.
 - New `t_directory_listing_docs.sh` guards the directory install and update commands, the repo-marketplace commands, the one-copy note and the corrected history. New `t_changelog_321.sh` checks this entry.
 
