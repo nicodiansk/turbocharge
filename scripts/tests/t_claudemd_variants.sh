@@ -25,7 +25,19 @@ rm -f .claude/CLAUDE.md AGENTS.md
 
 echo "# local" > CLAUDE.local.md
 no_nudge "CLAUDE.local.md only" || { cleanup; exit 1; }
-rm -f CLAUDE.local.md
+
+# CLAUDE.local.md + AGENTS.md, no CLAUDE.md: Claude Code skips AGENTS.md (CLAUDE.local.md counts) — say so.
+echo "# Agents" > AGENTS.md
+OUT="$(bash "$F" 2>&1 || true)"
+echo "$OUT" | grep -q "AGENTS.md Not Loaded" || { echo "    CLAUDE.local.md + AGENTS.md: not-loaded nudge missing"; cleanup; exit 1; }
+echo "$OUT" | grep -q "No CLAUDE.md Detected\|AGENTS.md Detected, No CLAUDE.md" \
+    && { echo "    CLAUDE.local.md + AGENTS.md: wrong nudge shown"; cleanup; exit 1; }
+rm -f CLAUDE.local.md AGENTS.md
+N="$PLUGIN_DIR/hooks/agentsmd-not-loaded-nudge.md"
+assert_file "$N" || { cleanup; exit 1; }
+grep -qF '@AGENTS.md' "$N" && grep -qF '/turboflow:setup' "$N" \
+    || { echo "    not-loaded nudge must name @AGENTS.md and /turboflow:setup"; cleanup; exit 1; }
+[ "$(wc -l < "$N")" -le 10 ] || { echo "    not-loaded nudge longer than 10 lines"; cleanup; exit 1; }
 
 # Regression guard: nothing present → plain nudge still shows.
 OUT="$(bash "$F" 2>&1 || true)"
