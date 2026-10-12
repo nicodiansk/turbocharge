@@ -106,11 +106,13 @@ if [ -n "$SNAPSHOT" ]; then
     NUDGE_BYTES=0
     [ -n "$NUDGE_OUT" ] && NUDGE_BYTES=$(printf '%s\n' "$NUDGE_OUT" | wc -c | tr -d ' ')
     SNAPSHOT_CAP=$((TOTAL_BUDGET - HEAD_BYTES - NUDGE_BYTES - SNAPSHOT_OVERHEAD))
-    [ "$SNAPSHOT_CAP" -lt 0 ] && SNAPSHOT_CAP=0
-    echo ""
-    echo "--- Session snapshot (previous /wrap) ---"
-    cap_section "$SNAPSHOT_CAP" "Read $SNAPSHOT" < "$SNAPSHOT"
-    echo "--- end snapshot ---"
+    # No budget left → skip the optional snapshot rather than print an empty block.
+    if [ "$SNAPSHOT_CAP" -gt 0 ]; then
+        echo ""
+        echo "--- Session snapshot (previous /wrap) ---"
+        cap_section "$SNAPSHOT_CAP" "Read $SNAPSHOT" < "$SNAPSHOT"
+        echo "--- end snapshot ---"
+    fi
 fi
 
 [ -n "$NUDGE_OUT" ] && printf '%s\n' "$NUDGE_OUT"
