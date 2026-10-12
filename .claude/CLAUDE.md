@@ -44,11 +44,15 @@ Local dev:    claude --plugin-dir /path/to/turbocharge
 Directory:    claude.ai plugin directory listing "Turbocharge" (ours; submitted 2026-06-23,
               published 2026-09-24). Managed at claude.ai/directory/manage; tracks `master`.
               Each new version is scanned, then needs "Publish update" (a reviewer makes it live).
+              Install id: turbocharge-nicodiansk@anthropic-plugin-directory (Claude Code's
+              built-in marketplace; check the live version with `claude plugin list --available --json`)
 ```
 
-**Name history:** 3.0.0–3.1.1 shipped as `turboflow` because we wrongly believed another author owned
-`turbocharge` in the directory; the listing was ours. 3.2.0 restored `turbocharge`. Never start a new
-directory submission. Never rename the plugin `name`: the listing and every install key off it.
+**Name history:** 3.0.0 renamed the plugin to `turboflow` because another author's plugin named
+`turbocharge` is listed in the directory (`turbocharge-aguerlain-lr`). What 3.0.0 missed: our own listing
+already existed, and the directory tells same-named plugins apart by appending the publisher
+(`turbocharge-nicodiansk`). 3.2.0 restored `turbocharge` so the listing's users keep `/turbocharge:`. Never
+start a new directory submission. Never rename the plugin `name`: it sets every user's command namespace.
 
 ### Domain Terms
 

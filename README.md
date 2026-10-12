@@ -23,12 +23,24 @@ You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that c
 
 Requires **Claude Code 2.1.288 or later** (`claude --version`).
 
-Install **Turbocharge** from Claude's plugin directory, where it's listed for Claude Code, or from this repo's marketplace:
+Install **Turbocharge** from Claude's plugin directory. Claude Code has the directory built in, so there's no marketplace to add first:
+
+```bash
+claude plugin install turbocharge-nicodiansk@anthropic-plugin-directory
+# later, to update:
+claude plugin update turbocharge-nicodiansk@anthropic-plugin-directory
+```
+
+Or from this repo's marketplace, which gets each release as soon as it merges instead of after the directory's review:
 
 ```bash
 claude plugin marketplace add nicodiansk/turbocharge
 claude plugin install turbocharge@turbocharge
+# later, to update:
+claude plugin update turbocharge@turbocharge
 ```
+
+Install one or the other, not both: both copies register the same `/turbocharge:` commands. In a session, `/plugin` → **Discover** → search "turbocharge" and pick `turbocharge-nicodiansk` also works.
 
 Restart Claude Code, then start building:
 
@@ -49,11 +61,6 @@ Every skill announces itself, does one job well, and hands you the next step:
 ```bash
 claude --plugin-dir ./turbocharge
 ```
-
-**Update:**
-```bash
-claude plugin update turbocharge@turbocharge
-```
 </details>
 
 ### Upgrading
@@ -72,7 +79,7 @@ claude plugin marketplace update turboflow
 claude plugin install turbocharge@turboflow
 ```
 
-**Clean (recommended)** — match the install id above:
+**Clean (recommended)** — switch to the repo marketplace's standard id, `turbocharge@turbocharge`:
 
 ```bash
 claude plugin marketplace remove turboflow

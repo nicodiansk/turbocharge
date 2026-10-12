@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.2.1] - 2026-10-12
+
+Docs: the real directory install command, and a correction to the [3.2.0] notes. No behavior change.
+
+### Corrected
+- **[3.2.0] said the 3.0.0 rename premise "was wrong". It was half wrong.** Another author's plugin, also named `turbocharge`, *is* listed in Claude's plugin directory. What 3.0.0 missed was that this plugin's own listing already existed. The directory tells same-named plugins apart by appending the publisher, so ours is `turbocharge-nicodiansk`. Restoring the name is still right: the directory takes the command namespace from `plugin.json` `name`, so the listing's users keep `/turbocharge:`. The [3.2.0] entry stays as released.
+
+### Changed
+- `README.md`: Install leads with the directory, using `claude plugin install turbocharge-nicodiansk@anthropic-plugin-directory` (Claude Code has that marketplace built in) and its `claude plugin update` counterpart. The repo marketplace comes second, for releases before the directory's review. A note says to install one copy, not both, since they register the same commands.
+- `.claude/CLAUDE.md`: the Distribution block gives the directory install id and how to check the live version. The name-history note is corrected.
+- `README.md`: the Discover hint says which listing to pick. The redundant Update stanza under "Other install methods" is removed, since each install path now carries its own update command. The Clean migration path names `turbocharge@turbocharge` explicitly.
+- New `t_directory_listing_docs.sh` guards the directory install and update commands, the repo-marketplace commands, the one-copy note and the corrected history. New `t_changelog_321.sh` checks this entry.
+
 ## [3.2.0] - 2026-10-12
 
 **The name is `turbocharge` again.** 3.0.0 renamed the plugin to `turboflow` because we believed a different author already listed `turbocharge` in Claude's plugin directory. That was wrong: the **Turbocharge** listing in the claude.ai plugin directory is this plugin's own (submitted 2026-06-23, published 2026-09-24, live at v2.8.1 with about 300 installs). 3.2.0 restores the plugin, marketplace and repo name `turbocharge` so those users can upgrade without their commands changing, and keeps everything 3.0–3.1 added.
