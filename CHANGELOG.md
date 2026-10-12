@@ -1,5 +1,42 @@
 # Changelog
 
+## [3.1.0] - 2026-10-09
+
+Fast build: plans record decisions instead of complete code, and build runs them by lane. Mechanical lanes run in your main session with no spawn, lanes with real logic get one builder each, and independent lanes overlap. In the 3.0.0 cycle the planner spent 19 minutes writing a 69 KB plan (~5 KB of code per task), then 13 builders spent 26–89 s and ~25k tokens each re-typing it. The 3.1.0 plan is ~1.35 KB per task; its build ran 4 lanes inline and 1 builder lane in the background.
+
+### Migration
+No action is needed. Plans written before 3.1 have no Lanes table, so `/turboflow:build` runs them as one lane. `/turboflow:build` keeps its plan-file argument. **Build no longer pauses for approval every 3 tasks by default.** It reports one line per finished lane and keeps going. `--checkpoint` (formerly `--checkpoint=N`) brings back a pause, now after each lane. If you used multi-track mode, overlapping lanes replace it and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` is no longer needed. If a pre-3.0.0 `.claude/turbocharge-session.json` is still in a project, rename it to `.claude/turboflow-session.json`, because SessionStart no longer reads the old name.
+
+### Added
+- **Lanes:** a `## Lanes` table in every plan, `| Lane | Owns files | Tasks | After | Executor | Effort |`. No file belongs to two lanes. `After` orders lanes. The Executor hint (`inline`/`builder`) and Effort guide build (`t_plan_lean_format.sh`).
+- **Routing:** build sends each lane inline (main session) or to one Sonnet builder. It overrides the hint for real logic or tiny exact-text lanes. `--inline` runs every lane in the main session, and `--delegate` gives every lane a builder (`t_build_lanes.sh`).
+- **Overlap and join:**
+  - Builder lanes run in the background while the main session runs inline lanes.
+  - Every commit is scoped to its task's files with `git commit -m … -- <this task's files>`, with one retry on `index.lock`.
+  - Lanes don't overlap in repos whose commit hooks stash unstaged changes (`.pre-commit-config.yaml`, lint-staged).
+  - When a lane finishes, build reports it and starts the lanes it unblocked.
+  - At the join, build waits for every completion notification and runs the full suite plus validators once (`t_build_background_wait.sh` retargeted).
+- **Per-spawn effort:** builder lanes pass the plan's Effort on the Agent call.
+- **Fix rounds** resume the lane's builder with `SendMessage`, so its context and prompt cache stay warm. Re-review resumes the same task-reviewer. The builder agent gains `experimental.cacheTtl: 1h` (`t_builder_lane_agent.sh`).
+- `t_guards_set_e.sh`: the git-grep guard tests must pass under `bash -e`.
+
+### Changed
+- `skills/plan/SKILL.md` and `agents/planner.md`: tasks carry Lane, Files with line ranges, **Decision**, **Test** assertions, **Verify** and **Commit**. Code appears only where the exact text is the decision. The planner's self-review gains a lane-disjointness check. `model: inherit` and `effort: high` are unchanged.
+- `skills/build/SKILL.md`: rewritten around lanes.
+  - The Iron Law now gates on the join: no build is complete without the full suite green there.
+  - `--reviewed` runs one task-reviewer per lane, on `git diff $BEFORE_SHA..HEAD -- <lane paths>`.
+  - New Red Flags: the full suite while lanes are in flight, unscoped `git commit`/`git add -A`, a new spawn for a fix round, and a builder spawned for a tiny exact-text lane.
+- `agents/builder.md` runs a whole lane, with per-task tests and pathspec commits, and never runs the full suite mid-overlap. `agents/task-reviewer.md` reviews a lane's diff and is resumed for re-review.
+- `hooks/session-start.sh`: the session snapshot gets the leftover budget, `9500 B` minus everything else the hook prints, instead of a fixed 2,500 B. Earlier output is captured in shell variables, so the hook still writes nothing (`t_session_start_output_cap.sh`).
+- README: the skills table, How Build Works and the build diagram describe lanes. `.claude/CLAUDE.md` gains a **Lane** domain term.
+
+### Removed
+- **Agent Teams multi-track mode** (build Step 5) and its `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` setup. Overlapping lanes give the parallelism without an experimental flag. `t_build_multitrack_refresh.sh` → `t_build_lanes.sh`, which keeps the builder-isolation assertions.
+- The 3.0.x `.claude/turbocharge-session.json` fallback in SessionStart and its `.gitignore` line, as announced in 3.0.0. `t_session_snapshot_fallback.sh` → `t_session_snapshot.sh`, which asserts the old file is ignored.
+
+### Fixed
+- The git-grep guards (`t_no_old_repo_path.sh`, `t_no_titlecase_brand.sh`) add `|| true` inside their `$(git grep …)` calls. git grep exits 1 on no match, and that aborted the script under `set -e`.
+
 ## [3.0.2] - 2026-10-09
 
 Directory-ready: the plugin now passes `claude plugin validate --strict` and documents what its hook does, ahead of submission to the claude.ai plugin directory. No user action is needed.

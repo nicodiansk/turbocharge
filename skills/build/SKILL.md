@@ -1,19 +1,20 @@
 ---
 name: build
-description: Use when you have an implementation plan ready to execute. Dispatches builder agents (Sonnet) per task with self-review. Opt-in review (single Sonnet task-reviewer, two verdicts) for high-risk tasks. Supports single-track and multi-track parallel execution.
-argument-hint: "[plan-file] [--reviewed] [--checkpoint=N]"
+description: Use when you have an implementation plan ready to execute. Routes each plan lane inline (main session) or to one Sonnet builder, overlaps independent lanes, and joins with one full-suite gate. Opt-in per-lane review (single Sonnet task-reviewer, two verdicts) for high-risk work.
+argument-hint: "[plan-file] [--inline | --delegate] [--reviewed] [--checkpoint]"
 ---
 
 # Build
 
-Execute an implementation plan with builder agents and automated review chains.
+Execute an implementation plan lane by lane: mechanical lanes inline, real logic with one builder per lane, independent lanes side by side.
 
 **Announce:** "Using build to execute this plan."
 
 ## The Iron Law
 
 ```
-NO TASK MARKED COMPLETE WITHOUT BUILDER SELF-REVIEW AND PASSING TESTS
+NO TASK COMPLETE WITHOUT ITS TEST PASSING
+NO BUILD COMPLETE WITHOUT THE FULL SUITE GREEN AT THE JOIN
 ```
 
 ## Step 1: Load and Review Plan
@@ -21,158 +22,126 @@ NO TASK MARKED COMPLETE WITHOUT BUILDER SELF-REVIEW AND PASSING TESTS
 1. Read the plan file at $ARGUMENTS
 2. Review critically — identify concerns or questions
 3. If concerns: raise them before starting
-4. Count tasks, identify dependencies, determine execution mode
-5. Check if `--reviewed` is in $ARGUMENTS — if so, enable review chain for all tasks
-6. Parse `--checkpoint=N` from $ARGUMENTS (default `N=3`). `--checkpoint=0` or `--no-checkpoint` disables the human-wait between batches (use only for small/low-risk plans).
+4. Read the plan's **Lanes table** (`| Lane | Owns files | Tasks | After | Executor | Effort |`). **No Lanes table** (a legacy plan) → treat the whole plan as one sequential lane and route it in Step 2 like any other.
+5. Parse flags from $ARGUMENTS: `--inline` / `--delegate` (Step 2), `--reviewed` (Step 6), `--checkpoint` (human wait after each lane; off by default). Legacy forms: `--checkpoint=N` means `--checkpoint`; `--checkpoint=0` and `--no-checkpoint` mean no pauses, the default.
 
-## Step 2: Choose Execution Mode
+## Step 2: Route Lanes
 
-**Standard** (default): Builder implements each task with self-review. No separate reviewer agents.
-- Spawn builder (Sonnet) per task
-- Builder self-reviews using its built-in checklist
-- Batches of N tasks (default 3, set via `--checkpoint=N`) with a human checkpoint; `--checkpoint=0` runs straight through with no wait
+Each lane runs one of two ways:
 
-**Reviewed** (`--reviewed` flag, or user says "with reviews"): For high-risk, security-sensitive, or unfamiliar codebases.
-- Same as Standard, plus: one task-reviewer (Sonnet) after each task — reads the diff once and emits two verdicts (Spec + Quality)
-- Leaner dispatch: pass plan file path + task line range + git diff only — no narrative summaries
-- Max 2 review cycles per task — escalate to user if unresolved
+| Executor | Who runs it | Use for |
+|----------|-------------|---------|
+| `inline` | The main session, task by task | Mechanical lanes: content edits, exact text given, ≤3 tasks |
+| `builder` | One Sonnet builder for the whole lane | Real logic, unfamiliar code, judgment calls |
 
-**Multi-track**: Independent tasks that can be parallelized (e.g., FE + BE).
-- Spawn Agent Team with specialized builders
-- Each builder owns a set of non-overlapping files
-- Builders communicate via shared task list
-- Per-task review (`--reviewed`) is NOT supported in multi-track — parallel, interleaved commits make per-task `BEFORE_SHA..HEAD` diff ranges unreliable. Run `/turboflow:review` after the team completes for a holistic diff review instead.
-- Requires user confirmation before spawning team
+Start from the plan's Executor hint, then override:
+- → `builder` when the lane holds real application logic (functions, classes, control flow) or a design question the plan left open.
+- → `inline` when the lane is only a few exact-text edits. A builder spawn costs ~25k tokens and 30–90 s before it writes a line.
+- `--inline` runs every lane inline; `--delegate` gives every lane a builder.
+- If a lane's route isn't obvious, ask the user.
 
-**How to decide:**
-- Default to Standard — covers 80% of tasks
-- Use Reviewed for: unfamiliar codebase, security-sensitive code, complex integrations
-- Use Multi-track for independent tracks touching different files
-- When in doubt, start Standard — user can always run `/turboflow:review` after
+**Overlap:** lanes with no `After` path between them run at the same time — builder lanes in the background while the main session works the inline lanes. A lane with `After` starts only when every lane it names has finished (Step 5).
 
-**Ask the user** if the choice isn't obvious.
+**No overlap with stashing commit hooks:** if the project's commit hooks stash unstaged changes — the `pre-commit` framework (`.pre-commit-config.yaml`), lint-staged — run lanes one at a time. A pathspec commit leaves every other lane's in-flight edits unstaged, and the hook would stash them out from under that lane.
 
-## Step 3: Execute — Standard
+Announce the routing before executing:
+```
+lanes: 4 (inline 3 · builder 1)
+  plan-format   inline            tasks 1–2
+  hook-cleanup  builder (medium)  tasks 6–8   ← background
+  ...
+```
 
-For each task in the batch (default 3 tasks):
+## Step 3: Spawn Builder Lanes
 
-### 3a. Dispatch Builder
-Spawn builder subagent (Sonnet) with:
-- Task number and description (objective, file paths, line ranges, verification commands)
-- Plan file path and task line range — do NOT paste plan content, builder reads the file directly
-- Context: where this task fits in the sequence, what previous tasks completed
+For each builder lane that is ready (its `After` lanes are done), spawn one builder — subagent type `turboflow:builder` — with:
+- **`effort`** set on the Agent call from the lane's Effort column (default `medium`). The per-spawn value overrides the agent definition.
+- Plan file path, lane name, and its task line ranges — do NOT paste plan content; the builder reads the file directly
 - Working directory
 - Prefix: `@CLAUDE.md` (conventions) — or `@AGENTS.md` if the project has no CLAUDE.md. `.claude/CLAUDE.md` counts as a CLAUDE.md: if the project keeps it there, use `@.claude/CLAUDE.md`. Do NOT inject `@ATLAS.md` — builders read the spec and diff, not the navigation index.
+- **Lane rules**, stated in the prompt:
+  - Touch only the lane's files. Never stage, stash, reset, or check out anything else.
+  - Per task: RED → GREEN on that task's own test. Do NOT run the full suite — other lanes are mid-edit, so it would see their half-written files.
+  - Commit per task, scoped to the task: `git add <new files>` (a pathspec commit can't take untracked files), then `git commit -m "<message>" -- <this task's files>` — the paths the task created, changed, deleted, or renamed. Don't pass the whole lane: a lane path that doesn't exist yet makes the commit fail. Never `git commit -a` or `git add -A`.
+  - If git reports `index.lock`, wait a moment and retry once.
+  - Report per task: commit SHA and test result.
 
-Dispatch the builder **without** a `name` parameter. A named Agent spawn joins the session's implicit team as a teammate when Agent Teams are enabled (Step 5); single-track builders must stay plain subagents.
+Dispatch each builder **without** a `name` parameter. A named Agent spawn joins the session's implicit team as a teammate when Agent Teams are enabled; lane builders must stay plain subagents. Note each builder's agent ID against its lane — with no `name`, `SendMessage` fix rounds (Steps 5c and 6) address it by agent ID.
 
-In **Reviewed** mode, record the pre-task SHA before dispatching: `BEFORE_SHA=$(git rev-parse HEAD)`. The task-reviewer diffs `$BEFORE_SHA..HEAD` to capture exactly this builder's output, regardless of how many commits (zero, one, or many) the builder makes.
+With `--reviewed`, record the lane's `BEFORE_SHA` first (Step 6), before spawning its builder.
 
-> **Builder isolation (design decision):** the builder agent intentionally does NOT set `isolation: worktree`. A worktree branches from the **default branch**, not the parent session's HEAD, and is auto-cleaned only when no changes are made — which would break this skill's `BEFORE_SHA=$(git rev-parse HEAD)` → `$BEFORE_SHA..HEAD` diff model (the reviewer would diff the wrong base) and would leave a populated, non-auto-cleaned worktree for ship/cleanup to manage. Worktree/branch management therefore stays in skill prose and the parent session, not in the agent frontmatter.
+Builders run in the background (Claude Code 2.1.198+): the Agent call returns as soon as the builder starts. Do not wait here — go to Step 4.
 
-### 3b. Wait for the Completion Notification
+> **Builder isolation (design decision):** the builder agent intentionally does NOT set `isolation: worktree`. A worktree branches from the **default branch**, not the parent session's HEAD, and is auto-cleaned only when no changes are made — which would break the `$BEFORE_SHA..HEAD` diff model in Step 6 (the reviewer would diff the wrong base) and leave a populated worktree for ship/cleanup to manage. Lanes share one tree and stay apart by owning disjoint files and committing by pathspec.
 
-Subagents run in the background (Claude Code 2.1.198+): the Agent call returns as soon as the builder starts, not when it finishes. After every dispatch, **stop and wait for that builder's completion notification.** Until it arrives, do NOT:
-- dispatch the next builder,
-- capture the next `BEFORE_SHA`,
-- dispatch a task-reviewer (Step 4a), or
-- mark the task complete.
+If a builder blocks on unclear context, dispatch the researcher with `@ATLAS.md @CLAUDE.md` prefixed — or `@ATLAS.md @AGENTS.md` if the project has no CLAUDE.md. `.claude/CLAUDE.md` counts as a CLAUDE.md: if the project keeps it there, use `@.claude/CLAUDE.md`. Subagents do not inherit parent history — `@ATLAS.md` must ride on the dispatch prompt itself.
 
-The same rule holds for every task-reviewer dispatch, researcher dispatch, and builder resume (fix rounds): act on a subagent's result only after its completion notification arrives.
+## Step 4: Run Inline Lanes
 
-### 3c. Mark Task Complete
+While builder lanes run, the main session works through the inline lanes, task by task. With `--reviewed`, record the lane's `BEFORE_SHA` first (Step 6), before its first task.
+1. Read the task's Decision and Test assertions from the plan.
+2. Write the test from the assertions and run it — it must fail for the reason the task names (RED).
+3. Implement the Decision. Run the test — GREEN.
+4. Commit by pathspec: `git add <new files>`, then `git commit -m "<message>" -- <this task's files>`.
 
-### 3d. After Batch (every N tasks, default 3)
+Inline lanes follow the same lane rules: only the lane's files, no full suite while builder lanes are in flight.
 
-Report to human:
-- What was implemented in this batch
-- Current progress (N of M tasks complete)
-- Visibility: `agents spawned: A · models: sonnet×A · tasks: X/Y`
+## Step 5: Join
 
-Say: **"Batch complete. Ready for feedback."**
+**After every lane finishes** — an inline lane's last commit, or a builder lane's completion notification:
+1. Report one line: `lane <name> ✓ · tasks a–b · commits N`.
+2. With `--checkpoint`, stop and wait for human approval before starting anything new.
+3. Start every lane whose `After` lanes have all finished — Step 3 for a builder lane, Step 4 for an inline lane.
 
-**Wait for human approval before next batch.**
+### 5a. Wait for the Completion Notifications
 
-> If `--checkpoint=0`, skip the wait and continue to the next batch automatically.
+Every builder lane ends with a completion notification — the Agent call returning only meant the builder started. Until a lane's notification arrives, do NOT:
+- run the full gate,
+- start a lane that lists it in `After`,
+- dispatch a task-reviewer for it (Step 6), or
+- mark the build complete.
 
-## Step 4: Execute — Reviewed
+The same holds for every researcher, task-reviewer, and `SendMessage` resume: act on a subagent's result only after its completion notification arrives.
 
-For each task in the batch, run this exact ordered sequence. **The task is not marked complete until its review passes** — never mark complete straight after the builder (that is the Step 3 flow, not this one):
+### 5b. Full Gate, once
 
-1. **Dispatch builder** — same as Step 3a. In Reviewed mode, record `BEFORE_SHA=$(git rev-parse HEAD)` *before* dispatching (Step 3a) so the reviewer diffs exactly this builder's output. Then wait for the builder's completion notification (Step 3b).
-2. **Dispatch task-reviewer** (Step 4a), wait for its completion notification, then apply the disposition — loop the builder if Spec ❌ or any 🔴 Critical (max 2 cycles).
-3. **Dispatch researcher on demand** (Step 4b) only if the builder blocked on unclear context.
-4. **Mark the task complete** (Step 4c) — only after Spec ✅ with no unresolved 🔴 Critical.
-5. **After every N tasks, run the batch checkpoint** (Step 4d).
+When every lane has finished — with `--reviewed`, once every lane's review has passed (Step 6) — run the project's full test suite plus its validators (lint, type-check, project validation scripts) once, on the joined tree.
 
-The sub-steps below detail each stage:
+### 5c. Fix Rounds
 
-### 4a. Dispatch Task Reviewer
-Spawn one task-reviewer subagent (Sonnet) with:
-- Plan file path + task line range (reviewer reads the plan directly — do NOT paste requirements)
-- Git diff range for the task: `git diff $BEFORE_SHA..HEAD` (the SHA captured in Step 3a). Do NOT use `HEAD~1..HEAD` — it reviews the wrong code when a task makes zero or multiple commits.
-- Working directory to read actual code
-- Do NOT send the builder's narrative report — the reviewer reads the diff, not claims
+Route each failure to the lane that owns the failing file:
+- **Inline lane:** fix it in the main session, commit by pathspec.
+- **Builder lane:** resume that lane's builder with `SendMessage` — send only the failing output. Its context and prompt cache are intact, so it skips the cold start a new spawn would pay. Wait for its completion notification.
 
-The reviewer returns two verdicts:
-- `Spec: ✅ / ❌`
-- `Quality: Approved / Issues found / N/A` — N/A when Spec is ❌ (spec must pass before quality is assessed, so quality isn't wasted on code that will be rewritten)
+Then rerun the full gate. **Max 2 rounds per lane** — then stop and escalate, or switch to `/turboflow:debug` when the cause isn't obvious.
+
+## Step 6: Reviewed Mode (`--reviewed`)
+
+For security-sensitive code, unfamiliar codebases, or complex integrations. Reviews run **per lane**, not per task:
+
+1. **Before the lane starts** — before spawning its builder or starting its first inline task — record `BEFORE_SHA=$(git rev-parse HEAD)` for that lane.
+2. **After the lane finishes** and its builder's completion notification has arrived, dispatch one task-reviewer (Sonnet) with:
+   - Plan file path + the lane's task line ranges (the reviewer reads the plan directly — do NOT paste requirements)
+   - The lane's diff: `git diff $BEFORE_SHA..HEAD -- <lane paths>`. Lanes own disjoint files, so the pathspec isolates this lane even though other lanes' commits interleave in the range.
+   - Working directory. Do NOT send the builder's narrative report — the reviewer reads the diff, not claims.
+3. Then wait for its completion notification and apply the disposition.
+
+The reviewer returns two verdicts: `Spec: ✅ / ❌` and `Quality: Approved / Issues found / N/A` (N/A when Spec is ❌ — quality isn't assessed on code that will be rewritten).
 
 **Disposition:**
-- **Spec ❌:** Resume the builder with the spec gaps only (ignore quality — it's N/A), then re-review. **Max 2 cycles** — escalate to user if still failing.
-- **Spec ✅, Quality has any 🔴 Critical:** Resume the builder with the Critical findings **only**, then re-review. **Max 2 cycles.** Any 🟡 Important / 🟢 Minor findings that co-occur in the same review are NOT fixed in this loop — carry them forward to the next batch checkpoint (Step 4d) exactly as the bullet below does. Do not let them vanish just because a Critical was present.
-- **Spec ✅, Quality has only 🟡 Important / 🟢 Minor:** Do NOT loop. Carry these concerns into the next batch checkpoint (Step 4d) so the user decides whether to address them.
+- **Spec ❌, or Quality has any 🔴 Critical:** fix only those items — builder lane: `SendMessage` the lane's builder; inline lane: fix in the main session. Then `SendMessage` the same task-reviewer to re-review the new diff. **Max 2 cycles** — escalate to the user if still failing.
+- **🟡 Important / 🟢 Minor only:** do NOT loop. Carry them into the completion report (Step 7) so the user decides.
 
-### 4b. Dispatch Researcher (on demand)
-If the builder blocks on unclear context, dispatch the researcher with `@ATLAS.md @CLAUDE.md` prefixed — or `@ATLAS.md @AGENTS.md` if the project has no CLAUDE.md. `.claude/CLAUDE.md` counts as a CLAUDE.md: if the project keeps it there, use `@.claude/CLAUDE.md`. Subagents do not inherit parent history — `@ATLAS.md` must ride on the dispatch prompt itself.
+A reviewed lane is complete only after Spec ✅ with no unresolved 🔴 Critical.
 
-### 4c. Mark Task Complete
+## Step 7: Complete
 
-### 4d. After Batch (every N tasks, default 3)
-
-Report to human:
-- What was implemented in this batch
-- Review results (issues found and fixed)
-- Accumulated 🟡 Important / 🟢 Minor quality concerns not yet addressed (from Step 4a)
-- Current progress (N of M tasks complete)
-- Visibility: `agents spawned: A · models: sonnet×A · tasks: X/Y`
-
-Say: **"Batch complete. Ready for feedback."**
-
-**Wait for human approval before next batch.**
-
-> If `--checkpoint=0`, skip the wait and continue to the next batch automatically.
-
-## Step 5: Execute — Multi-Track (Agent Teams)
-
-> **Experimental & gated.** Agent Teams require `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` (env var or `settings.json`). If unset, fall back to Standard mode and tell the user. There are no team-management tool calls: each session has one implicit team, and any Agent spawn that passes a `name` joins it as a teammate. Teammates clean up automatically at session end.
-
-### 5a. Confirm with User
-```
-This plan has independent tracks that could run in parallel:
-- Track A: [description] (Tasks X, Y, Z)
-- Track B: [description] (Tasks A, B, C)
-
-Spawn an Agent Team (experimental, needs CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)?
-This uses more tokens but is faster.
-```
-
-### 5b. Spawn Teammates
-- Spawn each teammate with the Agent tool: `subagent_type: turboflow:builder` plus a `name` per track (e.g. `track-a`). The `name` is what makes the spawn a teammate, and it is why single-track builders (Step 3a) are dispatched without one.
-- Since Claude Code 2.1.288, a plugin agent spawned by name as a teammate keeps its own definition. It always keeps its `model` (Sonnet) and `tools`. In-process teammates, the default, also keep its `disallowedTools`, `effort` and prompt body. That is why multi-track teammates still behave like the **builder** agent. Do NOT name a model in the teammate's spawn prompt, because a model named there overrides the definition's Sonnet pin. The definition's `skills` are never applied, and `mcpServers` applies only to split-pane teammates, so give each teammate the context it needs in its spawn prompt.
-- Assign each teammate a non-overlapping set of files (file ownership) so parallel, interleaved commits never touch the same path.
-- Teammates self-review per task; per-task reviewers are NOT dispatched in multi-track (see Step 2) — holistic review comes after via `/turboflow:review`.
-- Per-task `--reviewed` remains unsupported in multi-track: interleaved commits make `BEFORE_SHA..HEAD` ranges unreliable.
-- Cleanup is automatic at session end — there is nothing to tear down manually.
-
-## Step 6: Complete
-
-After ALL tasks done:
-- Report completion summary
-- Print final visibility line: `agents spawned: A · models: sonnet×A · tasks: Y/Y`
+After the full gate is green:
+- Report a completion summary, including any carried 🟡/🟢 review findings
+- Print the final visibility line: `lanes: L (inline I · builder B) · spawns: S · tasks: Y/Y`
 - Offer: "Ready for holistic code review?" → chains to `/turboflow:review`
 
-> Visibility note: the orchestrator cannot read exact token counts. This line is the spawn/model/task summary (the measurable proxy), NOT a fabricated token number.
+> Visibility note: the orchestrator cannot read exact token counts. This line is the lane/spawn/task summary (the measurable proxy), NOT a fabricated token number.
 
 ## Red Flags — STOP
 
@@ -181,13 +150,18 @@ After ALL tasks done:
 |------|---------|
 | Skipping plan review | Missed concerns |
 | Skipping builder self-review | Builder has a checklist — use it |
+| Spawning a builder for a tiny exact-text lane | ~25k tokens and 30–90 s of cold start to type what the plan already decided — run it inline |
+| Running the full suite while builder lanes are in flight | It sees other lanes' half-written files and fails for nothing — run it once at the join |
+| Unscoped `git commit`, `git commit -a`, or `git add -A` during overlap | Sweeps another lane's files into your commit — always `git commit -m … -- <this task's files>` |
+| Overlapping lanes that share a file or an `After` dependency | Two writers on one file, or a lane built on unfinished work |
+| Overlapping lanes in a repo whose commit hooks stash (`.pre-commit-config.yaml`, lint-staged) | The hook stashes other lanes' in-flight edits mid-write — run lanes one at a time |
+| Spawning a new builder for a fix round | The lane's builder still has its context and a warm cache — resume it with `SendMessage` |
 | Skipping Reviewed mode for security-sensitive code | Save tokens, lose safety |
-| Using Reviewed mode for trivial tasks | Wastes tokens on mechanical checks |
+| Using Reviewed mode for trivial lanes | Wastes tokens on mechanical checks |
 | Guessing through blockers | Should stop and ask |
-| No batch reporting | Human can't review progress |
-| Auto-continuing after batch | Must wait for human approval |
-| Review loop >2 cycles | Escalate to user, don't keep retrying |
-| Next builder/reviewer dispatched before the previous subagent's completion notification | Subagents run in the background — the Agent call returning is not the task finishing. Builders race on one tree; the reviewer diffs a half-written task |
+| With `--checkpoint`, continuing past a lane without approval | The user asked to steer between lanes |
+| Fix or review loop >2 cycles | Escalate to user, don't keep retrying |
+| Full gate, dependent lane, or reviewer started before a builder's completion notification | Subagents run in the background — the Agent call returning is not the lane finishing. The gate tests a half-written tree; the reviewer diffs a half-written lane |
 
 ### Rationalizations That Mean You're Wrong
 
@@ -196,10 +170,11 @@ If you catch yourself thinking any of these, **STOP:**
 | Thought | Why It's Wrong |
 |---------|----------------|
 | "Self-review is enough for this security-sensitive task" | Security tasks need Reviewed mode — self-review misses attack vectors |
-| "I'll skip the batch checkpoint, we're on a roll" | Human oversight exists for a reason — never skip |
-| "Running the full test suite is overkill for this change" | The 1-line change that broke 47 tests says otherwise |
+| "A builder is safer for this two-line edit" | The plan already made the decision; inline is the same discipline without the spawn |
+| "I'll run the full suite now, just to be safe" | Mid-overlap it tests a half-written tree. Targeted tests now, the full gate once at the join |
+| "The full gate is overkill for this change" | The 1-line change that broke 47 tests says otherwise |
+| "`git commit -a` is quicker" | It commits another lane's half-done work under your message |
 | "I'll verify it works manually" | Manual verification is not verification |
-| "Let me just finish this batch and review later" | Later never comes. Checkpoint every batch. |
 | "I can skip domain verification, the task description is clear" | Clear descriptions still use wrong entity names half the time |
 
 ## Workflow Position

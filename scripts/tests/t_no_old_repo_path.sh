@@ -3,8 +3,8 @@
 # ABOUTME: The old name is split in OLD below so this file never matches itself; the historical *-marketplace sibling repo is allowed.
 OLD="turbo""charge"
 rc=0
-REPO_HITS=$(git -C "$PLUGIN_DIR" grep -nE "nicodiansk/${OLD}(\$|[^-])" -- . ':!CHANGELOG.md')
+REPO_HITS=$(git -C "$PLUGIN_DIR" grep -nE "nicodiansk/${OLD}(\$|[^-])" -- . ':!CHANGELOG.md' || true)
 [ -z "$REPO_HITS" ] || { echo "    old repo path nicodiansk/$OLD still present:"; echo "$REPO_HITS" | sed 's/^/      /'; rc=1; }
-DIR_HITS=$(git -C "$PLUGIN_DIR" grep -nE "plugin-dir [^ ]*${OLD}|^${OLD}/" -- . ':!CHANGELOG.md')
+DIR_HITS=$(git -C "$PLUGIN_DIR" grep -nE "plugin-dir [^ ]*${OLD}|^${OLD}/" -- . ':!CHANGELOG.md' || true)
 [ -z "$DIR_HITS" ] || { echo "    old clone-dir label $OLD/ still present:"; echo "$DIR_HITS" | sed 's/^/      /'; rc=1; }
 exit $rc

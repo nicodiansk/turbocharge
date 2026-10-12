@@ -1,8 +1,8 @@
 ---
 name: task-reviewer
 description: |
-  Reviews a single task's diff once and emits two verdicts: Spec compliance and
-  Quality. Use proactively after builder completes a task in --reviewed mode.
+  Reviews one plan lane's diff once and emits two verdicts: Spec compliance and
+  Quality. Use proactively after a lane finishes in --reviewed mode.
   Reads the actual diff — does NOT trust builder reports. Replaces the former
   spec-reviewer + quality-reviewer pair (one spawn, one diff-load).
 disallowedTools: Write, Edit, NotebookEdit, Agent
@@ -26,8 +26,9 @@ both missing and extra work.
 
 ## Inputs You Receive
 
-- Plan file path + task line range (read the requirements yourself from the plan).
-- Working directory and the git diff range for this task.
+- Plan file path + the lane's task line ranges (read the requirements yourself from the plan).
+- Working directory and the lane's diff: `git diff $BEFORE_SHA..HEAD -- <lane paths>`. Other lanes' commits may interleave in the range; the pathspec keeps only this lane's files.
+- On a re-review you are resumed with `SendMessage`: re-read the same range, now including the fix commits.
 
 Read the plan and the diff directly. Do not rely on any narrative summary.
 

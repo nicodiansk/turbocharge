@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Use when you have stories or clear requirements that need to become an implementation plan with bite-sized tasks, exact file paths, complete code, and verification commands.
+description: Use when you have stories or clear requirements that need to become an implementation plan — lean tasks grouped into lanes, with decisions, exact file paths, test assertions, and verification commands.
 context: fork
 agent: planner
 background: false
@@ -9,7 +9,7 @@ argument-hint: "[stories-or-requirements-file]"
 
 # Create Implementation Plan
 
-Read the requirements at $ARGUMENTS and create a detailed implementation plan.
+Read the requirements at $ARGUMENTS and create a lean implementation plan.
 
 ## Plan Document Header
 
@@ -21,7 +21,20 @@ Every plan MUST start with:
 **Goal:** [One sentence]
 **Architecture:** [2-3 sentences about approach]
 **Tech Stack:** [Key technologies]
+
+## Lanes
+| Lane | Owns files | Tasks | After | Executor | Effort |
+|------|-----------|-------|-------|----------|--------|
+| [name] | `src/full/path.py`, `tests/full/test_path.py` | 1–3 | — | inline | — |
+| [name] | `src/other/module.py`, `tests/other/test_module.py` | 4–6 | [lane] | builder | medium |
 ```
+
+**Lanes** let `/turboflow:build` run independent work side by side and skip a builder spawn for mechanical work:
+- A lane owns a set of files, listed as full repo-relative paths — build diffs and reviews each lane by them. **No file belongs to two lanes** — test files included.
+- Tasks inside a lane run in order. `After` names lanes that must finish first; lanes with no `After` path between them may overlap.
+- **Executor** is a hint: `inline` for mechanical lanes (content edits, exact text given, ≤3 tasks) that the main session applies directly; `builder` for real logic or lanes with judgment calls, run by one builder for the whole lane.
+- **Effort** (`low`/`medium`/`high`) applies to builder lanes; use `—` for inline.
+- A small plan can be a single lane.
 
 ## Context Gathering
 
@@ -38,41 +51,27 @@ If either file does not exist, omit the corresponding `@` reference. Exception: 
 
 ## Task Structure
 
-Each task MUST follow this exact format:
+Each task MUST follow this format:
 
 ```markdown
 ### Task N: [Component Name]
-
-**Files:**
-- Create: `exact/path/to/file.py`
-- Modify: `exact/path/to/existing.py`
-- Test: `tests/exact/path/to/test.py`
-
-**Step 1: Write the failing test**
-[complete test code]
-
-**Step 2: Run test to verify it fails**
-Run: `[exact command]`
-Expected: FAIL with "[reason]"
-
-**Step 3: Write minimal implementation**
-[complete implementation code]
-
-**Step 4: Run test to verify it passes**
-Run: `[exact command]`
-Expected: PASS
-
-**Step 5: Commit**
-`git commit -m "feat: [description]"`
+**Lane:** [lane] · **Files:** `exact/path.py:40-62` (modify), `exact/new_file.py` (create)
+**Decision:** [1–4 lines: what changes and why — names, signatures, behavior, edge cases]
+**Test:** `tests/exact/test_file.py`
+- [assertion: input/state → expected result]
+- [assertion: the edge case that must fail today]
+**Verify:** `[exact command]` → [expected result]
+**Commit:** `feat: [description]`
 ```
 
 ## Rules
 
+- **Decisions, not code.** Record what to build and why; the builder or the main session writes the code. Include code only where the exact text *is* the decision — a regex, a signature, a JSON key, an error string — inline or in a fence of ≤10 lines. Target ≈1.5 KB per task.
 - Each task: **2-5 minutes** of work. If longer, split it.
-- **Exact file paths** — not "somewhere in src/"
-- **Complete code** — not "add validation" or pseudocode
+- **Exact file paths**, with line ranges for modifications — not "somewhere in src/"
+- **Test assertions, not test code** — each one names the input and the expected result, specific enough to write the test from
 - **Exact commands** with expected output
-- **TDD always** — every task starts with a failing test
+- **TDD always** — every task names the test that fails before the change
 - **DRY, YAGNI** — don't plan features that aren't needed
 
 ## Save

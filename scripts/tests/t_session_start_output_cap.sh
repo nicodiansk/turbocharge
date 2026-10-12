@@ -52,7 +52,19 @@ rm -rf .codemap bin AGENTS.md
 printf '# ATLAS\n\n## Where to Look\n\n| a | b | c |\n' > ATLAS.md
 echo '{"marker":"SMALL_SNAPSHOT_7781"}' > .claude/turboflow-session.json
 OUT="$(bash "$F" 2>&1 || true)"
+echo "$OUT" | grep -q "SMALL_SNAPSHOT_7781" || { echo "    small snapshot not emitted"; cleanup; exit 1; }
+echo "$OUT" | grep -q "truncated —" && { echo "    small inputs were truncated"; cleanup; exit 1; }
+
+# Leftover budget: tiny ATLAS + ~6 KB snapshot -> snapshot gets more than the old fixed 2,500 B, total stays < 10,000.
+cd "$TMP"; mkdir -p .claude
+printf '# ATLAS\n\n## Where to Look\n\n| a | b | c |\n' > ATLAS.md
+{ for i in $(seq 1 120); do echo "BIGSNAP_LINE_$i padding padding padding padding pad"; done; } > .claude/turboflow-session.json
+SNAP_SRC=$(wc -c < .claude/turboflow-session.json | tr -d ' ')
+OUT="$(bash "$F" 2>&1 || true)"
 cleanup
-echo "$OUT" | grep -q "SMALL_SNAPSHOT_7781" || { echo "    small snapshot not emitted"; exit 1; }
-echo "$OUT" | grep -q "truncated —" && { echo "    small inputs were truncated"; exit 1; }
+SNAP_BYTES=$(printf '%s\n' "$OUT" | grep '^BIGSNAP_LINE_' | wc -c | tr -d ' ')
+[ "$SNAP_BYTES" -gt 2500 ] || { echo "    snapshot got only $SNAP_BYTES bytes (source $SNAP_SRC), expected > 2500"; exit 1; }
+TOTAL=$(printf '%s' "$OUT" | wc -c | tr -d ' ')
+[ "$TOTAL" -lt 10000 ] || { echo "    leftover-budget case is $TOTAL bytes, must be < 10000"; exit 1; }
+grep -q 'SNAPSHOT_CAP=2500' "$F" && { echo "    hook still has SNAPSHOT_CAP=2500"; exit 1; }
 exit 0

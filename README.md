@@ -97,8 +97,8 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 | **atlas** | `/turboflow:atlas` | Generates `ATLAS.md` domain map. Pre-loaded every session. |
 | **brainstorm** | `/turboflow:brainstorm` | Socratic requirements discovery before implementation |
 | **story** | `/turboflow:story` | INVEST-compliant story breakdown with acceptance criteria |
-| **plan** | `/turboflow:plan` | Bite-sized task decomposition — 2-5 min tasks, exact paths, complete code |
-| **build** | `/turboflow:build` | Plan execution with Sonnet builder + self-review. Opt-in review chain (`--reviewed`) for high-risk tasks. |
+| **plan** | `/turboflow:plan` | Lean plans — decisions, exact paths and test assertions in 2-5 min tasks, grouped into file-disjoint lanes |
+| **build** | `/turboflow:build` | Runs each lane inline or with one Sonnet builder, overlaps independent lanes, then one full-suite gate. Opt-in per-lane review (`--reviewed`). |
 | **review** | `/turboflow:review` | Holistic pre-merge code review against the original plan |
 | **debug** | `/turboflow:debug` | Systematic 4-phase root-cause investigation — no fix until cause is proven |
 | **ship** | `/turboflow:ship` | Test verification, then merge / PR / keep / discard |
@@ -114,18 +114,19 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 ## How Build Works
 
 <p align="center">
-  <img src="images/build-review-chain.svg" alt="Build execution: default builder + self-review, or the opt-in --reviewed chain with a Sonnet task-reviewer loop" width="100%">
+  <img src="images/build-review-chain.svg" alt="Build execution per lane: inline or one Sonnet builder with self-review, or the opt-in --reviewed lane review with a Sonnet task-reviewer and resumed fix rounds" width="100%">
 </p>
 
-By default each task runs `builder (Sonnet) → self-review → commit` — one spawn per task. For security-sensitive or unfamiliar code, the opt-in `--reviewed` flag adds a single Sonnet `task-reviewer` that loads the diff once and returns Spec + Quality verdicts; on issues it loops back to the builder for up to two cycles (2–6 spawns per task).
+A plan groups its tasks into **lanes** — sets of tasks that own disjoint files. Build routes each lane one of two ways:
 
-Every N tasks (default 3, set with `--checkpoint=N`; `--checkpoint=0` runs straight through), the pipeline checkpoints with you for feedback. After all tasks, chain to `/turboflow:review` for the final holistic assessment.
+- **Inline** — mechanical lanes (content edits, exact text in the plan) run in your main session, task by task. No spawn at all.
+- **Builder** — lanes with real logic get one Sonnet builder for the whole lane, at the effort the plan sets.
 
-**Multi-track mode** — independent tasks can run in parallel with coordinated builders. Requires Agent Teams (experimental):
+Independent lanes **overlap**: builders work in the background while your session runs the inline lanes, and every commit is scoped to its lane's files. When all lanes finish, build runs the full suite **once** — the full-suite gate. A failure goes back to the lane that owns the file; a builder lane's fix round **resumes** the same builder, context and prompt cache intact, instead of paying for a fresh spawn.
 
-```bash
-claude config set env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS 1
-```
+`--inline` runs every lane in your session; `--delegate` gives every lane a builder. For security-sensitive or unfamiliar code, `--reviewed` adds one Sonnet `task-reviewer` per lane that reads the lane's diff once and returns Spec + Quality verdicts, looping fixes for up to two cycles. `--checkpoint` pauses for your feedback after each lane. After the gate, chain to `/turboflow:review` for the final holistic assessment.
+
+Plans written before 3.1 have no Lanes table; build runs them as one lane.
 
 ## Agents
 
@@ -140,7 +141,7 @@ Dispatched by skills. You never invoke them directly.
 | **builder** | TDD implementation, self-review, commits | Sonnet |
 | **planner** | Task breakdown, verifies entity names against codebase | inherit |
 | **researcher** | Fast background codebase exploration | Sonnet |
-| **task-reviewer** | Spec + Quality verdicts on a task diff (opt-in) | Sonnet |
+| **task-reviewer** | Spec + Quality verdicts on a lane diff (opt-in) | Sonnet |
 | **code-reviewer** | Holistic pre-merge assessment | Sonnet |
 
 All agents have `memory: project` for persistent codebase knowledge across sessions.
@@ -159,7 +160,7 @@ All agents have `memory: project` for persistent codebase knowledge across sessi
 |:---------|:----|
 | The plugin's own `hooks/*.md` | Bootstrap text and setup nudges |
 | `ATLAS.md` | Its Where to Look table and its `atlas-hash` footer |
-| `.claude/turboflow-session.json` | The snapshot your last `/turboflow:wrap` wrote. 3.0.x also falls back to the pre-3.0.0 name, `.claude/turbocharge-session.json` |
+| `.claude/turboflow-session.json` | The snapshot your last `/turboflow:wrap` wrote |
 | Whether `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md` or `AGENTS.md` exist | To pick a setup nudge. Their contents are not read |
 | Top-level file and folder names | Hashed with `md5sum` (or `md5` on macOS) to spot a stale `ATLAS.md` |
 
