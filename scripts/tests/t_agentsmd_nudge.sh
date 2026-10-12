@@ -6,7 +6,7 @@ F="$PLUGIN_DIR/hooks/session-start.sh"
 N="$PLUGIN_DIR/hooks/agentsmd-only-nudge.md"
 assert_file "$N" || exit 1
 assert_grep "$N" "@AGENTS.md"        || exit 1
-assert_grep "$N" "/turboflow:setup"  || exit 1
+assert_grep "$N" "/turbocharge:setup"  || exit 1
 LINES=$(wc -l < "$N")
 [ "$LINES" -le 10 ] || { echo "    nudge is $LINES lines, expected ≤ 10"; exit 1; }
 

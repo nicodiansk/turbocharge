@@ -53,8 +53,8 @@ rm -f CLAUDE.local.md AGENTS.md
 
 N="$PLUGIN_DIR/hooks/agentsmd-not-loaded-nudge.md"
 assert_file "$N" || { cleanup; exit 1; }
-grep -qF '@AGENTS.md' "$N" && grep -qF '/turboflow:setup' "$N" \
-    || { echo "    not-loaded nudge must name @AGENTS.md and /turboflow:setup"; cleanup; exit 1; }
+grep -qF '@AGENTS.md' "$N" && grep -qF '/turbocharge:setup' "$N" \
+    || { echo "    not-loaded nudge must name @AGENTS.md and /turbocharge:setup"; cleanup; exit 1; }
 [ "$(wc -l < "$N")" -le 10 ] || { echo "    not-loaded nudge longer than 10 lines"; cleanup; exit 1; }
 
 # Regression guard: nothing present → plain nudge still shows.

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/hero-banner-v2.svg" alt="turboflow — one plugin, one pipeline, no conflicts" width="100%">
+  <img src="images/hero-banner-v2.svg" alt="turbocharge — one plugin, one pipeline, no conflicts" width="100%">
 </p>
 
 <p align="center">
@@ -13,7 +13,7 @@
 
 You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that contradict each other, and a `planner-actually-good.md` you wrote at 2 AM. Claude picks whichever it finds first. You can't remember which is current. Neither can Claude.
 
-**Turboflow replaces all of it** with a single opinionated pipeline: 10 skills, 5 agents, 1 hook. One system to install, nothing to maintain.
+**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 5 agents, 1 hook. One system to install, nothing to maintain.
 
 <p align="center">
   <img src="images/before-after.svg" alt="Before: scattered, contradictory config. After: one ordered pipeline." width="100%">
@@ -24,20 +24,20 @@ You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that c
 Requires **Claude Code 2.1.288 or later** (`claude --version`).
 
 ```bash
-claude plugin marketplace add nicodiansk/turboflow
-claude plugin install turboflow@turboflow
+claude plugin marketplace add nicodiansk/turbocharge
+claude plugin install turbocharge@turbocharge
 ```
 
 Restart Claude Code, then start building:
 
 ```bash
-/turboflow:brainstorm I want to build a CLI tool that manages git worktrees
+/turbocharge:brainstorm I want to build a CLI tool that manages git worktrees
 ```
 
 Every skill announces itself, does one job well, and hands you the next step:
 
 <p align="center">
-  <img src="images/brainstorm-session.svg" alt="A brainstorm session: Socratic dialogue, a captured design doc, and a chain-forward to /turboflow:story" width="92%">
+  <img src="images/brainstorm-session.svg" alt="A brainstorm session: Socratic dialogue, a captured design doc, and a chain-forward to /turbocharge:story" width="92%">
 </p>
 
 <details>
@@ -45,32 +45,32 @@ Every skill announces itself, does one job well, and hands you the next step:
 
 **Local development (per-session):**
 ```bash
-claude --plugin-dir ./turboflow
+claude --plugin-dir ./turbocharge
 ```
 
 **Update:**
 ```bash
-claude plugin update turboflow@turboflow
+claude plugin update turbocharge@turbocharge
 ```
 </details>
 
 ### Upgrading from turbocharge 2.x
 
-3.0.0 renamed the plugin and its marketplace from `turbocharge` to `turboflow`, so every `/turbocharge:<skill>` is now `/turboflow:<skill>`. Claude Code follows the plugin rename on its own, but an existing install keeps its old marketplace key, `turbocharge`. Pick one path:
+3.0.0 renamed the plugin and its marketplace from `turbocharge` to `turbocharge`, so every `/turbocharge:<skill>` is now `/turbocharge:<skill>`. Claude Code follows the plugin rename on its own, but an existing install keeps its old marketplace key, `turbocharge`. Pick one path:
 
 **Quick** — keep the old marketplace key:
 
 ```bash
 claude plugin marketplace update turbocharge
-claude plugin install turboflow@turbocharge
+claude plugin install turbocharge@turbocharge
 ```
 
 **Clean (recommended)** — match the install id above:
 
 ```bash
 claude plugin marketplace remove turbocharge
-claude plugin marketplace add nicodiansk/turboflow
-claude plugin install turboflow@turboflow
+claude plugin marketplace add nicodiansk/turbocharge
+claude plugin install turbocharge@turbocharge
 ```
 
 Then run `/reload-plugins` in any open session. Note that `marketplace remove` also uninstalls the plugin and deletes its saved options and data.
@@ -93,16 +93,16 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 
 | Skill | Command | What it does |
 |:------|:--------|:-------------|
-| **setup** | `/turboflow:setup` | Audits config for conflicting agents/skills/rules. Bootstraps `CLAUDE.md`. |
-| **atlas** | `/turboflow:atlas` | Generates `ATLAS.md` domain map. Pre-loaded every session. |
-| **brainstorm** | `/turboflow:brainstorm` | Socratic requirements discovery before implementation |
-| **story** | `/turboflow:story` | INVEST-compliant story breakdown with acceptance criteria |
-| **plan** | `/turboflow:plan` | Lean plans — decisions, exact paths and test assertions in 2-5 min tasks, grouped into file-disjoint lanes |
-| **build** | `/turboflow:build` | Runs each lane inline or with one Sonnet builder, overlaps independent lanes, then one full-suite gate. Opt-in per-lane review (`--reviewed`). |
-| **review** | `/turboflow:review` | Holistic pre-merge code review against the original plan |
-| **debug** | `/turboflow:debug` | Systematic 4-phase root-cause investigation — no fix until cause is proven |
-| **ship** | `/turboflow:ship` | Test verification, then merge / PR / keep / discard |
-| **wrap** | `/turboflow:wrap` | Session continuity — captures state, generates resume prompt |
+| **setup** | `/turbocharge:setup` | Audits config for conflicting agents/skills/rules. Bootstraps `CLAUDE.md`. |
+| **atlas** | `/turbocharge:atlas` | Generates `ATLAS.md` domain map. Pre-loaded every session. |
+| **brainstorm** | `/turbocharge:brainstorm` | Socratic requirements discovery before implementation |
+| **story** | `/turbocharge:story` | INVEST-compliant story breakdown with acceptance criteria |
+| **plan** | `/turbocharge:plan` | Lean plans — decisions, exact paths and test assertions in 2-5 min tasks, grouped into file-disjoint lanes |
+| **build** | `/turbocharge:build` | Runs each lane inline or with one Sonnet builder, overlaps independent lanes, then one full-suite gate. Opt-in per-lane review (`--reviewed`). |
+| **review** | `/turbocharge:review` | Holistic pre-merge code review against the original plan |
+| **debug** | `/turbocharge:debug` | Systematic 4-phase root-cause investigation — no fix until cause is proven |
+| **ship** | `/turbocharge:ship` | Test verification, then merge / PR / keep / discard |
+| **wrap** | `/turbocharge:wrap` | Session continuity — captures state, generates resume prompt |
 
 ## Why a Pipeline
 
@@ -124,7 +124,7 @@ A plan groups its tasks into **lanes** — sets of tasks that own disjoint files
 
 Independent lanes **overlap**: builders work in the background while your session runs the inline lanes, and every commit is scoped to its lane's files. When all lanes finish, build runs the full suite **once** — the full-suite gate. A failure goes back to the lane that owns the file; a builder lane's fix round **resumes** the same builder, context and prompt cache intact, instead of paying for a fresh spawn.
 
-`--inline` runs every lane in your session; `--delegate` gives every lane a builder. For security-sensitive or unfamiliar code, `--reviewed` adds one Sonnet `task-reviewer` per lane that reads the lane's diff once and returns Spec + Quality verdicts, looping fixes for up to two cycles. `--checkpoint` pauses for your feedback after each lane. After the gate, chain to `/turboflow:review` for the final holistic assessment.
+`--inline` runs every lane in your session; `--delegate` gives every lane a builder. For security-sensitive or unfamiliar code, `--reviewed` adds one Sonnet `task-reviewer` per lane that reads the lane's diff once and returns Spec + Quality verdicts, looping fixes for up to two cycles. `--checkpoint` pauses for your feedback after each lane. After the gate, chain to `/turbocharge:review` for the final holistic assessment.
 
 Plans written before 3.1 have no Lanes table; build runs them as one lane.
 
@@ -160,7 +160,7 @@ All agents have `memory: project` for persistent codebase knowledge across sessi
 |:---------|:----|
 | The plugin's own `hooks/*.md` | Bootstrap text and setup nudges |
 | `ATLAS.md` | Its Where to Look table and its `atlas-hash` footer |
-| `.claude/turboflow-session.json` | The snapshot your last `/turboflow:wrap` wrote |
+| `.claude/turbocharge-session.json` | The snapshot your last `/turbocharge:wrap` wrote |
 | Whether `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md` or `AGENTS.md` exist | To pick a setup nudge. Their contents are not read, except `CLAUDE.local.md`'s lines, checked for an `@AGENTS.md` import |
 | Top-level file and folder names | Hashed with `md5sum` (or `md5` on macOS) to spot a stale `ATLAS.md` |
 
@@ -172,23 +172,23 @@ All agents have `memory: project` for persistent codebase knowledge across sessi
 
 ```bash
 # Full pipeline from scratch
-/turboflow:brainstorm I want to build a REST API for managing bookmarks
+/turbocharge:brainstorm I want to build a REST API for managing bookmarks
 
 # Jump to planning with existing requirements
-/turboflow:plan docs/plans/my-feature-stories.md
+/turbocharge:plan docs/plans/my-feature-stories.md
 
 # Debug a specific issue
-/turboflow:debug The auth middleware is rejecting valid tokens
+/turbocharge:debug The auth middleware is rejecting valid tokens
 
 # Wrap up your session
-/turboflow:wrap
+/turbocharge:wrap
 ```
 
 See [`examples/`](examples/) for sample outputs from each stage.
 
 ## What to Remove After Installing
 
-Turboflow replaces scattered config. `/turboflow:setup` handles this, but in short:
+Turbocharge replaces scattered config. `/turbocharge:setup` handles this, but in short:
 
 - Agents in `~/.claude/agents/` (planner, code-reviewer, tdd-guide, session-wrappers)
 - Commands in `.claude/commands/` for story-authoring, task-breakdown, session-wrap
@@ -197,7 +197,7 @@ Turboflow replaces scattered config. `/turboflow:setup` handles this, but in sho
 ## Project Structure
 
 ```
-turboflow/
+turbocharge/
 ├── .claude-plugin/
 │   ├── plugin.json              # Plugin manifest
 │   └── marketplace.json         # Distribution config

@@ -54,7 +54,7 @@ lanes: 4 (inline 3 · builder 1)
 
 ## Step 3: Spawn Builder Lanes
 
-For each builder lane that is ready (its `After` lanes are done), spawn one builder — subagent type `turboflow:builder` — with:
+For each builder lane that is ready (its `After` lanes are done), spawn one builder — subagent type `turbocharge:builder` — with:
 - **`effort`** set on the Agent call from the lane's Effort column (default `medium`). The per-spawn value overrides the agent definition.
 - Plan file path, lane name, and its task line ranges — do NOT paste plan content; the builder reads the file directly
 - Working directory
@@ -113,7 +113,7 @@ Route each failure to the lane that owns the failing file:
 - **Inline lane:** fix it in the main session, commit by pathspec.
 - **Builder lane:** resume that lane's builder with `SendMessage` — send only the failing output. Its context and prompt cache are intact, so it skips the cold start a new spawn would pay. Wait for its completion notification.
 
-Then rerun the full gate. **Max 2 rounds per lane** — then stop and escalate, or switch to `/turboflow:debug` when the cause isn't obvious.
+Then rerun the full gate. **Max 2 rounds per lane** — then stop and escalate, or switch to `/turbocharge:debug` when the cause isn't obvious.
 
 ## Step 6: Reviewed Mode (`--reviewed`)
 
@@ -139,7 +139,7 @@ A reviewed lane is complete only after Spec ✅ with no unresolved 🔴 Critical
 After the full gate is green:
 - Report a completion summary, including any carried 🟡/🟢 review findings
 - Print the final visibility line: `lanes: L (inline I · builder B) · spawns: S · tasks: Y/Y`
-- Offer: "Ready for holistic code review?" → chains to `/turboflow:review`
+- Offer: "Ready for holistic code review?" → chains to `/turbocharge:review`
 
 > Visibility note: the orchestrator cannot read exact token counts. This line is the lane/spawn/task summary (the measurable proxy), NOT a fabricated token number.
 

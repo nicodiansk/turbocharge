@@ -25,7 +25,7 @@ mkdir -p .claude .codemap bin
     echo "{"
     for i in $(seq 1 300); do echo "  \"key_$i\": \"SNAPSHOT_LINE_$i padding padding padding padding\","; done
     echo "  \"end\": true"; echo "}"
-} > .claude/turboflow-session.json
+} > .claude/turbocharge-session.json
 printf '#!/usr/bin/env bash\nfor i in $(seq 1 300); do echo "CODEMAP_STAT_$i: 12345 symbols padding padding"; done\n' > bin/codemap
 chmod +x bin/codemap
 echo "# Agents fixture" > AGENTS.md
@@ -37,7 +37,7 @@ BYTES=$(printf '%s' "$OUT" | wc -c | tr -d ' ')
 
 echo "$OUT" | grep -qF "truncated — Read ATLAS.md for the rest" \
     || { echo "    ATLAS section missing truncation marker"; cleanup; exit 1; }
-echo "$OUT" | grep -qF "truncated — Read .claude/turboflow-session.json for the rest" \
+echo "$OUT" | grep -qF "truncated — Read .claude/turbocharge-session.json for the rest" \
     || { echo "    snapshot section missing truncation marker"; cleanup; exit 1; }
 echo "$OUT" | grep -qF 'truncated — Run `codemap stats` for the rest' \
     || { echo "    codemap section missing truncation marker"; cleanup; exit 1; }
@@ -50,7 +50,7 @@ echo "$OUT" | grep -q "UNIQUE_MODULE_LEAK_4411" && { echo "    Module Map leaked
 # Small inputs must pass through untouched — no marker.
 rm -rf .codemap bin AGENTS.md
 printf '# ATLAS\n\n## Where to Look\n\n| a | b | c |\n' > ATLAS.md
-echo '{"marker":"SMALL_SNAPSHOT_7781"}' > .claude/turboflow-session.json
+echo '{"marker":"SMALL_SNAPSHOT_7781"}' > .claude/turbocharge-session.json
 OUT="$(bash "$F" 2>&1 || true)"
 echo "$OUT" | grep -q "SMALL_SNAPSHOT_7781" || { echo "    small snapshot not emitted"; cleanup; exit 1; }
 echo "$OUT" | grep -q "truncated —" && { echo "    small inputs were truncated"; cleanup; exit 1; }
@@ -58,8 +58,8 @@ echo "$OUT" | grep -q "truncated —" && { echo "    small inputs were truncated
 # Leftover budget: tiny ATLAS + ~6 KB snapshot -> snapshot gets more than the old fixed 2,500 B, total stays < 10,000.
 cd "$TMP"; mkdir -p .claude
 printf '# ATLAS\n\n## Where to Look\n\n| a | b | c |\n' > ATLAS.md
-{ for i in $(seq 1 120); do echo "BIGSNAP_LINE_$i padding padding padding padding pad"; done; } > .claude/turboflow-session.json
-SNAP_SRC=$(wc -c < .claude/turboflow-session.json | tr -d ' ')
+{ for i in $(seq 1 120); do echo "BIGSNAP_LINE_$i padding padding padding padding pad"; done; } > .claude/turbocharge-session.json
+SNAP_SRC=$(wc -c < .claude/turbocharge-session.json | tr -d ' ')
 OUT="$(bash "$F" 2>&1 || true)"
 cleanup
 SNAP_BYTES=$(printf '%s\n' "$OUT" | grep '^BIGSNAP_LINE_' | wc -c | tr -d ' ')

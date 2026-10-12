@@ -11,7 +11,7 @@ for p in \
     "cleared or compacted" \
     "sends nothing over the network" \
     "becomes part of the session context" \
-    ".claude/turboflow-session.json" \
+    ".claude/turbocharge-session.json" \
     ".claude/CLAUDE.md" \
     "md5sum" \
     "codemap stats"; do

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ABOUTME: Asserts SessionStart reads only .claude/turboflow-session.json (3.0.x legacy fallback removed).
+# ABOUTME: Asserts SessionStart reads only .claude/turbocharge-session.json (3.0.x legacy fallback removed).
 # ABOUTME: A lone pre-3.0.0 turbocharge-session.json is ignored; hook and wrap never name it.
 source "$PLUGIN_DIR/scripts/tests/helpers.sh"
 F="$PLUGIN_DIR/hooks/session-start.sh"
@@ -19,7 +19,7 @@ echo "$OUT" | grep -q "OLD_SNAPSHOT_MARKER_5150" \
     && { echo "    hook still emits legacy .claude/turbocharge-session.json"; cleanup; exit 1; }
 
 # New file present -> emitted.
-echo '{"marker":"NEW_SNAPSHOT_MARKER_6260"}' > .claude/turboflow-session.json
+echo '{"marker":"NEW_SNAPSHOT_MARKER_6260"}' > .claude/turbocharge-session.json
 OUT="$(bash "$F" 2>&1 || true)"
 cleanup
 echo "$OUT" | grep -q "NEW_SNAPSHOT_MARKER_6260" || { echo "    new snapshot not emitted"; exit 1; }

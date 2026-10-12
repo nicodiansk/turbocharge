@@ -56,7 +56,7 @@ emit_head() {
             fi
             if [ -n "$CURRENT" ] && [ "$STORED" != "$CURRENT" ]; then
                 echo ""
-                echo "ATLAS.md may be stale — project structure changed since last generation. Consider running /turboflow:atlas to update."
+                echo "ATLAS.md may be stale — project structure changed since last generation. Consider running /turbocharge:atlas to update."
             fi
         fi
     fi
@@ -103,7 +103,7 @@ NUDGE_OUT="$(emit_nudge)"
 printf '%s\n' "$HEAD_OUT"
 
 SNAPSHOT=""
-[ -f ".claude/turboflow-session.json" ] && SNAPSHOT=".claude/turboflow-session.json"
+[ -f ".claude/turbocharge-session.json" ] && SNAPSHOT=".claude/turbocharge-session.json"
 if [ -n "$SNAPSHOT" ]; then
     HEAD_BYTES=$(printf '%s\n' "$HEAD_OUT" | wc -c | tr -d ' ')
     NUDGE_BYTES=0
