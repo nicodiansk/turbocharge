@@ -1,5 +1,26 @@
 # Changelog
 
+## [3.1.1] - 2026-10-12
+
+Review follow-ups. These are the valid findings from the automated Claude reviews on PR #19 (3.0.2) and PR #20 (3.1.0). No user action is needed.
+
+### Fixed
+- `hooks/session-start.sh`: with `CLAUDE.local.md` and `AGENTS.md` but no `CLAUDE.md`, Claude Code skips AGENTS.md, because CLAUDE.local.md counts as a CLAUDE.md. Before this fix the hook printed nothing. It now shows a new **AGENTS.md Not Loaded** nudge (`hooks/agentsmd-not-loaded-nudge.md`), which points to adding `@AGENTS.md` to CLAUDE.local.md or running `/turboflow:setup`. CLAUDE.local.md alone still gets no nudge. A comment records that the hook checks the working directory only (`t_claudemd_variants.sh`).
+- `hooks/session-start.sh`: when the leftover budget is ≤ 0, the snapshot block is skipped instead of printed empty. Today's fixed caps never reach that point. The review's exit-1 concern was a false positive, since the hook ends with `exit 0`. `t_session_start_exit_code.sh` now pins exit 0 across four project shapes.
+- `skills/build/SKILL.md`, `agents/builder.md`: these now list every place a stashing commit hook can be configured. That covers `.pre-commit-config.yaml`, plus lint-staged via `.lintstagedrc*`, `lint-staged.config.*`, a `lint-staged` key in `package.json`, or a `.husky/` hook. Before, lint-staged set up through Husky could slip through, and build would overlap lanes in that repo.
+- `skills/plan/SKILL.md`, `agents/planner.md`: a task's Verify runs only that task's tests, never the full suite, which build runs once at the join. Line ranges are plan-time hints, and build and the builder re-locate code by content when an earlier task has shifted it.
+
+### Changed
+- `t_version_310.sh` → `t_version_matches_changelog.sh`, which checks that plugin.json `version` equals the newest CHANGELOG heading. Releases no longer need a per-version test file. `t_changelog_310.sh` drops its newest-entry check.
+- `README.md`: the SessionStart row mentions the AGENTS.md-not-loaded nudge.
+
+### Not changed (review items declined)
+- **Hook exits 1 (PR #20):** a false positive. The hook ends with `exit 0`, which is now pinned by a test.
+- **`experimental.cacheTtl` support (PR #20):** it is a documented subagent-frontmatter key (values `5m`/`1h`), and `claude plugin validate --strict` passes.
+- **Minor bump for breaking changes (PR #20):** a deliberate choice for 3.1.0, documented in its Migration section.
+- **Repeated dispatch-prefix sentence (PR #19):** this is deliberate. Each skill must stand alone, and `t_dispatch_agentsmd_prefix.sh` plus `t_claudemd_dotclaude_refs.sh` catch drift.
+- **CI for the test suite (PR #19):** deferred to its own change.
+
 ## [3.1.0] - 2026-10-09
 
 Fast build: plans record decisions instead of complete code, and build runs them by lane. Mechanical lanes run in your main session with no spawn, lanes with real logic get one builder each, and independent lanes overlap. In the 3.0.0 cycle the planner spent 19 minutes writing a 69 KB plan (~5 KB of code per task), then 13 builders spent 26–89 s and ~25k tokens each re-typing it. The 3.1.0 plan is ~1.35 KB per task; its build ran 4 lanes inline and 1 builder lane in the background.
