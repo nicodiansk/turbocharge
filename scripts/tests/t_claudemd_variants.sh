@@ -43,6 +43,10 @@ printf '@AGENTS.md\n# local\n' > CLAUDE.local.md
 no_nudge "CLAUDE.local.md importing @AGENTS.md" || { cleanup; exit 1; }
 printf '# local\n  @./AGENTS.md\n' > CLAUDE.local.md
 no_nudge "CLAUDE.local.md importing @./AGENTS.md" || { cleanup; exit 1; }
+# A different file that merely starts with the name is not the import.
+printf '# local\n@AGENTS.md.bak\n' > CLAUDE.local.md
+OUT="$(bash "$F" 2>&1 || true)"
+echo "$OUT" | grep -q "AGENTS.md Not Loaded" || { echo "    @AGENTS.md.bak wrongly counted as the AGENTS.md import"; cleanup; exit 1; }
 rm -f CLAUDE.local.md AGENTS.md
 
 N="$PLUGIN_DIR/hooks/agentsmd-not-loaded-nudge.md"

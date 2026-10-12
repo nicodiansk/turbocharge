@@ -82,7 +82,7 @@ emit_nudge() {
     fi
     if [ -f "CLAUDE.local.md" ]; then
         # Reads only CLAUDE.local.md's import lines, to see whether the nudge's fix is already in place.
-        if [ -f "AGENTS.md" ] && ! grep -qE '^[[:space:]]*@(\./)?AGENTS\.md' "CLAUDE.local.md"; then
+        if [ -f "AGENTS.md" ] && ! grep -qE '^[[:space:]]*@(\./)?AGENTS\.md([[:space:]]|$)' "CLAUDE.local.md"; then
             echo ""
             cat "$HOOK_DIR/agentsmd-not-loaded-nudge.md"
         fi

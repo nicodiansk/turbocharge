@@ -22,6 +22,9 @@ rm -f CLAUDE.md
 run "no CLAUDE.md"           || { cleanup; exit 1; }
 echo "# Agents" > AGENTS.md
 run "AGENTS.md only"         || { cleanup; exit 1; }
+echo "# local" > CLAUDE.local.md
+run "CLAUDE.local.md + AGENTS.md" || { cleanup; exit 1; }
+rm -f CLAUDE.local.md
 
 # No budget left: a copy of the hook with TOTAL_BUDGET=100 must skip the snapshot block entirely.
 cp "$PLUGIN_DIR"/hooks/*.md "$TMP/hooks/"
