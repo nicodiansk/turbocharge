@@ -16,6 +16,7 @@ for p in \
     grep -qF -- "$p" "$R" || { echo "    README missing: $p"; rc=1; }
 done
 grep -qF "$ID" "$C"                      || { echo "    CLAUDE.md missing the directory install id"; rc=1; }
-grep -qF "turbocharge-aguerlain-lr" "$C" || { echo "    CLAUDE.md name history must name the other author's listing"; rc=1; }
+# Assert the fact, not the other author's id: their listing can be renamed or delisted without us changing.
+grep -qF "another author's plugin" "$C"  || { echo "    CLAUDE.md name history must record the other author's same-named listing"; rc=1; }
 grep -qF "wrongly believed" "$C"         && { echo "    CLAUDE.md still claims the 3.0.0 premise was simply wrong"; rc=1; }
 exit $rc

@@ -135,3 +135,4 @@ Single-repo as of v2.3.0. No cross-repo sync.
 1. Bump `version` in `.claude-plugin/plugin.json` (the only place it lives)
 2. Update `CHANGELOG.md` with the new entry
 3. Commit + push to `nicodiansk/turbocharge`. Users pick it up via `claude plugin update turbocharge@turbocharge`.
+4. Directory: click **Check for new commits**, then **Publish update** once the new version passes its scan. While a version waits for the reviewer, hold further merges to `master`, because each `master` commit is scanned as a new version. The live version shows in `claude plugin list --available --json` under `turbocharge-nicodiansk`.
