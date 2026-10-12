@@ -42,7 +42,7 @@ Start from the plan's Executor hint, then override:
 
 **Overlap:** lanes with no `After` path between them run at the same time — builder lanes in the background while the main session works the inline lanes. A lane with `After` starts only when every lane it names has finished (Step 5).
 
-**No overlap with stashing commit hooks:** if the project's commit hooks stash unstaged changes — the `pre-commit` framework (`.pre-commit-config.yaml`), lint-staged — run lanes one at a time. A pathspec commit leaves every other lane's in-flight edits unstaged, and the hook would stash them out from under that lane.
+**No overlap with stashing commit hooks:** if the project's commit hooks stash unstaged changes, run lanes one at a time. Check for the `pre-commit` framework (`.pre-commit-config.yaml`) and lint-staged — `.lintstagedrc*`, `lint-staged.config.*`, a `lint-staged` key in `package.json`, or a `.husky/` hook that runs it. A pathspec commit leaves every other lane's in-flight edits unstaged, and the hook would stash them out from under that lane.
 
 Announce the routing before executing:
 ```
@@ -79,7 +79,7 @@ If a builder blocks on unclear context, dispatch the researcher with `@ATLAS.md 
 ## Step 4: Run Inline Lanes
 
 While builder lanes run, the main session works through the inline lanes, task by task. With `--reviewed`, record the lane's `BEFORE_SHA` first (Step 6), before its first task.
-1. Read the task's Decision and Test assertions from the plan.
+1. Read the task's Decision and Test assertions from the plan. Its line ranges are plan-time hints: if an earlier task in the lane shifted the code, find it by content.
 2. Write the test from the assertions and run it — it must fail for the reason the task names (RED).
 3. Implement the Decision. Run the test — GREEN.
 4. Commit by pathspec: `git add <new files>`, then `git commit -m "<message>" -- <this task's files>`.
@@ -154,7 +154,7 @@ After the full gate is green:
 | Running the full suite while builder lanes are in flight | It sees other lanes' half-written files and fails for nothing — run it once at the join |
 | Unscoped `git commit`, `git commit -a`, or `git add -A` during overlap | Sweeps another lane's files into your commit — always `git commit -m … -- <this task's files>` |
 | Overlapping lanes that share a file or an `After` dependency | Two writers on one file, or a lane built on unfinished work |
-| Overlapping lanes in a repo whose commit hooks stash (`.pre-commit-config.yaml`, lint-staged) | The hook stashes other lanes' in-flight edits mid-write — run lanes one at a time |
+| Overlapping lanes in a repo whose commit hooks stash (`.pre-commit-config.yaml`; lint-staged via `.lintstagedrc*`, `package.json`, `.husky/`) | The hook stashes other lanes' in-flight edits mid-write — run lanes one at a time |
 | Spawning a new builder for a fix round | The lane's builder still has its context and a warm cache — resume it with `SendMessage` |
 | Skipping Reviewed mode for security-sensitive code | Save tokens, lose safety |
 | Using Reviewed mode for trivial lanes | Wastes tokens on mechanical checks |

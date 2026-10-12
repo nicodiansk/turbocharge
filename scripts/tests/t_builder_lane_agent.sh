@@ -8,7 +8,8 @@ FM="$(frontmatter "$F")"
 printf '%s\n' "$FM" | grep -qx 'experimental:'  || { echo "    builder frontmatter missing experimental: map"; exit 1; }
 printf '%s\n' "$FM" | grep -qx '  cacheTtl: 1h' || { echo "    builder frontmatter missing '  cacheTtl: 1h'"; exit 1; }
 rc=0
-for p in "-- <this task's files>" 'index.lock' 'full suite' 'SendMessage' '.pre-commit-config.yaml'; do
+for p in "-- <this task's files>" 'index.lock' 'full suite' 'SendMessage' '.pre-commit-config.yaml' \
+         '.lintstagedrc' 'package.json' '.husky/' 'plan-time'; do
     grep -qF -- "$p" "$F" || { echo "    builder.md missing: $p"; rc=1; }
 done
 exit $rc

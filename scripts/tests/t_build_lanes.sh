@@ -43,6 +43,10 @@ for p in \
     'agent ID' \
     '--no-checkpoint' \
     'After every lane finishes' \
+    '.lintstagedrc' \
+    'package.json' \
+    '.husky/' \
+    'plan-time' \
     'when Agent Teams are enabled'; do
     grep -qF -- "$p" "$F" || { echo "    build missing: $p"; rc=1; }
 done
