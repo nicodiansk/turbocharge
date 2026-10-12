@@ -1,5 +1,38 @@
 # Changelog
 
+## [3.2.0] - 2026-10-12
+
+**The name is `turbocharge` again.** 3.0.0 renamed the plugin to `turboflow` because we believed a different author already listed `turbocharge` in Claude's plugin directory. That was wrong: the **Turbocharge** listing in the claude.ai plugin directory is this plugin's own (submitted 2026-06-23, published 2026-09-24, live at v2.8.1 with about 300 installs). 3.2.0 restores the plugin, marketplace and repo name `turbocharge` so those users can upgrade without their commands changing, and keeps everything 3.0–3.1 added.
+
+### Upgrading from 2.8.x (the directory listing)
+Update as usual. Your commands stay `/turbocharge:<skill>`, your `.claude/turbocharge-session.json` snapshot keeps loading, and `/turbocharge:setup` finds the `<!-- turbocharge:… -->` blocks it wrote. 3.2.0 requires **Claude Code 2.1.288 or later**. Since 2.8.1:
+- **Build:** plans hold decisions instead of complete code, grouped into lanes. Build runs mechanical lanes in your session and gives each real-logic lane one Sonnet builder. Independent lanes run in parallel, the full suite runs once at the end, and fix rounds resume the same builder. Build no longer pauses every 3 tasks; `--checkpoint` brings back a pause per lane.
+- **Background subagents:** `plan` and `review` block until done, and build waits for each subagent to finish.
+- **AGENTS.md and CLAUDE.md:** SessionStart and setup handle projects that use `AGENTS.md`, `.claude/CLAUDE.md` or `CLAUDE.local.md`.
+- **SessionStart output:** capped so it stays inline, with the session snapshot getting the space left over.
+- **Agent Teams:** multi-track mode is gone, and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` is no longer needed.
+
+### Coming from turboflow 3.0–3.1
+`/turboflow:<skill>` is `/turbocharge:<skill>` again. `marketplace.json` now carries `renames: {"turboflow": "turbocharge"}`, so Claude Code follows the plugin rename. An existing install keeps its marketplace key, `turboflow`. Pick one path:
+- **Quick:** `claude plugin marketplace update turboflow`, then `claude plugin install turbocharge@turboflow`.
+- **Clean:** `claude plugin marketplace remove turboflow`, `claude plugin marketplace add nicodiansk/turbocharge`, then `claude plugin install turbocharge@turbocharge`. `marketplace remove` also deletes the plugin's saved options and data.
+
+Either way, update personal rules, permissions and scripts that name `turboflow:*`. Nothing else needs migrating:
+- SessionStart falls back to `.claude/turboflow-session.json` when `.claude/turbocharge-session.json` is absent.
+- Setup adopts blocks written under `<!-- turboflow:NAME -->` markers, rewriting them in place instead of appending duplicates.
+
+### Changed
+- **Bulk rename:** `perl -pi` (CRLF-safe) changed `turboflow` → `turbocharge` and `Turboflow` → `Turbocharge` across 45 files: skills, agents, hooks, examples, SVGs, the template (`templates/CLAUDE-turboflow.md` → `templates/CLAUDE-turbocharge.md`), README, `.claude/CLAUDE.md` and tests. Earlier CHANGELOG entries and their content tests are unchanged.
+- **Manifests:**
+  - `plugin.json`: `name` is `turbocharge`, `displayName` is `Turbocharge`, URLs point to `nicodiansk/turbocharge`, version 3.2.0.
+  - `marketplace.json`: `name` and plugin entry are `turbocharge`, the source URL is `turbocharge.git`, and `renames` is `{"turboflow": "turbocharge"}`. The 3.0.0 reverse entry is removed, because keeping it would make a cycle.
+- **README:** Install names the directory listing, and Upgrading covers both audiences.
+- **`.claude/CLAUDE.md`:** records the directory listing and the name history.
+- **Guards:** `t_no_titlecase_brand.sh` now forbids title-case `Turboflow`, and `t_no_old_repo_path.sh` forbids the `nicodiansk/turboflow` path. The rest of the suite was rehomed to the turbocharge names (`t_session_snapshot.sh`, `t_gitignore_session.sh`, `t_marketplace_renames.sh`, `t_migration_docs.sh`, `t_setup_claudemd_phase.sh`).
+
+### Repo
+After merge the GitHub repo is renamed back to `nicodiansk/turbocharge`. GitHub redirects the `nicodiansk/turboflow` URLs, and the directory listing keeps tracking the repo.
+
 ## [3.1.1] - 2026-10-12
 
 Review follow-ups. These are the valid findings from the automated Claude reviews on PR #19 (3.0.2) and PR #20 (3.1.0). No user action is needed.
