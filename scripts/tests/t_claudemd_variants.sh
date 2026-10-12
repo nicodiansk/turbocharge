@@ -36,13 +36,15 @@ no_nudge "CLAUDE.local.md only" || { cleanup; exit 1; }
 echo "# Agents" > AGENTS.md
 OUT="$(bash "$F" 2>&1 || true)"
 echo "$OUT" | grep -q "AGENTS.md Not Loaded" || { echo "    CLAUDE.local.md + AGENTS.md: not-loaded nudge missing"; cleanup; exit 1; }
-echo "$OUT" | grep -q "No CLAUDE.md Detected\|AGENTS.md Detected, No CLAUDE.md" \
+echo "$OUT" | grep -qE "No CLAUDE.md Detected|AGENTS.md Detected, No CLAUDE.md" \
     && { echo "    CLAUDE.local.md + AGENTS.md: wrong nudge shown"; cleanup; exit 1; }
 # Following the nudge's own fix (import @AGENTS.md from CLAUDE.local.md) must clear it.
 printf '@AGENTS.md\n# local\n' > CLAUDE.local.md
 no_nudge "CLAUDE.local.md importing @AGENTS.md" || { cleanup; exit 1; }
 printf '# local\n  @./AGENTS.md\n' > CLAUDE.local.md
 no_nudge "CLAUDE.local.md importing @./AGENTS.md" || { cleanup; exit 1; }
+printf '# local\nSee @AGENTS.md for shared rules.\n' > CLAUDE.local.md
+no_nudge "CLAUDE.local.md importing @AGENTS.md mid-line" || { cleanup; exit 1; }
 # A different file that merely starts with the name is not the import.
 printf '# local\n@AGENTS.md.bak\n' > CLAUDE.local.md
 OUT="$(bash "$F" 2>&1 || true)"
