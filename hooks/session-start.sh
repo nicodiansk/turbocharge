@@ -102,8 +102,14 @@ HEAD_OUT="$(emit_head)"
 NUDGE_OUT="$(emit_nudge)"
 printf '%s\n' "$HEAD_OUT"
 
+# Session snapshot: /wrap writes .claude/turbocharge-session.json (2.x and 3.2+). 3.0.0–3.1.1
+# wrote .claude/turboflow-session.json under the interim name, so read it when the other is absent.
 SNAPSHOT=""
-[ -f ".claude/turbocharge-session.json" ] && SNAPSHOT=".claude/turbocharge-session.json"
+if [ -f ".claude/turbocharge-session.json" ]; then
+    SNAPSHOT=".claude/turbocharge-session.json"
+elif [ -f ".claude/turboflow-session.json" ]; then
+    SNAPSHOT=".claude/turboflow-session.json"
+fi
 if [ -n "$SNAPSHOT" ]; then
     HEAD_BYTES=$(printf '%s\n' "$HEAD_OUT" | wc -c | tr -d ' ')
     NUDGE_BYTES=0
