@@ -133,4 +133,8 @@ Single-repo as of v2.3.0. No cross-repo sync.
 1. Bump `version` in `.claude-plugin/plugin.json` (the only place it lives)
 2. Update `CHANGELOG.md` with the new entry
 3. Commit + push to `nicodiansk/turbocharge`. Users pick it up via `claude plugin update turbocharge@turbocharge`.
-4. Directory: click **Check for new commits**, then **Publish update** once the new version passes its scan. While a version waits for the reviewer, hold further merges to `master`, because each `master` commit is scanned as a new version. The live version shows in `claude plugin list --available --json` under `turbocharge-nicodiansk`.
+4. Directory: the listing tracks a **`release`** branch, so merges to `master` don't create directory versions.
+   - **Switch pending:** until 3.2.0 is live it still tracks `master`. Switch it on the portal's Settings tab only after that, because changing the tracked branch cancels a waiting publish request. Before the switch, hold merges to `master` while a version waits for the reviewer.
+   - To send a release to the directory: `git push origin vX.Y.Z:release` (fast-forwards `release` to the tag). The webhook scans it, and once it passes you click **Publish update**.
+   - Merges to `master` reach repo-marketplace installs (`turbocharge@turbocharge`) right away.
+   - The live directory version shows in `claude plugin list --available --json` under `turbocharge-nicodiansk`.
