@@ -1,5 +1,45 @@
 # Changelog
 
+## [3.3.0] - 2026-10-13
+
+Proven quality: Turbocharge now measures what it adds. An eval suite runs the same cases with the plugin and without it, and the first baseline is published in the README. The release also ships an 8-item quality pack and a builder exit gate.
+
+### Measured
+| Family | Cases | WITH | W/OUT | Δ | Fired |
+|---|---|---|---|---|---|
+| defects | 1 | 1.00 | 1.00 | +0.00 | 0/3 |
+| planning | 1 | 1.00 | 0.50 | +0.50 | 3/3 |
+| trigger | 4 | 0.83 | 0.83 | +0.00 | 4/9 |
+
+WITH and W/OUT are the same case with Turbocharge loaded and with no plugin. Δ is what the plugin adds, and Fired counts runs in which the intended skill was invoked. Measured with Claude Code 2.1.296, model and judge `claude-sonnet-5-5`, 3 runs per arm. Planning gains +0.50: without the plugin, tasks lacked concrete expected results or verify commands. Trigger and defects show no difference yet:
+- Sonnet finds all five planted bugs on its own.
+- `review` didn't fire on the longer defects prompt.
+- `brainstorm` never fired on "add CSV export to this tool" (0/3).
+- `debug` fired in 1 of 3 runs.
+
+These are the targets for the next releases.
+
+### Added
+- **Eval suite:** `evals/` holds 6 cases for `claude plugin eval`: trigger ×4, planted defects ×1, planning ×1. `scripts/eval.sh <cap>` runs them under WSL2 or Linux (native Windows has no sandbox for Bash-granted runs) and refuses a Windows `claude` reached through WSL interop. `scripts/eval-report.sh` fails on partial runs and on infrastructure errors such as usage limits, which would otherwise score 0 silently; a turn cap or timeout counts as measured. It writes WITH / W/OUT / Δ / Fired per family to `evals/summary/<version>.md`. On a subscription login, runs draw plan usage, not billing. The suite never runs in users' sessions (`t_eval_cases.sh`, `t_eval_report.sh`, `t_eval_runner.sh`).
+- **Builder exit gate:** `hooks/builder-exit-gate.sh` runs on `SubagentStop` and, in auto mode, on `PreToolUse` for `SubagentHandback`, because there a builder hands back its report before it stops. It reads the builder's transcript for files it edited with Edit or Write and runs `git status --porcelain` on just those. If any are uncommitted, it keeps the builder going once per builder: commit them by pathspec or say why they must stay, then repeat the full report. It is read-only, needs `jq` (does nothing without it), and is disclosed in the README's "What the hooks do" (`t_builder_exit_gate.sh`, `t_no_pretooluse.sh` now allows only this one matcher).
+
+### Quality pack
+- **Review Focus in plans:** plans list up to 5 inputs or failure modes the spec implies but never names, each pinned by a test in the task that owns the code (`t_plan_review_focus.sh`).
+- **Reasonable-user judging:** `code-reviewer`, `task-reviewer` and `review` judge behavior the spec doesn't mention by what a reasonable user would expect, graded by its effect. They list what they set aside under **Declined to judge** (or `Declined to judge: none`), and build rules on each line (`t_reviewer_judging.sh`).
+- **Builder rulings and status:** a background builder can't ask, so it decides minor ambiguity and records it under **Rulings** (with what it costs if wrong). It stops only for destructive, security-sensitive, outside-the-tree, design or missing-context calls, and ends with `Status: DONE | DONE_WITH_CONCERNS | BLOCKED` plus a `Blocked on:` kind. Build resumes a lane blocked on context with the researcher's findings, retries a stuck lane once with `model: opus`, and takes design and destructive questions to the user (`t_builder_status.sh`).
+- **Plan chain-forward:** the forked planner states its understanding instead of asking for confirmation, honors a path the request names, and ends with "review `<path>`, then `/turbocharge:build <path>`" (`t_plan_chain_forward.sh`).
+- **Surface fallback:** when a `turbocharge:*` agent isn't registered (some surfaces load skills without agents), build runs its lanes and lane reviews inline, review runs inline, and brainstorm does the builder check itself (`t_build_surface_fallback.sh`).
+- **Ship menu:** the menu offers merge, PR or keep. Discarding the work happens only on explicit request, with the typed `discard` confirmation (`t_ship_menu.sh`).
+- **Brainstorm sizing:** a quick, clear task gets done; a small change is agreed in chat; a project gets a design doc. The size steps up if the work grows, and several projects are taken one at a time (`t_brainstorm_sizing.sh`).
+- **Builder check:** before a design doc is committed, `turbocharge:researcher` reads it as its builder and reports only questions where a wrong guess would change the plan. Brainstorm answers or rules on what it can and brings the rest in one message (`t_brainstorm_builder_check.sh`).
+
+### Changed
+- Roster: **2 hooks** (SessionStart; builder exit gate) in the manifests, banners, README and `.claude/CLAUDE.md`. `t_svg_roster_counts.sh` counts distinct hook scripts, since the gate is one script on two events.
+- `.claude/CLAUDE.md`: Review Focus and Eval case domain terms; the Opus retry is the only place Opus appears; the release flow runs `scripts/eval.sh` and refreshes README **Measured** before the version bump (`t_claudemd_330.sh`).
+
+### Upgrading
+No action is needed. Builders now end their reports with a Status line, plans gain a Review Focus section, and ship's menu no longer offers discard (ask for it explicitly).
+
 ## [3.2.1] - 2026-10-12
 
 Docs: the real directory install command, and a correction to the [3.2.0] notes. No behavior change.
