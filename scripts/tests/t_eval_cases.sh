@@ -117,4 +117,19 @@ if [ -d "$P" ]; then
     [ -f "$ws/contacts.py" ] || fail "planning fixture lacks contacts.py"
 fi
 
+# --- brainstorm case grades the workspace (Bash edits slip past tool_used) ---
+B="$EVALS/trigger/brainstorm"
+for g in "$B"/graders/*.md; do
+    if [ "$(fm_get "$g" type)" = tool_used ]; then
+        case "$(fm_get "$g" tool)" in Edit|Write) fail "brainstorm: tool_used grader on Edit/Write ($(basename "$g")) misses Bash edits" ;; esac
+    fi
+done
+found=0
+for g in "$B"/graders/*.md; do
+    [ "$(fm_get "$g" type)" = regex ] && fm_get "$g" target | grep -q 'contacts.py' && [ "$(fm_get "$g" match)" = not_contains ] && found=1
+done
+[ "$found" -eq 1 ] || fail "brainstorm: needs a regex grader on contacts.py with match: not_contains"
+ws="$(scaffold "$B")"
+grep -qiE 'csv|export' "$ws/contacts.py" && fail "brainstorm fixture contacts.py must not mention csv or export"
+
 [ "$FAIL" -eq 0 ] && echo "  $CASES cases ok" || exit 1
