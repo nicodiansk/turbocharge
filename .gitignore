@@ -56,3 +56,6 @@ npm-debug.log*
 # Test coverage
 coverage/
 .nyc_output/
+
+# Eval run output (raw JSON and HTML; the committed summary lives in evals/summary/)
+evals/results/
