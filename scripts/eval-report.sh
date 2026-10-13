@@ -35,7 +35,8 @@ def avg: add / length;
 def fired(\$c): [(\$c.arms.with // [])[] | select(any(.graders[]?; .name == \"skill-fired\"))] as \$r
   | if (\$r | length) == 0 then null else {p: ([\$r[] | select(any(.graders[]?; .name == \"skill-fired\" and .passed == true))] | length), t: (\$r | length)} end;
 def firedstr: if . == null then \"—\" else \"\(.p)/\(.t)\" end;
-def cost(\$c): [((\$c.arms.with // []) + (\$c.arms.without // []))[] | (.costUsd // 0) + (.judgeCostUsd // 0)] | add // 0;
+# costUsd already includes the run's judge calls; adding judgeCostUsd would double-count.
+def cost(\$c): [((\$c.arms.with // []) + (\$c.arms.without // []))[] | (.costUsd // 0)] | add // 0;
 def opt(fn): if . == null then \"—\" else fn end;
 
 [.cases[]? | {name, family: (.name | split(\"-\")[0]), s: .aggregates.score, w: .aggregates.scoreWithout, d: .aggregates.delta, fired: fired(.), cost: cost(.)}] as \$cs

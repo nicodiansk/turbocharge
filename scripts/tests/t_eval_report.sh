@@ -34,13 +34,20 @@ echo "$OUT" | grep -qF '| defects | 1 | 0.60 | 0.40 | +0.20 | — |' || { echo "
 echo "$OUT" | grep -qF '| trigger-a | 1.00 | 0.10 | +0.90 | 2/2 |' || { echo "    missing case row"; echo "$OUT"; exit 1; }
 echo "$OUT" | grep -qF 'Cost $4.50' || { echo "    missing footer cost"; echo "$OUT"; exit 1; }
 echo "$OUT" | grep -qF '321s · Claude Code 2.1.296' || { echo "    missing footer tail"; echo "$OUT"; exit 1; }
-# cost per case: (0.5+0.1) x 3 runs = 1.80 for trigger-a
-echo "$OUT" | grep -F '| trigger-a |' | grep -qF '| $1.80 |' || { echo "    case cost wrong"; echo "$OUT"; exit 1; }
+# cost per case: 0.50 x 3 runs = 1.50 for trigger-a
+echo "$OUT" | grep -F '| trigger-a |' | grep -qF '| $1.50 |' || { echo "    case cost wrong"; echo "$OUT"; exit 1; }
 echo "$OUT" | grep -q 'Run errors counted as measured' && { echo "    unexpected measured-errors section"; exit 1; }
 
-# --- cost row for a case with 0.50 + 0.10 in each arm (one run per arm) => $1.20
+# --- cost row for a case with 0.50 + 0.10 in each arm (one run per arm) => $1.00 (costUsd already includes the judge)
 doc "[{\"name\":\"trigger-c\",\"aggregates\":{\"score\":1,\"scoreWithout\":0,\"delta\":1},\"arms\":{\"with\":[$(run true 0.5 0.1)],\"without\":[$(run none 0.5 0.1)]}}]" > "$T/cost.json"
-bash "$R" "$T/cost.json" 2>/dev/null | grep -F '| trigger-c |' | grep -q '| \$1.20 |$' || { echo "    case row should end | \$1.20 |"; exit 1; }
+bash "$R" "$T/cost.json" 2>/dev/null | grep -F '| trigger-c |' | grep -q '| \$1.00 |$' || { echo "    case row should end | \$1.20 |"; exit 1; }
+
+# --- case costs sum to the footer cost
+doc "[{\"name\":\"trigger-c\",\"aggregates\":{\"score\":1,\"scoreWithout\":0,\"delta\":1},\"arms\":{\"with\":[$(run true 0.5 0.1)],\"without\":[$(run none 0.5 0.1)]}},{\"name\":\"defects-d\",\"aggregates\":{\"score\":1,\"scoreWithout\":0,\"delta\":1},\"arms\":{\"with\":[$(run none 0.25 0.1)],\"without\":[$(run none 0.25 0.1)]}}]" | jq '.costUsd=1.5' > "$T/sum.json"
+OUT="$(bash "$R" "$T/sum.json" 2>/dev/null)"
+SUM="$(echo "$OUT" | grep -E '^\| (trigger-c|defects-d) \|' | sed -E 's/.*\| \$([0-9.]+) \|$/\1/' | awk '{s+=$1} END {printf "%.2f", s}')"
+FOOT="$(echo "$OUT" | sed -nE 's/^Cost \$([0-9.]+) .*/\1/p')"
+[ "$SUM" = "$FOOT" ] || { echo "    case costs ($SUM) should sum to footer cost ($FOOT)"; exit 1; }
 
 # --- lone case with no delta
 doc "[{\"name\":\"trigger-lone\",\"aggregates\":{\"score\":0.5},\"arms\":{\"with\":[$(run true 0 0)]}}]" > "$T/lone.json"
