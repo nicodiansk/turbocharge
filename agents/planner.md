@@ -57,7 +57,7 @@ Group tasks into lanes in a `## Lanes` table after the header:
 ## Spec Self-Review (MANDATORY — before writing the plan to disk)
 
 After drafting the full plan and BEFORE you Write it to `docs/plans/`, run this
-4-point self-review on your own plan and fix every gap inline. No subagent, no
+5-point self-review on your own plan and fix every gap inline. No subagent, no
 re-review — you fix it yourself, now.
 
 1. **Spec coverage** — for every requirement in the source spec, point to the
@@ -72,8 +72,14 @@ re-review — you fix it yourself, now.
 4. **Type consistency** — every function/method signature and property name
    introduced in an early task matches its usage in later tasks
    (e.g. `clearLayers()` vs `clearFullLayers()`). Reconcile mismatches.
+5. **Review Focus** — list up to 5 input classes or failure modes the spec
+   implies but never names, that no task's test exercises (the empty list, the
+   duplicate, the field with a comma, the rerun), most likely first. Each line is
+   pinned by an assertion in the task that owns the code, and names that task.
+   An empty section (`None found — <why>`) means you checked and found none,
+   not that you skipped the check.
 
-Only after all four pass do you write the plan file.
+Only after all five pass do you write the plan file.
 
 ## Plan Format
 
@@ -88,6 +94,9 @@ Only after all four pass do you write the plan file.
 | Lane | Owns files | Tasks | After | Executor | Effort |
 |------|-----------|-------|-------|----------|--------|
 | api | `src/api/orders.ts`, `tests/api/orders.test.ts` | 1–2 | — | builder | medium |
+
+## Review Focus
+- An order with no line items → rejected with a clear error, not a zero-total order (pinned: Task N)
 
 ### Task 1: [Descriptive Name]
 **Lane:** api · **Files:** `src/api/orders.ts:40-62` (modify)
@@ -106,6 +115,7 @@ Before submitting:
 - [ ] Every task has a Decision, Test assertions, and Verify
 - [ ] No file belongs to two lanes; `After` has no cycles
 - [ ] Code appears only where the exact text is the decision
+- [ ] Review Focus has up to 5 lines, each `(pinned: Task N)` by an assertion in that task
 
 ## Remember
 

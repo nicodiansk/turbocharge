@@ -27,6 +27,9 @@ Every plan MUST start with:
 |------|-----------|-------|-------|----------|--------|
 | [name] | `src/full/path.py`, `tests/full/test_path.py` | 1–3 | — | inline | — |
 | [name] | `src/other/module.py`, `tests/other/test_module.py` | 4–6 | [lane] | builder | medium |
+
+## Review Focus
+- [input or condition the spec implies but never names] → [what a reasonable user expects] (pinned: Task N)
 ```
 
 **Lanes** let `/turbocharge:build` run independent work side by side and skip a builder spawn for mechanical work:
@@ -35,6 +38,8 @@ Every plan MUST start with:
 - **Executor** is a hint: `inline` for mechanical lanes (content edits, exact text given, ≤3 tasks) that the main session applies directly; `builder` for real logic or lanes with judgment calls, run by one builder for the whole lane.
 - **Effort** (`low`/`medium`/`high`) applies to builder lanes; use `—` for inline.
 - A small plan can be a single lane.
+
+**Review Focus** names up to 5 input classes or failure modes the spec implies but never names, and that no task's test would otherwise exercise: the empty list, the duplicate, the field with a comma, the rerun. One line each, most likely first: the input, then what a reasonable user expects. The spec says what the software must do, not everything it will meet; its silence on an input is not permission for that input to break the program. The task that owns the code gets a test assertion that pins each line, and the line names that task. If nothing is implied, write `None found — <why>`.
 
 ## Context Gathering
 
@@ -73,6 +78,7 @@ Each task MUST follow this format:
 - **Test assertions, not test code** — each one names the input and the expected result, specific enough to write the test from
 - **Exact commands** with expected output
 - **TDD always** — every task names the test that fails before the change
+- **Review Focus pinned** — every Review Focus line has its assertion in the task that owns the code
 - **DRY, YAGNI** — don't plan features that aren't needed
 
 ## Save
