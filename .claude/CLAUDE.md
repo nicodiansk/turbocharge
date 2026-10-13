@@ -21,7 +21,7 @@ Plugin Structure:
   skills/         → SKILL.md files (user-invocable slash commands)
   agents/         → Agent definitions (dispatched by skills, not invocable directly)
   hooks/          → hooks.json + content files (lifecycle automation)
-  .claude-plugin/ → plugin.json manifest
+  .claude-plugin/ → plugin.json manifest + icon.png (plugin icon)
 ```
 
 ### The Pipeline
@@ -79,6 +79,7 @@ start a new directory submission. Never rename the plugin `name`: it sets every 
 | `hooks/hooks.json` | JSON | Hook registration (lifecycle → command mapping) |
 | `hooks/*.md` | Markdown | Hook content (injected into context) |
 | `.claude-plugin/plugin.json` | JSON | Plugin manifest (name, version, author) |
+| `.claude-plugin/icon.png` | Square PNG, 512–2048 px, < 2 MB | Plugin icon, guarded by `t_plugin_icon.sh`. The directory fixed its listing icon at first submission, so changing this file doesn't change the listing; ask Anthropic via the portal's Get help |
 
 ### Skill Anatomy
 

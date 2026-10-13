@@ -204,6 +204,7 @@ Turbocharge replaces scattered config. `/turbocharge:setup` handles this, but in
 turbocharge/
 ├── .claude-plugin/
 │   ├── plugin.json              # Plugin manifest
+│   ├── icon.png                 # Plugin icon
 │   └── marketplace.json         # Distribution config
 ├── skills/                      # 10 skill definitions
 │   └── <skill-name>/SKILL.md
