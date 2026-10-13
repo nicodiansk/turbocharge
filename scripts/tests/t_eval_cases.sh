@@ -101,4 +101,20 @@ if [ -d "$D" ]; then
     fi
 fi
 
+# --- plan-quality case -----------------------------------------------------
+P="$EVALS/planning/csv-export"
+[ "$(find "$P/graders" -name '*.md' 2>/dev/null | wc -l)" -eq 6 ] || fail "planning-csv-export should have 6 graders"
+if [ -d "$P" ]; then
+    scored=0
+    for g in "$P"/graders/*.md; do
+        [ "$(fm_get "$g" arm)" != with-only ] && [ "$(fm_get "$g" tool)" != Skill ] && scored=$((scored+1))
+    done
+    [ "$scored" -ge 2 ] || fail "planning-csv-export: need 2+ graders that score behavior (got $scored)"
+    ws="$(scaffold "$P")"
+    [ -f "$ws/SPEC.md" ] || fail "planning fixture lacks SPEC.md"
+    grep -qi 'comma' "$ws/SPEC.md" && fail "planning SPEC.md must not mention commas"
+    grep -qi 'quot' "$ws/SPEC.md" && fail "planning SPEC.md must not mention quotes"
+    [ -f "$ws/contacts.py" ] || fail "planning fixture lacks contacts.py"
+fi
+
 [ "$FAIL" -eq 0 ] && echo "  $CASES cases ok" || exit 1
