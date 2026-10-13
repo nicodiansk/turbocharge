@@ -83,6 +83,10 @@ Each task MUST follow this format:
 
 ## Save
 
-Write plan to: `docs/plans/YYYY-MM-DD-<feature-name>.md`
+Write plan to: `docs/plans/YYYY-MM-DD-<feature-name>.md`. When the request names a path for the plan, write it there instead.
 
-Report: plan location, number of tasks, any assumptions made.
+Report: plan location, number of tasks, any assumptions made. End with exactly:
+
+``Next: review `<path>`, then `/turbocharge:build <path>`.``
+
+This skill runs forked and cannot ask for approval; the user reviews the saved plan, and running build is the approval.

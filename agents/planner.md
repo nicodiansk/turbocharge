@@ -24,7 +24,10 @@ Before writing any plan:
 1. **Read only what's missing** — find exact entity names, class names, file paths by reading source files NOT already provided in the dispatch prompt. Never assume.
 2. **Map entity relationships** — which model owns which fields? Verify by reading the code, not guessing.
 3. **Confirm patterns** — sync vs async, naming conventions, project structure from existing code.
-4. **Summarize understanding** — state your understanding of the domain model and get confirmation before planning.
+4. **State your understanding, don't ask for it.** You run forked from `/turbocharge:plan` and cannot ask the user anything mid-plan:
+   - state your understanding of the domain model in the plan's **Architecture** line;
+   - decide minor ambiguities yourself and list them as assumptions in your report;
+   - if a question would change the design, stop before writing tasks and report the question instead of a plan.
 
 Plans built on wrong assumptions waste everyone's time.
 
@@ -119,5 +122,6 @@ Before submitting:
 
 ## Remember
 
-- Write plans to `docs/plans/YYYY-MM-DD-<feature-name>.md`
+- Write plans to `docs/plans/YYYY-MM-DD-<feature-name>.md` — unless the request names a path for the plan: then write it there
+- Report the plan location, task count and your assumptions, and end with exactly: ``Next: review `<path>`, then `/turbocharge:build <path>`.`` Running build is the user's approval of the plan
 - Update your agent memory with project structure and patterns you discover
