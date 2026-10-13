@@ -67,6 +67,18 @@ claude --plugin-dir ./turbocharge
 
 From the directory or from 2.x, update as usual with the update command for your copy above. Your commands stay `/turbocharge:<skill>`, and your session snapshot and setup's CLAUDE.md blocks carry over. 3.x needs Claude Code 2.1.288 or later. Full notes are in the [CHANGELOG](CHANGELOG.md).
 
+## Where it works
+
+Turbocharge is built for **Claude Code**, where the whole pipeline runs. Each Claude app loads a different part of a plugin:
+
+| | Claude Code | Cowork | Chat (claude.ai, desktop, mobile) |
+|:--|:--:|:--:|:--:|
+| 10 skills | ✓ | ✓ | ✓ |
+| 5 agents (builder, reviewers, planner, researcher) | ✓ | ✓ | ignored |
+| SessionStart hook | ✓ | ✓ | ignored |
+
+In Chat, agents and hooks are ignored, so the planning skills (`brainstorm`, `story`, `plan`) are the useful part there. `build`, `review`, `ship` and `debug` need a shell and git, which means Claude Code. A plugin you add on claude.ai also reaches Claude Code at your next session start.
+
 ## The Pipeline
 
 ```
@@ -150,13 +162,15 @@ All agents have `memory: project` for persistent codebase knowledge across sessi
 |:---------|:----|
 | The plugin's own `hooks/*.md` | Bootstrap text and setup nudges |
 | `ATLAS.md` | Its Where to Look table and its `atlas-hash` footer |
-| `.claude/turbocharge-session.json` | The snapshot your last `/turbocharge:wrap` wrote. If it's absent, the 3.0–3.1 name `.claude/turboflow-session.json` |
+| `.claude/turbocharge-session.json` | The snapshot your last `/turbocharge:wrap` wrote, or the 3.0–3.1 `.claude/turboflow-session.json` when that one is newer |
 | Whether `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md` or `AGENTS.md` exist | To pick a setup nudge. Their contents are not read, except `CLAUDE.local.md`'s lines, checked for an `@AGENTS.md` import |
 | Top-level file and folder names | Hashed with `md5sum` (or `md5` on macOS) to spot a stale `ATLAS.md` |
 
 | It runs | When |
 |:--------|:-----|
 | `codemap stats` | Only when the project has a `.codemap/` index and the `codemap` CLI is installed |
+
+**Not part of the plugin:** this repo's `.github/workflows` run Claude's GitHub Action on pull requests, using the repo's own `CLAUDE_CODE_OAUTH_TOKEN` secret. They're CI for maintaining Turbocharge: they never run on your machine and never load into your sessions.
 
 ## Quick Start Examples
 
@@ -202,7 +216,6 @@ turbocharge/
 │   ├── validate.sh              # Plugin health check
 │   └── tests/                   # Content-shape tests
 ├── examples/                    # Sample pipeline outputs
-├── settings.json
 ├── CHANGELOG.md
 └── README.md
 ```

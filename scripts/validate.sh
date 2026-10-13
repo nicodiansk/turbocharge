@@ -132,7 +132,7 @@ echo ""
 
 # 5. Check required files
 echo "--- Required Files ---"
-for f in README.md LICENSE settings.json hooks/hooks.json .gitignore; do
+for f in README.md LICENSE hooks/hooks.json .gitignore; do
     if [[ -f "$PLUGIN_DIR/$f" ]]; then
         pass "$f exists"
     else

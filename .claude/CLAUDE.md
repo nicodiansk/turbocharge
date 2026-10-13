@@ -22,7 +22,6 @@ Plugin Structure:
   agents/         → Agent definitions (dispatched by skills, not invocable directly)
   hooks/          → hooks.json + content files (lifecycle automation)
   .claude-plugin/ → plugin.json manifest
-  settings.json   → Plugin-scoped settings
 ```
 
 ### The Pipeline
@@ -80,7 +79,6 @@ start a new directory submission. Never rename the plugin `name`: it sets every 
 | `hooks/hooks.json` | JSON | Hook registration (lifecycle → command mapping) |
 | `hooks/*.md` | Markdown | Hook content (injected into context) |
 | `.claude-plugin/plugin.json` | JSON | Plugin manifest (name, version, author) |
-| `settings.json` | JSON | Plugin-scoped Claude Code settings |
 
 ### Skill Anatomy
 

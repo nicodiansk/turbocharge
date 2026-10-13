@@ -14,7 +14,9 @@ for p in \
     ".claude/turbocharge-session.json" \
     ".claude/CLAUDE.md" \
     "md5sum" \
-    "codemap stats"; do
+    "codemap stats" \
+    ".github/workflows" \
+    "never run on your machine"; do
     grep -qF "$p" "$F" || { echo "    README missing hook disclosure: $p"; rc=1; }
 done
 # Hook output reaches the model as context, so "nothing leaves" would overclaim.
