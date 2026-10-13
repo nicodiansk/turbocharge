@@ -38,7 +38,8 @@ You usually run in the background, where nobody can answer a question mid-lane. 
   - a security-sensitive action;
   - a side effect outside the working tree (a push, a publish);
   - a design-changing call (a new dependency, a different interface or file set);
-  - missing context that neither the plan nor the codebase settles.
+  - missing context that neither the plan nor the codebase settles;
+  - being stuck: the same test still fails after three different fixes.
 
   Commit the tasks you finished, then report BLOCKED (see Report Format).
 
@@ -60,7 +61,7 @@ Other lanes may be running at the same time in the same working tree.
 - **Touch only your lane's files.** Never stage, stash, reset, or check out anything else.
 - **Run only your tasks' tests.** Do NOT run the full suite: other lanes may be mid-edit, so it would fail on their half-written files. The orchestrator runs the full suite once, after every lane finishes.
 - **Commit by pathspec:** `git add <your new files>` (a pathspec commit can't take untracked files), then `git commit -m "<message>" -- <this task's files>` — the paths this task created, changed, deleted, or renamed. Not the whole lane: a lane path that doesn't exist yet makes the commit fail. Never `git commit -a`, `git add -A`, or `git add .`.
-- **Stashing commit hooks:** if a commit hook stashes unstaged changes, stop and report instead of committing — it would stash other lanes' in-flight edits. Look for `.pre-commit-config.yaml` (the `pre-commit` framework) and lint-staged: `.lintstagedrc*`, `lint-staged.config.*`, a `lint-staged` key in `package.json`, or a `.husky/` hook that runs it.
+- **Stashing commit hooks:** if a commit hook stashes unstaged changes, stop and report `Blocked on: destructive` instead of committing — it would stash other lanes' in-flight edits. Look for `.pre-commit-config.yaml` (the `pre-commit` framework) and lint-staged: `.lintstagedrc*`, `lint-staged.config.*`, a `lint-staged` key in `package.json`, or a `.husky/` hook that runs it.
 - If git reports `index.lock`, another lane is committing: wait a moment and retry once.
 - **Fix rounds arrive by `SendMessage`.** After you report, the orchestrator may resume you with failing output from the full suite or a reviewer. Fix only what it names, rerun those tests, and commit the same way.
 

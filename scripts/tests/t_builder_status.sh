@@ -7,6 +7,16 @@ assert_file "$B" || exit 1
 for p in 'Status: DONE | DONE_WITH_CONCERNS | BLOCKED' '**Rulings**' 'cost if wrong' 'Blocked on:' 'security-sensitive'; do
     grep -qF "$p" "$B" || { echo "    builder.md missing: $p"; exit 1; }
 done
+# Every Blocked on: kind has a stop reason in Rule, Don't Stall, so a builder may use it (stuck feeds build's Opus retry).
+RULE=$(awk '{ sub(/$/, "") } /^### Rule, Don.t Stall/ { s=1; next } /^## / { s=0 } s' "$B")
+KINDS=$(grep -oE 'Blocked on: [a-z |]+ —' "$B" | head -1 | sed -E 's/^Blocked on: //; s/ —$//' | tr -d ' ' | tr '|' ' ')
+[ -n "$KINDS" ] || { echo "    builder.md has no 'Blocked on: <kinds> —' line"; exit 1; }
+for k in $KINDS; do
+    printf '%s
+' "$RULE" | grep -qi -- "$k" || { echo "    Rule, Don't Stall gives no stop reason for Blocked on: $k"; exit 1; }
+done
+# The stashing-hook stop names its kind.
+grep -F 'Stashing commit hooks' "$B" | grep -qF 'Blocked on: destructive' || { echo "    stashing-hook stop names no Blocked on: kind"; exit 1; }
 for p in 'ask now' "Don't guess" 'Ask questions early' 'asks questions'; do
     grep -qF "$p" "$B" && { echo "    builder.md still says: $p"; exit 1; }
 done
