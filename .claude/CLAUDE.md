@@ -134,7 +134,9 @@ claude --plugin-dir .
 # Validate plugin structure
 ./scripts/validate.sh
 
-# Behavioral evals (paid; WSL2/Linux only): WITH / W/OUT / Δ per family
+# Behavioral evals (WSL2/Linux only): WITH / W/OUT / Δ per family. Runs use the logged-in
+# account: on a Max/Pro login they draw plan usage, not API billing. <max-cost-usd> caps the
+# CLI's list-price estimate, i.e. how much usage a run may take
 scripts/eval.sh <max-cost-usd> [--runs 1]
 ```
 
