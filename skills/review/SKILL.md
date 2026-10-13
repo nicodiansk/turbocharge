@@ -32,6 +32,8 @@ Dispatch the code-reviewer agent with this prefix so the subagent sees the navig
 
 Omit either reference if the file doesn't exist. Exception: if CLAUDE.md is missing but `AGENTS.md` exists, use `@AGENTS.md` in its place. `.claude/CLAUDE.md` counts as a CLAUDE.md: if the project keeps it there, use `@.claude/CLAUDE.md`.
 
+**No agent here:** if this review isn't already running as the code-reviewer and `turbocharge:code-reviewer` can't be dispatched (no Agent tool, or the agent type is not registered, as on surfaces that load skills without agents), run the review inline in this session with the same steps and report shape, and say so in one line.
+
 ## Your Review
 
 1. Get the git diff:
@@ -47,10 +49,12 @@ Omit either reference if the file doesn't exist. Exception: if CLAUDE.md is miss
    - **Code quality** — Clean, maintainable, well-tested?
    - **Architecture** — SOLID, good separation, integrates well?
    - **Security** — No vulnerabilities, input validated, secrets safe?
+   - **Beyond the plan** — For behavior the spec and plan don't mention (an empty input, a duplicate, error text, a rerun), judge by what a reasonable user would expect, and grade each gap by its effect on that user. Check that every line of the plan's Review Focus has its pinning test.
 
 4. Report:
    - **Strengths** — What was done well
    - **Issues** — Critical / Important / Minor with `file:line` references
+   - **Declined to judge** — each behavior set aside, one line each, with why (or `Declined to judge: none`). The session that receives this report rules on each line before shipping.
    - **Assessment** — Ready to merge? Yes / No / With fixes
 
 After review, offer: "Ready to ship?" → chains to `/turbocharge:ship`

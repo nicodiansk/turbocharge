@@ -20,4 +20,11 @@ grep -qF 'Review Focus' "$C" || { echo "    code-reviewer must check the plan's 
 # task-reviewer: build reads the two verdict lines first, so the Report Shape fence must still open with Spec.
 first=$(awk '{ sub(/\r$/, "") } /^## Report Shape/ { s=1 } s && /^```/ { f=1; next } f { print; exit }' "$T")
 [ "$first" = 'Spec: ✅ | ❌' ] || { echo "    task-reviewer Report Shape fence must open with 'Spec: ✅ | ❌' (got '$first')"; exit 1; }
+
+# review skill: same rule, declined lines in the report, and an inline fallback when the agent can't be dispatched.
+R="$PLUGIN_DIR/skills/review/SKILL.md"
+assert_file "$R" || exit 1
+for p in 'Declined to judge' 'reasonable user' 'not registered' 'inline'; do
+    grep -qF "$p" "$R" || { echo "    review skill missing: $p"; exit 1; }
+done
 exit 0
