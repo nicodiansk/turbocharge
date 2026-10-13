@@ -1,5 +1,24 @@
 # Changelog
 
+## [3.2.1] - 2026-10-12
+
+Docs and packaging: the real directory install command, a correction to the [3.2.0] notes, a plugin icon and a CI gate. The one user-visible plugin change is the removal of the empty `settings.json`.
+
+### Corrected
+- **[3.2.0] said the 3.0.0 rename premise "was wrong". It was half wrong.** Another author's plugin, also named `turbocharge`, *is* listed in Claude's plugin directory. What 3.0.0 missed was that this plugin's own listing already existed. The directory tells same-named plugins apart by appending the publisher, so ours is `turbocharge-nicodiansk`. Restoring the name is still right: the directory takes the command namespace from `plugin.json` `name`, so the listing's users keep `/turbocharge:`. The [3.2.0] entry stays as released.
+
+### Changed
+- `README.md`: Install leads with the directory, using `claude plugin install turbocharge-nicodiansk@anthropic-plugin-directory` (Claude Code has that marketplace built in) and its `claude plugin update` counterpart. The repo marketplace comes second, for releases before the directory's review. A note says to install one copy, not both, since they register the same commands.
+- `.claude/CLAUDE.md`: the Distribution block gives the directory install id and how to check the live version. The name-history note is corrected.
+- `README.md`: the "Coming from turboflow 3.0–3.1" migration section is gone. Only the maintainer ever installed the interim turboflow releases, so the README's Upgrading section now speaks to directory and 2.x users alone. The compatibility code stays (the `renames` map, the snapshot fallback, setup's turboflow markers), and the [3.2.0] notes keep the migration steps.
+- `README.md`: a new **Where it works** section explains that Claude Code runs the whole pipeline, Cowork loads the skills, agents and hook, and Chat loads only the skills, ignoring agents and hooks. The hook disclosure now says the repo's `.github/workflows` are CI for maintaining the plugin, never run on users' machines, and use only the repo's own secret. The snapshot row says the newer of the two snapshot files loads.
+- Removed the plugin's `settings.json`. It was empty (`permissions: {}`, `env: {}`), Chat and Cowork ignore plugin settings, and the directory flagged it as modifying settings. `validate.sh`, `.claude/CLAUDE.md` and the README tree no longer expect it (`t_no_plugin_settings.sh`).
+- New plugin icon `.claude-plugin/icon.png`: a turbo compressor wheel in the README's palette, 1024×1024 PNG. It clears the directory scan's missing-icon warning. The listing's own icon was fixed at first submission, so replacing it is a request to Anthropic, not a file change (`t_plugin_icon.sh` checks square, 512–2048 px, under 2 MB).
+- CI: new `.github/workflows/tests.yml` runs the full gate (`scripts/validate.sh`, meaning the content-shape tests plus `claude plugin validate --strict`, with Claude Code pinned to 2.1.296) on every PR and on pushes to `master` and `release`. It fails fast without jq and uses no secrets (`t_ci_tests_workflow.sh`).
+- `.claude/CLAUDE.md` Publishing Flow: the directory will track a `release` branch, fast-forwarded with `git push origin vX.Y.Z:release`, so merges to `master` reach repo-marketplace installs without creating directory versions. The switch waits until 3.2.0 is live, because changing the tracked branch cancels a waiting publish request (`t_release_flow_docs.sh`).
+- `README.md`: the Discover hint says which listing to pick. The redundant Update stanza under "Other install methods" is removed, since each install path now carries its own update command.
+- New `t_directory_listing_docs.sh` guards the directory install and update commands, the repo-marketplace commands, the one-copy note and the corrected history. New `t_changelog_321.sh` checks this entry.
+
 ## [3.2.0] - 2026-10-12
 
 **The name is `turbocharge` again.** 3.0.0 renamed the plugin to `turboflow` because we believed a different author already listed `turbocharge` in Claude's plugin directory. That was wrong: the **Turbocharge** listing in the claude.ai plugin directory is this plugin's own (submitted 2026-06-23, published 2026-09-24, live at v2.8.1 with about 300 installs). 3.2.0 restores the plugin, marketplace and repo name `turbocharge` so those users can upgrade without their commands changing, and keeps everything 3.0–3.1 added.

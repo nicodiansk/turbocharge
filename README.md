@@ -23,12 +23,24 @@ You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that c
 
 Requires **Claude Code 2.1.288 or later** (`claude --version`).
 
-Install **Turbocharge** from Claude's plugin directory, where it's listed for Claude Code, or from this repo's marketplace:
+Install **Turbocharge** from Claude's plugin directory. Claude Code has the directory built in, so there's no marketplace to add first:
+
+```bash
+claude plugin install turbocharge-nicodiansk@anthropic-plugin-directory
+# later, to update:
+claude plugin update turbocharge-nicodiansk@anthropic-plugin-directory
+```
+
+Or from this repo's marketplace, which gets each release as soon as it merges instead of after the directory's review:
 
 ```bash
 claude plugin marketplace add nicodiansk/turbocharge
 claude plugin install turbocharge@turbocharge
+# later, to update:
+claude plugin update turbocharge@turbocharge
 ```
+
+Install one or the other, not both: both copies register the same `/turbocharge:` commands. In a session, `/plugin` → **Discover** → search "turbocharge" and pick `turbocharge-nicodiansk` also works.
 
 Restart Claude Code, then start building:
 
@@ -49,40 +61,23 @@ Every skill announces itself, does one job well, and hands you the next step:
 ```bash
 claude --plugin-dir ./turbocharge
 ```
-
-**Update:**
-```bash
-claude plugin update turbocharge@turbocharge
-```
 </details>
 
 ### Upgrading
 
-**From the directory, or from 2.x:** update as usual. Your commands stay `/turbocharge:<skill>`, and your session snapshot and setup's CLAUDE.md blocks carry over.
+From the directory or from 2.x, update as usual with the update command for your copy above. Your commands stay `/turbocharge:<skill>`, and your session snapshot and setup's CLAUDE.md blocks carry over. 3.x needs Claude Code 2.1.288 or later. Full notes are in the [CHANGELOG](CHANGELOG.md).
 
-**Coming from turboflow 3.0–3.1:** those releases shipped under the interim name `turboflow`. 3.2.0 restores `turbocharge`, so every `/turboflow:<skill>` is `/turbocharge:<skill>` again. Claude Code follows the plugin rename through the marketplace's `renames` map, but an existing install keeps its marketplace key. Check it with `claude plugin marketplace list`:
+## Where it works
 
-- **Key `turbocharge`** (you added the marketplace before 3.0.0): run `claude plugin marketplace update turbocharge`, then `claude plugin install turbocharge@turbocharge`. You're back on the standard install id.
-- **Key `turboflow`** (added at 3.0.0 or later): pick one path below.
+Turbocharge is built for **Claude Code**, where the whole pipeline runs. Each Claude app loads a different part of a plugin:
 
-**Quick** — keep the marketplace key:
+| | Claude Code | Cowork | Chat (claude.ai, desktop, mobile) |
+|:--|:--:|:--:|:--:|
+| 10 skills | ✓ | ✓ | ✓ |
+| 5 agents (builder, reviewers, planner, researcher) | ✓ | ✓ | ignored |
+| SessionStart hook | ✓ | ✓ | ignored |
 
-```bash
-claude plugin marketplace update turboflow
-claude plugin install turbocharge@turboflow
-```
-
-**Clean (recommended)** — match the install id above:
-
-```bash
-claude plugin marketplace remove turboflow
-claude plugin marketplace add nicodiansk/turbocharge
-claude plugin install turbocharge@turbocharge
-```
-
-Then run `/reload-plugins` in any open session. Note that `marketplace remove` also uninstalls the plugin and deletes its saved options and data.
-
-Either way, update personal rules, permissions, and scripts that mention `turboflow:*` or `/turboflow:<skill>`. Your `.claude/turboflow-session.json` snapshot (the newer of the two snapshot files loads, and the next `/turbocharge:wrap` retires it) and setup's `<!-- turboflow:… -->` blocks keep working. Full notes are in the [CHANGELOG](CHANGELOG.md).
+In Chat, agents and hooks are ignored, so the planning skills (`brainstorm`, `story`, `plan`) are the useful part there. `build`, `review`, `ship` and `debug` need a shell and git, which means Claude Code. A plugin you add on claude.ai also reaches Claude Code at your next session start.
 
 ## The Pipeline
 
@@ -167,13 +162,15 @@ All agents have `memory: project` for persistent codebase knowledge across sessi
 |:---------|:----|
 | The plugin's own `hooks/*.md` | Bootstrap text and setup nudges |
 | `ATLAS.md` | Its Where to Look table and its `atlas-hash` footer |
-| `.claude/turbocharge-session.json` | The snapshot your last `/turbocharge:wrap` wrote. If it's absent, the 3.0–3.1 name `.claude/turboflow-session.json` |
+| `.claude/turbocharge-session.json` | The snapshot your last `/turbocharge:wrap` wrote, or the 3.0–3.1 `.claude/turboflow-session.json` when that one is newer |
 | Whether `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md` or `AGENTS.md` exist | To pick a setup nudge. Their contents are not read, except `CLAUDE.local.md`'s lines, checked for an `@AGENTS.md` import |
 | Top-level file and folder names | Hashed with `md5sum` (or `md5` on macOS) to spot a stale `ATLAS.md` |
 
 | It runs | When |
 |:--------|:-----|
 | `codemap stats` | Only when the project has a `.codemap/` index and the `codemap` CLI is installed |
+
+**Not part of the plugin:** this repo's `.github/workflows` run Claude's GitHub Action on pull requests, using the repo's own `CLAUDE_CODE_OAUTH_TOKEN` secret. They're CI for maintaining Turbocharge: they never run on your machine and never load into your sessions.
 
 ## Quick Start Examples
 
@@ -207,6 +204,7 @@ Turbocharge replaces scattered config. `/turbocharge:setup` handles this, but in
 turbocharge/
 ├── .claude-plugin/
 │   ├── plugin.json              # Plugin manifest
+│   ├── icon.png                 # Plugin icon
 │   └── marketplace.json         # Distribution config
 ├── skills/                      # 10 skill definitions
 │   └── <skill-name>/SKILL.md
@@ -219,7 +217,6 @@ turbocharge/
 │   ├── validate.sh              # Plugin health check
 │   └── tests/                   # Content-shape tests
 ├── examples/                    # Sample pipeline outputs
-├── settings.json
 ├── CHANGELOG.md
 └── README.md
 ```

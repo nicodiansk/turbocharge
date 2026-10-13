@@ -1,0 +1,28 @@
+name: tests
+
+# Full gate on every PR and on pushes to the branches users install from:
+# content-shape tests + structure checks + `claude plugin validate --strict`
+# (the claude.ai directory's bar). No secrets: nothing here talks to an API.
+on:
+  pull_request:
+  push:
+    branches: [master, release]
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # assert_jq skips silently without jq, which has masked real failures before.
+      - name: Require jq
+        run: jq --version
+
+      - name: Install Claude Code CLI (for plugin validate --strict)
+        run: npm install -g @anthropic-ai/claude-code@2.1.296
+
+      - name: Full gate
+        run: bash scripts/validate.sh

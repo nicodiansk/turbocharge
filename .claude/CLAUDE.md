@@ -21,8 +21,7 @@ Plugin Structure:
   skills/         → SKILL.md files (user-invocable slash commands)
   agents/         → Agent definitions (dispatched by skills, not invocable directly)
   hooks/          → hooks.json + content files (lifecycle automation)
-  .claude-plugin/ → plugin.json manifest
-  settings.json   → Plugin-scoped settings
+  .claude-plugin/ → plugin.json manifest + icon.png (plugin icon)
 ```
 
 ### The Pipeline
@@ -44,11 +43,15 @@ Local dev:    claude --plugin-dir /path/to/turbocharge
 Directory:    claude.ai plugin directory listing "Turbocharge" (ours; submitted 2026-06-23,
               published 2026-09-24). Managed at claude.ai/directory/manage; tracks `master`.
               Each new version is scanned, then needs "Publish update" (a reviewer makes it live).
+              Install id: turbocharge-nicodiansk@anthropic-plugin-directory (Claude Code's
+              built-in marketplace; check the live version with `claude plugin list --available --json`)
 ```
 
-**Name history:** 3.0.0–3.1.1 shipped as `turboflow` because we wrongly believed another author owned
-`turbocharge` in the directory; the listing was ours. 3.2.0 restored `turbocharge`. Never start a new
-directory submission. Never rename the plugin `name`: the listing and every install key off it.
+**Name history:** 3.0.0 renamed the plugin to `turboflow` because another author's plugin named
+`turbocharge` is listed in the directory (`turbocharge-aguerlain-lr`). What 3.0.0 missed: our own listing
+already existed, and the directory tells same-named plugins apart by appending the publisher
+(`turbocharge-nicodiansk`). 3.2.0 restored `turbocharge` so the listing's users keep `/turbocharge:`. Never
+start a new directory submission. Never rename the plugin `name`: it sets every user's command namespace.
 
 ### Domain Terms
 
@@ -76,7 +79,7 @@ directory submission. Never rename the plugin `name`: the listing and every inst
 | `hooks/hooks.json` | JSON | Hook registration (lifecycle → command mapping) |
 | `hooks/*.md` | Markdown | Hook content (injected into context) |
 | `.claude-plugin/plugin.json` | JSON | Plugin manifest (name, version, author) |
-| `settings.json` | JSON | Plugin-scoped Claude Code settings |
+| `.claude-plugin/icon.png` | Square PNG, 512–2048 px, < 2 MB | Plugin icon, guarded by `t_plugin_icon.sh`. The directory fixed its listing icon at first submission, so changing this file doesn't change the listing; ask Anthropic via the portal's Get help |
 
 ### Skill Anatomy
 
@@ -131,3 +134,8 @@ Single-repo as of v2.3.0. No cross-repo sync.
 1. Bump `version` in `.claude-plugin/plugin.json` (the only place it lives)
 2. Update `CHANGELOG.md` with the new entry
 3. Commit + push to `nicodiansk/turbocharge`. Users pick it up via `claude plugin update turbocharge@turbocharge`.
+4. Directory: the listing tracks a **`release`** branch, so merges to `master` don't create directory versions.
+   - **Switch pending:** until 3.2.0 is live it still tracks `master`. Switch it on the portal's Settings tab only after that, because changing the tracked branch cancels a waiting publish request. Before the switch, hold merges to `master` while a version waits for the reviewer.
+   - To send a release to the directory: `git push origin vX.Y.Z:release` (fast-forwards `release` to the tag). The webhook scans it, and once it passes you click **Publish update**.
+   - Merges to `master` reach repo-marketplace installs (`turbocharge@turbocharge`) right away.
+   - The live directory version shows in `claude plugin list --available --json` under `turbocharge-nicodiansk`.
