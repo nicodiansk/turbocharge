@@ -85,4 +85,20 @@ if [ -d "$EVALS/trigger/quick-fix" ]; then
     grep -q recieve "$ws/README.md" || fail "quick-fix README lacks the typo"
 fi
 
+# --- planted-defect review case ------------------------------------------
+D="$EVALS/defects/review-branch"
+[ "$(find "$D/graders" -name '*.md' 2>/dev/null | wc -l)" -eq 7 ] || fail "defects-review should have 7 graders"
+if [ -d "$D" ]; then
+    ws="$(scaffold "$D")"
+    [ "$(git -C "$ws" branch --show-current)" = feature/order-report ] || fail "defects fixture not on feature/order-report"
+    [ -n "$(git -C "$ws" diff main --stat)" ] || fail "defects fixture: empty diff against main"
+    grep -q 'size - 1' "$ws/report.py" || fail "report.py lacks 'size - 1'"
+    grep -q 'except Exception' "$ws/report.py" || fail "report.py lacks 'except Exception'"
+    grep -q 'order\["id"\]' "$ws/report.py" || fail "report.py lacks order[\"id\"]"
+    [ -f "$ws/SPEC.md" ] || fail "defects fixture lacks SPEC.md"
+    if [ -n "$PY" ]; then
+        (cd "$ws" && "$PY" -m unittest >/dev/null 2>&1) || fail "defects fixture tests should pass"
+    fi
+fi
+
 [ "$FAIL" -eq 0 ] && echo "  $CASES cases ok" || exit 1
