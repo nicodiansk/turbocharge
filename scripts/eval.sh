@@ -31,7 +31,7 @@ RESULT_DIR="$ROOT/evals/results/$LABEL"
 RESULT="$RESULT_DIR/aggregate-result.json"
 
 # --output-dir writes the same document and keeps progress printing through a long run.
-claude plugin eval "$ROOT" --trust-plugin --scaffold --allow-tools Bash Write Edit \
+"$CLAUDE_BIN" plugin eval "$ROOT" --trust-plugin --scaffold --allow-tools Bash Write Edit \
     --model "${TC_EVAL_MODEL:-claude-sonnet-5-5}" --judge-model "${TC_EVAL_JUDGE:-claude-sonnet-5-5}" \
     --threshold 0 --no-publish --max-cost-usd "$CAP" --output-dir "$RESULT_DIR" "$@"
 EVAL_RC=$?

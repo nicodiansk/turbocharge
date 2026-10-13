@@ -40,7 +40,7 @@ echo "$OUT" | grep -q 'Run errors counted as measured' && { echo "    unexpected
 
 # --- cost row for a case with 0.50 + 0.10 in each arm (one run per arm) => $1.00 (costUsd already includes the judge)
 doc "[{\"name\":\"trigger-c\",\"aggregates\":{\"score\":1,\"scoreWithout\":0,\"delta\":1},\"arms\":{\"with\":[$(run true 0.5 0.1)],\"without\":[$(run none 0.5 0.1)]}}]" > "$T/cost.json"
-bash "$R" "$T/cost.json" 2>/dev/null | grep -F '| trigger-c |' | grep -q '| \$1.00 |$' || { echo "    case row should end | \$1.20 |"; exit 1; }
+bash "$R" "$T/cost.json" 2>/dev/null | grep -F '| trigger-c |' | grep -q '| \$1.00 |$' || { echo "    case row should end | \$1.00 |"; exit 1; }
 
 # --- case costs sum to the footer cost
 doc "[{\"name\":\"trigger-c\",\"aggregates\":{\"score\":1,\"scoreWithout\":0,\"delta\":1},\"arms\":{\"with\":[$(run true 0.5 0.1)],\"without\":[$(run none 0.5 0.1)]}},{\"name\":\"defects-d\",\"aggregates\":{\"score\":1,\"scoreWithout\":0,\"delta\":1},\"arms\":{\"with\":[$(run none 0.25 0.1)],\"without\":[$(run none 0.25 0.1)]}}]" | jq '.costUsd=1.5' > "$T/sum.json"

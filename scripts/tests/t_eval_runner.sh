@@ -25,4 +25,14 @@ if ERR="$(PATH="$FAKE:$PATH" TC_EVAL_CLAUDE=/mnt/c/fake/claude bash "$E" 1 2>&1 
     echo "    a /mnt/ claude should exit 1"; exit 1
 fi
 echo "$ERR" | grep -qF 'WSL interop' || { echo "    stderr should mention WSL interop: $ERR"; exit 1; }
+
+# The run uses the claude the guard checked (TC_EVAL_CLAUDE), not whatever is first on PATH.
+# A copy of eval.sh in a temp root, with a report stub that rejects, so nothing lands in this repo.
+mkdir -p "$FAKE/root/scripts"
+cp "$E" "$FAKE/root/scripts/eval.sh"
+printf '#!/bin/sh\nexit 1\n' > "$FAKE/root/scripts/eval-report.sh"
+printf '#!/bin/sh\necho "$@" > "%s/called"\n' "$FAKE" > "$FAKE/pinned-claude"
+chmod +x "$FAKE/pinned-claude"
+PATH="$FAKE:$PATH" TC_EVAL_CLAUDE="$FAKE/pinned-claude" TC_EVAL_LABEL=t bash "$FAKE/root/scripts/eval.sh" 1 >/dev/null 2>&1
+grep -q '^plugin eval ' "$FAKE/called" 2>/dev/null || { echo "    eval.sh should run the claude that TC_EVAL_CLAUDE names"; exit 1; }
 exit 0
