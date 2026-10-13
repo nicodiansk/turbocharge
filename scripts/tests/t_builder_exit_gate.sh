@@ -67,4 +67,11 @@ run < <(input SubagentStop turbocharge:builder false); expect_quiet "stop marker
 # malformed input fails open
 echo 'not json' | run; [ "$RC" = 0 ] || fail "malformed input should exit 0"
 
+# registration
+H="$PLUGIN_DIR/hooks/hooks.json"
+assert_jq "$H" '.hooks.SubagentStop[0].matcher == "^turbocharge:builder$"' || exit 1
+assert_jq "$H" '.hooks.PreToolUse[0].matcher == "^SubagentHandback$"' || exit 1
+assert_jq "$H" '.hooks.SubagentStop[0].hooks[0].command | contains("builder-exit-gate.sh")' || exit 1
+assert_jq "$H" '.hooks.PreToolUse[0].hooks[0].command | contains("builder-exit-gate.sh")' || exit 1
+assert_jq "$H" '.hooks.SessionStart' || exit 1
 exit 0
