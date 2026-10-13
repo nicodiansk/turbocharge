@@ -16,8 +16,14 @@ case "$(uname -s)" in
         echo "run under WSL2 or Linux: Claude Code has no sandbox on native Windows, so Bash-granted eval runs are refused" >&2
         exit 1 ;;
 esac
-command -v claude >/dev/null 2>&1 || { echo "eval.sh: claude is not installed" >&2; exit 1; }
+CLAUDE_BIN="${TC_EVAL_CLAUDE:-$(command -v claude 2>/dev/null)}"
+[ -n "$CLAUDE_BIN" ] || { echo "eval.sh: claude is not installed" >&2; exit 1; }
 command -v jq >/dev/null 2>&1 || { echo "eval.sh: jq is not installed" >&2; exit 1; }
+case "$CLAUDE_BIN" in
+    /mnt/*)
+        echo "claude resolves to a Windows binary through WSL interop ($CLAUDE_BIN); install Claude Code for Linux in WSL (curl -fsSL https://claude.ai/install.sh | bash) and put ~/.local/bin first on PATH" >&2
+        exit 1 ;;
+esac
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LABEL="${TC_EVAL_LABEL:-$(jq -r '.version' "$ROOT/.claude-plugin/plugin.json")}"

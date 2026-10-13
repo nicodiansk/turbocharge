@@ -12,4 +12,17 @@ for p in '--trust-plugin' '--scaffold' '--threshold 0' '--no-publish' '--judge-m
 done
 if grep -qF -- '--json' "$E"; then echo "    eval.sh must not use --json"; exit 1; fi
 assert_grep "$PLUGIN_DIR/.gitignore" '^evals/results/' || exit 1
+
+grep -qF -- '/mnt/' "$E" || { echo "    eval.sh should refuse a /mnt/ claude"; exit 1; }
+# A Windows claude reached through WSL interop is refused (uname faked to Linux).
+FAKE="$(mktemp -d)"
+trap 'rm -rf "$FAKE"' EXIT
+printf '#!/bin/sh\necho Linux\n' > "$FAKE/uname"
+printf '#!/bin/sh\nexit 0\n' > "$FAKE/claude"
+printf '#!/bin/sh\nexit 0\n' > "$FAKE/jq"
+chmod +x "$FAKE/uname" "$FAKE/claude" "$FAKE/jq"
+if ERR="$(PATH="$FAKE:$PATH" TC_EVAL_CLAUDE=/mnt/c/fake/claude bash "$E" 1 2>&1 >/dev/null)"; then
+    echo "    a /mnt/ claude should exit 1"; exit 1
+fi
+echo "$ERR" | grep -qF 'WSL interop' || { echo "    stderr should mention WSL interop: $ERR"; exit 1; }
 exit 0
