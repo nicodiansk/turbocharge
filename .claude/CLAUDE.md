@@ -41,7 +41,8 @@ Install:      claude plugin marketplace add nicodiansk/turbocharge
 Update:       claude plugin update turbocharge@turbocharge
 Local dev:    claude --plugin-dir /path/to/turbocharge
 Directory:    claude.ai plugin directory listing "Turbocharge" (ours; submitted 2026-06-23,
-              published 2026-09-24). Managed at claude.ai/directory/manage; tracks `master`.
+              published 2026-09-24). Managed at claude.ai/directory/manage; tracks `master` until the
+              switch to `release` (Publishing Flow step 5).
               Each new version is scanned, then needs "Publish update" (a reviewer makes it live).
               Install id: turbocharge-nicodiansk@anthropic-plugin-directory (Claude Code's
               built-in marketplace; check the live version with `claude plugin list --available --json`)
@@ -106,9 +107,10 @@ session model so architectural planning gets your strongest available model
 floor in normal use, and portable to setups without Opus access. Every other
 agent hard-pins `model: sonnet`.
 
-Opus appears in exactly one place: build retries a **stuck** builder lane once
-with `model: opus` on the Agent call. No agent file pins Opus, and design or
-destructive questions go to the user, never to an Opus retry.
+No agent file pins Opus. Apart from the planner inheriting an Opus session,
+Opus appears in one place: build retries a **stuck** builder lane once with
+`model: opus` on the Agent call. Design or destructive questions go to the user,
+never to an Opus retry.
 
 ### Release Naming
 
