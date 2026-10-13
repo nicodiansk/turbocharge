@@ -131,6 +131,26 @@ Independent lanes **overlap**: builders work in the background while your sessio
 
 Plans written before 3.1 have no Lanes table; build runs them as one lane.
 
+## Measured
+
+Each eval case sends the same prompt to Claude in a fresh, empty workspace, once with Turbocharge loaded (**WITH**) and once with no plugin at all (**W/OUT**). **Δ** is the difference: what the plugin adds. **Fired** counts the runs in which the intended Turbocharge skill was invoked; it has no baseline, because without the plugin there is no skill to fire.
+
+| Family | Cases | WITH | W/OUT | Δ | Fired |
+|---|---|---|---|---|---|
+| defects | 1 | 1.00 | 1.00 | +0.00 | 0/3 |
+| planning | 1 | 1.00 | 0.50 | +0.50 | 3/3 |
+| trigger | 4 | 0.83 | 0.83 | +0.00 | 4/9 |
+
+- **Trigger** (4 cases): natural phrasing should reach the right skill, and its first move should fit: ask before building a vague feature, find the root cause of a failing test, flag the bug in a branch under review, fix a typo without ceremony.
+- **Defects** (1 case): review a branch with 5 planted bugs against its spec. One grader per bug, plus one that penalizes false alarms.
+- **Planning** (1 case): turn a CSV-export spec into a plan. Graded on whether the plan covers fields with commas or quotes (which the spec implies but never names) and whether every task names its files, a concrete expected result and a verify command.
+
+What 3.3.0 shows: planning is where Turbocharge adds the most (+0.50; without it, tasks lacked concrete expected results or verify commands). Trigger and defects show no difference yet. Sonnet found all five planted bugs on its own, and `review` didn't fire on that longer prompt (0/3, though it fired 3/3 on "review my branch before I merge"). `brainstorm` never fired on "add CSV export to this tool" (0/3), so Claude built it straight away in both arms, and `debug` fired in 1 of 3 runs. Those are the targets for the next releases, measured against this baseline.
+
+Claude Code 2.1.296 · model `claude-sonnet-5-5`, judge `claude-sonnet-5-5` · 3 runs per arm · 2026-10-13 · $2.97 list-price estimate (run on a Max plan, so it drew plan usage, not billing).
+
+The suite lives in `evals/` and runs only when a maintainer runs `scripts/eval.sh` (`claude plugin eval`). It never runs in your sessions.
+
 ## Agents
 
 Dispatched by skills. You never invoke them directly.
