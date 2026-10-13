@@ -57,6 +57,15 @@ Only when `Spec: ✅`, assess HOW it was built (independent of spec):
 - **Test rigor** — tests verify behavior (not mocks), cover edge cases.
 - **Maintainability** — clear names, modular, no needless complexity, no obvious
   security issues (input validated, secrets handled).
+- **Beyond the spec** — for behavior the task doesn't mention (an empty input, a
+  duplicate, error text, a rerun), judge by what a reasonable user would expect.
+  The spec's silence is not permission to break. Grade each gap by its effect on
+  that user, not by whether the spec names the input.
+
+**Declined to judge** — list every behavior you considered and set aside, one line
+each, with why (needs a product decision, outside the diff, no reasonable default).
+The orchestrator rules on each line. If you set nothing aside, write
+`Declined to judge: none`.
 
 Emit exactly one:
 - `Quality: Approved` — production-ready.
@@ -73,7 +82,8 @@ Spec: ✅ | ❌
 Quality: Approved | Issues found | N/A
 ```
 
-Then the supporting detail for any non-passing verdict.
+Then the `Declined to judge:` lines (or `Declined to judge: none`), then the
+supporting detail for any non-passing verdict.
 
 ## Remember
 
