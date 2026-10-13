@@ -13,7 +13,7 @@
 
 You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that contradict each other, and a `planner-actually-good.md` you wrote at 2 AM. Claude picks whichever it finds first. You can't remember which is current. Neither can Claude.
 
-**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 5 agents, 1 hook. One system to install, nothing to maintain.
+**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 5 agents, 2 hooks. One system to install, nothing to maintain.
 
 <p align="center">
   <img src="images/before-after.svg" alt="Before: scattered, contradictory config. After: one ordered pipeline." width="100%">
@@ -76,6 +76,7 @@ Turbocharge is built for **Claude Code**, where the whole pipeline runs. Each Cl
 | 10 skills | ✓ | ✓ | ✓ |
 | 5 agents (builder, reviewers, planner, researcher) | ✓ | ✓ | ignored |
 | SessionStart hook | ✓ | ✓ | ignored |
+| Builder exit gate hook (SubagentStop; PreToolUse on SubagentHandback) | ✓ | ✓ | ignored |
 
 In Chat, agents and hooks are ignored, so the planning skills (`brainstorm`, `story`, `plan`) are the useful part there. `build`, `review`, `ship` and `debug` need a shell and git, which means Claude Code. A plugin you add on claude.ai also reaches Claude Code at your next session start.
 
@@ -103,7 +104,7 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 | **build** | `/turbocharge:build` | Runs each lane inline or with one Sonnet builder, overlaps independent lanes, then one full-suite gate. Opt-in per-lane review (`--reviewed`). |
 | **review** | `/turbocharge:review` | Holistic pre-merge code review against the original plan |
 | **debug** | `/turbocharge:debug` | Systematic 4-phase root-cause investigation — no fix until cause is proven |
-| **ship** | `/turbocharge:ship` | Test verification, then merge / PR / keep / discard |
+| **ship** | `/turbocharge:ship` | Test verification, then merge / PR / keep (discard only when you ask) |
 | **wrap** | `/turbocharge:wrap` | Session continuity — captures state, generates resume prompt |
 
 ## Why a Pipeline
@@ -130,6 +131,26 @@ Independent lanes **overlap**: builders work in the background while your sessio
 
 Plans written before 3.1 have no Lanes table; build runs them as one lane.
 
+## Measured
+
+Each eval case sends the same prompt to Claude in a fresh, empty workspace, once with Turbocharge loaded (**WITH**) and once with no plugin at all (**W/OUT**). **Δ** is the difference: what the plugin adds. **Fired** counts the runs in which the intended Turbocharge skill was invoked; it has no baseline, because without the plugin there is no skill to fire.
+
+| Family | Cases | WITH | W/OUT | Δ | Fired |
+|---|---|---|---|---|---|
+| defects | 1 | 1.00 | 1.00 | +0.00 | 0/3 |
+| planning | 1 | 1.00 | 0.50 | +0.50 | 3/3 |
+| trigger | 4 | 0.83 | 0.83 | +0.00 | 4/9 |
+
+- **Trigger** (4 cases): natural phrasing should reach the right skill, and its first move should fit: ask before building a vague feature, find the root cause of a failing test, flag the bug in a branch under review, fix a typo without ceremony.
+- **Defects** (1 case): review a branch with 5 planted bugs against its spec. One grader per bug, plus one that penalizes false alarms.
+- **Planning** (1 case): turn a CSV-export spec into a plan. Graded on whether the plan covers fields with commas or quotes (which the spec implies but never names) and whether every task names its files, a concrete expected result and a verify command.
+
+What 3.3.0 shows: planning is where Turbocharge adds the most (+0.50; without it, tasks lacked concrete expected results or verify commands). Trigger and defects show no difference yet. Sonnet found all five planted bugs on its own, and `review` didn't fire on that longer prompt (0/3, though it fired 3/3 on "review my branch before I merge"). `brainstorm` never fired on "add CSV export to this tool" (0/3), so Claude built it straight away in both arms, and `debug` fired in 1 of 3 runs. Those are the targets for the next releases, measured against this baseline.
+
+Claude Code 2.1.296 · model `claude-sonnet-5-5`, judge `claude-sonnet-5-5` · 3 runs per arm · 2026-10-13 · $2.97 list-price estimate (run on a Max plan, so it drew plan usage, not billing).
+
+The suite lives in `evals/` and runs only when a maintainer runs `scripts/eval.sh` (`claude plugin eval`). It never runs in your sessions.
+
 ## Agents
 
 Dispatched by skills. You never invoke them directly.
@@ -153,8 +174,9 @@ All agents have `memory: project` for persistent codebase knowledge across sessi
 | Hook | When | What |
 |:-----|:-----|:-----|
 | **SessionStart** | Start of session | Loads `ATLAS.md` Where to Look table, injects CodeMap stats when `.codemap/` present, restores session snapshot, flags a missing CLAUDE.md (AGENTS.md-aware, including an AGENTS.md that `CLAUDE.local.md` keeps from loading) or ATLAS.md, checks ATLAS staleness. Each section is capped so the output stays under Claude Code's 10,000-char inline limit |
+| **SubagentStop**, **PreToolUse** on `SubagentHandback` | A `turbocharge:builder` stops, or (auto mode) is about to hand back its report | Builder exit gate: keeps the builder going once while files it edited are uncommitted |
 
-### What the hook does
+### What the hooks do
 
 `hooks/session-start.sh` runs whenever a session starts, resumes, or is cleared or compacted. It is read-only: it prints text to stdout and does nothing else. It writes no files, changes no settings or permissions, and sends nothing over the network itself. What it prints becomes part of the session context, so it reaches the model like any file Claude reads.
 
@@ -169,6 +191,8 @@ All agents have `memory: project` for persistent codebase knowledge across sessi
 | It runs | When |
 |:--------|:-----|
 | `codemap stats` | Only when the project has a `.codemap/` index and the `codemap` CLI is installed |
+
+`hooks/builder-exit-gate.sh` runs when a `turbocharge:builder` subagent stops (`SubagentStop`), and in auto mode just before such a builder hands back its report (`PreToolUse` on `SubagentHandback`). For any other agent or tool it returns at once. It reads the hook input on stdin and that builder's transcript, lists the files the builder edited with Edit or Write, and runs `git status --porcelain` on those files only. If any are uncommitted, it keeps the builder going with "commit these by pathspec … or say why they must stay uncommitted". It does this once per builder: it finds its own earlier message in the transcript, so a builder resumed later for a fix round isn't checked again. It writes no files, changes no settings, and sends nothing over the network. It needs `jq`, and does nothing without it. Inline lanes, which run in your main session, aren't covered.
 
 **Not part of the plugin:** this repo's `.github/workflows` run Claude's GitHub Action on pull requests, using the repo's own `CLAUDE_CODE_OAUTH_TOKEN` secret. They're CI for maintaining Turbocharge: they never run on your machine and never load into your sessions.
 
@@ -212,9 +236,12 @@ turbocharge/
 │   └── <agent-name>.md
 ├── hooks/
 │   ├── hooks.json               # Hook registration
+│   ├── *.sh                     # Hook scripts (SessionStart, builder exit gate)
 │   └── *.md                     # Hook content files
+├── evals/                       # Eval suite (maintainer-only; never runs in your sessions)
 ├── scripts/
 │   ├── validate.sh              # Plugin health check
+│   ├── eval.sh                  # Runs the eval suite (claude plugin eval)
 │   └── tests/                   # Content-shape tests
 ├── examples/                    # Sample pipeline outputs
 ├── CHANGELOG.md

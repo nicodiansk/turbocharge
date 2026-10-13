@@ -1,6 +1,6 @@
 ---
 name: ship
-description: Use when implementation and review are complete and you need to integrate the work. Verifies tests, presents structured options for merge, PR, keep, or discard, and handles cleanup.
+description: Use when implementation and review are complete and you need to integrate the work. Verifies tests, presents options to merge, open a PR, or keep the branch; discards only on explicit request, and handles cleanup.
 disable-model-invocation: true
 ---
 
@@ -34,10 +34,11 @@ Implementation complete. What would you like to do?
 1. Merge back to <base-branch> locally
 2. Push and create a Pull Request
 3. Keep the branch as-is (I'll handle it later)
-4. Discard this work
 
 Which option?
 ```
+
+Present the menu exactly as written. Discarding the work is not an option on it: it happens only when the user explicitly asks (see below).
 
 ## Step 4: Execute Choice
 
@@ -66,14 +67,14 @@ EOF
 ### Option 3: Keep As-Is
 Report: "Keeping branch. Worktree preserved at <path>."
 
-### Option 4: Discard
-Require typed "discard" confirmation. Then:
+### Discard (only on explicit request)
+Only when the user explicitly asks to throw the work away. Require typed "discard" confirmation: list the branch and its commits that will be deleted, and wait for the exact word `discard`. "Yeah, get rid of it" is not the confirmation. Then:
 ```bash
 git checkout <base-branch>
 git branch -D <feature-branch>
 ```
 
-## Step 5: Cleanup Worktree (Options 1, 2, 4)
+## Step 5: Cleanup Worktree (Options 1 and 2, or after a discard)
 
 ```bash
 git worktree list | grep $(git branch --show-current)

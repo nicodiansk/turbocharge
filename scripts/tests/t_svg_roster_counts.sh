@@ -1,20 +1,16 @@
 #!/usr/bin/env bash
 # ABOUTME: Tests that "N skills · N agents · N hooks" taglines in SVGs match ground truth.
-# ABOUTME: Skills/agents come from plugin.json; hooks from hooks.json keys (the 2.7.0 6->5 guard).
+# ABOUTME: Skills/agents come from plugin.json; hooks = distinct hook scripts named in hooks.json (one script on two events is one hook).
 source "$PLUGIN_DIR/scripts/tests/helpers.sh"
 P="$PLUGIN_DIR/.claude-plugin/plugin.json"
 H="$PLUGIN_DIR/hooks/hooks.json"
 assert_file "$P" || exit 1
 assert_file "$H" || exit 1
 
-# Canonical counts: skills/agents from the manifest description, hooks from hooks.json.
+# Canonical counts: skills/agents from the manifest description, hooks = distinct hooks/<name>.sh scripts in hooks.json.
 SKILLS=$(grep -oE '[0-9]+ skills' "$P" | grep -oE '[0-9]+')
 AGENTS=$(grep -oE '[0-9]+ agents' "$P" | grep -oE '[0-9]+')
-if command -v jq >/dev/null 2>&1; then
-    HOOKS=$(jq -r '.hooks | keys | length' "$H")
-else
-    HOOKS=$(grep -cE '^    "[A-Za-z]+": \[' "$H")
-fi
+HOOKS=$(grep -oE 'hooks/[A-Za-z0-9_-]+\.sh' "$H" | sort -u | wc -l | tr -d ' ')
 [ -n "$SKILLS" ] && [ -n "$AGENTS" ] && [ -n "$HOOKS" ] || { echo "    could not read canonical counts (skills=$SKILLS agents=$AGENTS hooks=$HOOKS)"; exit 1; }
 
 rc=0
