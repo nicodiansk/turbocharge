@@ -40,6 +40,8 @@ Start from the plan's Executor hint, then override:
 - `--inline` runs every lane inline; `--delegate` gives every lane a builder.
 - If a lane's route isn't obvious, ask the user.
 
+**No agents here:** if the Agent tool is missing, or a dispatch fails because `turbocharge:builder` is not registered (some surfaces load skills without agents), run every builder lane inline (Step 4), one lane at a time, and say once: `agents unavailable — running lanes inline`.
+
 **Overlap:** lanes with no `After` path between them run at the same time — builder lanes in the background while the main session works the inline lanes. A lane with `After` starts only when every lane it names has finished (Step 5).
 
 **No overlap with stashing commit hooks:** if the project's commit hooks stash unstaged changes, run lanes one at a time. Check for the `pre-commit` framework (`.pre-commit-config.yaml`) and lint-staged — `.lintstagedrc*`, `lint-staged.config.*`, a `lint-staged` key in `package.json`, or a `.husky/` hook that runs it. A pathspec commit leaves every other lane's in-flight edits unstaged, and the hook would stash them out from under that lane.
@@ -134,7 +136,11 @@ For security-sensitive code, unfamiliar codebases, or complex integrations. Revi
    - Working directory. Do NOT send the builder's narrative report — the reviewer reads the diff, not claims.
 3. Then wait for its completion notification and apply the disposition.
 
-The reviewer returns two verdicts: `Spec: ✅ / ❌` and `Quality: Approved / Issues found / N/A` (N/A when Spec is ❌ — quality isn't assessed on code that will be rewritten).
+The reviewer returns two verdicts: `Spec: ✅ / ❌` and `Quality: Approved / Issues found / N/A` (N/A when Spec is ❌ — quality isn't assessed on code that will be rewritten), then its `Declined to judge:` lines.
+
+If `turbocharge:task-reviewer` is not registered, or there is no Agent tool, review the lane diff yourself against the task-reviewer's checklist and give the same two verdicts plus Declined to judge lines.
+
+**Declined to judge:** rule on every line. If it's in scope, it becomes a finding under the disposition below, graded by its effect on a reasonable user. If it's out of scope, carry it to Step 7 as `set aside: <line>`. A line you skip is a decision nobody saw.
 
 **Disposition:**
 - **Spec ❌, or Quality has any 🔴 Critical:** fix only those items — builder lane: `SendMessage` the lane's builder; inline lane: fix in the main session. Then `SendMessage` the same task-reviewer to re-review the new diff. **Max 2 cycles** — escalate to the user if still failing.
