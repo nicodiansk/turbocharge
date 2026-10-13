@@ -2,7 +2,7 @@
 
 ## [3.2.1] - 2026-10-12
 
-Docs: the real directory install command, and a correction to the [3.2.0] notes. No behavior change.
+Docs and packaging: the real directory install command, a correction to the [3.2.0] notes, a plugin icon and a CI gate. The one user-visible plugin change is the removal of the empty `settings.json`.
 
 ### Corrected
 - **[3.2.0] said the 3.0.0 rename premise "was wrong". It was half wrong.** Another author's plugin, also named `turbocharge`, *is* listed in Claude's plugin directory. What 3.0.0 missed was that this plugin's own listing already existed. The directory tells same-named plugins apart by appending the publisher, so ours is `turbocharge-nicodiansk`. Restoring the name is still right: the directory takes the command namespace from `plugin.json` `name`, so the listing's users keep `/turbocharge:`. The [3.2.0] entry stays as released.
