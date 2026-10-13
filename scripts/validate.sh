@@ -63,7 +63,9 @@ for skill in $EXPECTED_SKILLS; do
             error "skills/$skill/SKILL.md — missing description in frontmatter"
         fi
         # Check description length (< 1024 chars)
-        desc_len=$(sed -n '/^description:/,/^[a-z]/p' "$skill_file" | head -5 | wc -m)
+        # sed -n '1,5p' reads all its input; `head -5` would exit early and SIGPIPE the
+        # first sed, which pipefail + set -e turn into a dead gate (seen on Linux CI).
+        desc_len=$(sed -n '/^description:/,/^[a-z]/p' "$skill_file" | sed -n '1,5p' | wc -m)
         if (( desc_len > 1024 )); then
             error "skills/$skill/SKILL.md — description exceeds 1024 chars ($desc_len)"
         fi
