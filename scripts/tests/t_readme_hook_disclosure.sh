@@ -16,7 +16,14 @@ for p in \
     "md5sum" \
     "codemap stats" \
     ".github/workflows" \
-    "never run on your machine" \n    "SubagentStop" \n    "SubagentHandback" \n    "builder-exit-gate.sh" \n    "git status --porcelain" \n    "commit these by pathspec" \n    "jq"; do
+    "never run on your machine" \
+    "SubagentStop" \
+    "SubagentHandback" \
+    "builder-exit-gate.sh" \
+    "git status --porcelain" \
+    "commit these by pathspec" \
+    "isn't checked again" \
+    "jq"; do
     grep -qF "$p" "$F" || { echo "    README missing hook disclosure: $p"; rc=1; }
 done
 grep -qF "### What the hook does" "$F" && { echo "    README still has the single-hook heading"; rc=1; }

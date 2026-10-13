@@ -3,6 +3,7 @@
 # ABOUTME: Reads hook JSON on stdin with jq; checks only paths this builder edited via git status. Fails open (exit 0) on anything unexpected.
 # ABOUTME: Read-only — writes nothing, no network, runs only jq and git. Exit 2 sends stderr to the builder as its next instruction.
 # ABOUTME: Known limit — the transcript is written asynchronously, so the last turn (the report) can be missing; the edits come turns earlier.
+# ABOUTME: Known limit — blocks once per transcript: a builder resumed by SendMessage keeps its transcript, so later edits aren't checked again.
 set -u
 
 command -v jq >/dev/null 2>&1 || exit 0
