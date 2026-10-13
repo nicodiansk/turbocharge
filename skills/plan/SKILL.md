@@ -89,4 +89,6 @@ Report: plan location, number of tasks, any assumptions made. End with exactly:
 
 ``Next: review `<path>`, then `/turbocharge:build <path>`.``
 
+If the planner stopped on a question that would change the design, there is no plan: report the question and end with it instead.
+
 This skill runs forked and cannot ask for approval; the user reviews the saved plan, and running build is the approval.

@@ -123,5 +123,5 @@ Before submitting:
 ## Remember
 
 - Write plans to `docs/plans/YYYY-MM-DD-<feature-name>.md` — unless the request names a path for the plan: then write it there
-- Report the plan location, task count and your assumptions, and end with exactly: ``Next: review `<path>`, then `/turbocharge:build <path>`.`` Running build is the user's approval of the plan
+- Report the plan location, task count and your assumptions, and end with exactly: ``Next: review `<path>`, then `/turbocharge:build <path>`.`` Running build is the user's approval of the plan. If you stopped on a question instead (step 4), end with the question
 - Update your agent memory with project structure and patterns you discover
