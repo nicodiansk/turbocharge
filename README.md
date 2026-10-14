@@ -138,17 +138,23 @@ Each eval case sends the same prompt to Claude in a fresh, empty workspace, once
 
 | Family | Cases | WITH | W/OUT | Δ | Fired |
 |---|---|---|---|---|---|
-| defects | 1 | 1.00 | 1.00 | +0.00 | 0/3 |
+| defects | 2 | 0.85 | 0.96 | -0.10 | 6/6 |
 | planning | 1 | 1.00 | 0.50 | +0.50 | 3/3 |
-| trigger | 4 | 0.83 | 0.83 | +0.00 | 4/9 |
+| triage | 1 | 1.00 | 0.75 | +0.25 | 3/3 |
+| trigger | 4 | 1.00 | 0.83 | +0.17 | 6/9 |
+
+Sample: 2 defects cases, 1 planning, 4 trigger, 1 triage; 3 runs per arm, 48 runs in all. A difference of one run in three is noise-sized.
 
 - **Trigger** (4 cases): natural phrasing should reach the right skill, and its first move should fit: ask before building a vague feature, find the root cause of a failing test, flag the bug in a branch under review, fix a typo without ceremony.
-- **Defects** (1 case): review a branch with 5 planted bugs against its spec. One grader per bug, plus one that penalizes false alarms.
+- **Defects** (2 cases): review a branch against its spec. One branch has 5 planted bugs; a larger one has 7 cross-file and spec-implied bugs plus 3 decoys that look wrong but aren't. One grader per bug, plus one that penalizes false alarms.
 - **Planning** (1 case): turn a CSV-export spec into a plan. Graded on whether the plan covers fields with commas or quotes (which the spec implies but never names) and whether every task names its files, a concrete expected result and a verify command.
+- **Triage** (1 case): three PR review comments handed over in a file (a real bug, a false positive, a style nit). Fix the bug, rebut the false positive, leave the nit to you, push nothing.
 
-What 3.3.0 shows: planning is where Turbocharge adds the most (+0.50; without it, tasks lacked concrete expected results or verify commands). Trigger and defects show no difference yet. Sonnet found all five planted bugs on its own, and `review` didn't fire on that longer prompt (0/3, though it fired 3/3 on "review my branch before I merge"). `brainstorm` never fired on "add CSV export to this tool" (0/3), so Claude built it straight away in both arms, and `debug` fired in 1 of 3 runs. Those are the targets for the next releases, measured against this baseline.
+What 3.4.0 shows: `brainstorm` now fires on "add CSV export to this tool" (3/3, was 0/3), lifting trigger to +0.17, while the typo fix still gets no ceremony. `review` fires on both defects prompts (6/6, was 0/3). Triage gains +0.25: without the plugin, every run changed `slugify`'s signature, which the style nit asked for and the plugin leaves to you. Planning holds at +0.50. Defects reads −0.10, and all of it is the false-alarm grader: with the plugin, the reviewer found every planted bug in every run (36 of 36) but rated extra findings Critical or Important. Some were real bugs the larger fixture held by accident, which the grader counted as false alarms; the fixtures were cleaned after this run and aren't re-measured yet. `debug` didn't fire (0/3), and Sonnet found the root cause anyway.
 
-Claude Code 2.1.296 · model `claude-sonnet-5-5`, judge `claude-sonnet-5-5` · 3 runs per arm · 2026-10-13 · $2.97 list-price estimate (run on a Max plan, so it drew plan usage, not billing).
+Swarm against one reviewer (the same two defects cases, with the prompt `/turbocharge:review SPEC.md`, 3 runs each, with the plugin only): the swarm found 34 of 36 planted bugs and one reviewer 36 of 36. The swarm's false-alarm grader passed 3 of 6 runs, one reviewer's 0 of 6, at about 3–4× the cost ($0.9–1.3 a review against $0.25–0.45). So the swarm runs when you ask for it, and one reviewer runs otherwise.
+
+Claude Code 2.1.296 · model `claude-sonnet-5-5`, judge `claude-sonnet-5-5` · 3 runs per arm · 2026-10-14 · $6.59 list-price estimate (run on a Max plan, so it drew plan usage, not billing). Measured on the plugin as released (`e5abd26`); only the eval fixtures changed after.
 
 The suite lives in `evals/` and runs only when a maintainer runs `scripts/eval.sh` (`claude plugin eval`). It never runs in your sessions.
 
