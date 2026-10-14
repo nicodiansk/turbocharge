@@ -102,7 +102,7 @@ emit_nudge() {
 # jq-free: the date comes from a sed match, the day count from awk's civil-day formula
 # (no `date -d` / `date -j`, which differ between GNU and BSD). Nothing goes to stderr.
 snapshot_stale_note() {
-    local snap_date today days reasons=""
+    local snap_date today days snap_branch head_branch reasons=""
     snap_date=$(sed -n 's/.*"date"[[:space:]]*:[[:space:]]*"\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\)".*/\1/p' "$1" 2>/dev/null | head -n 1)
     today=$(date +%Y-%m-%d 2>/dev/null)
     if [ -n "$snap_date" ] && [ -n "$today" ]; then
@@ -120,6 +120,12 @@ snapshot_stale_note() {
         if [ -n "$days" ] && [ "$days" -gt "$SNAPSHOT_STALE_DAYS" ] 2>/dev/null; then
             reasons="written $snap_date, $days days ago"
         fi
+    fi
+    # Only the first word of "branch" is compared: real snapshots hold prose ("feat/x @ ef9753f, pushed; ...").
+    snap_branch=$(sed -n 's/.*"branch"[[:space:]]*:[[:space:]]*"\([^" ]*\).*/\1/p' "$1" 2>/dev/null | head -n 1)
+    head_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    if [ -n "$snap_branch" ] && [ -n "$head_branch" ] && [ "$head_branch" != "HEAD" ] && [ "$snap_branch" != "$head_branch" ]; then
+        reasons="${reasons:+$reasons; }written on branch $snap_branch, HEAD is on $head_branch"
     fi
     if [ -n "$reasons" ]; then
         printf 'Note: this snapshot may be stale (%s). Check it against git log before relying on it.\n' "$reasons"

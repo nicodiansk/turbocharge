@@ -40,6 +40,37 @@ run_case legacy '{"marker": "LEGACY_1"}'
 echo "$OUT" | grep -q 'may be stale' && fail "legacy snapshot flagged"
 echo "$OUT" | grep -q 'LEGACY_1' || fail "legacy snapshot not shown"
 
+
+# --- Branch mismatch (Task 19) ---
+# run_git_case NAME SNAPSHOT_JSON [detach] — temp git repo on feat/x.
+run_git_case() {
+    D="$TMP/$1"; mkdir -p "$D/.claude"
+    printf '%s\n' "$2" > "$D/.claude/turbocharge-session.json"
+    ( cd "$D" && git init -q -b feat/x . && git -c user.email=t@t -c user.name=t commit -q --allow-empty -m init \
+        && { [ "$3" != detach ] || git checkout -q --detach; } ) >/dev/null 2>&1
+    cd "$D" || exit 1
+    OUT="$(bash "$F" 2>"$TMP/err")"; ERR="$(cat "$TMP/err")"
+    cd "$TMP" || exit 1
+    [ -z "$ERR" ] || fail "$1: stderr not empty: $ERR"
+}
+
+run_git_case other "{\"date\": \"$TODAY\", \"branch\": \"master @ abc1234, pushed\"}"
+echo "$OUT" | grep -qF 'written on branch master, HEAD is on feat/x' || fail "other branch: no mismatch reason"
+
+run_git_case same "{\"date\": \"$TODAY\", \"branch\": \"feat/x @ ef9753f, pushed; tree clean\"}"
+echo "$OUT" | grep -q 'may be stale' && fail "same branch (prose value) flagged"
+
+run_git_case detached "{\"date\": \"$TODAY\", \"branch\": \"master\"}" detach
+echo "$OUT" | grep -q 'may be stale' && fail "detached HEAD flagged"
+
+run_case nogit "{\"date\": \"$TODAY\", \"branch\": \"master\"}"
+echo "$OUT" | grep -q 'may be stale' && fail "non-git dir flagged"
+
+run_git_case both '{"date": "2020-01-01", "branch": "master"}'
+echo "$OUT" | grep -qF 'may be stale (written 2020-01-01, ' || fail "both: age reason missing"
+echo "$OUT" | grep -qE 'days ago; written on branch master, HEAD is on feat/x\)\.' || fail "both: reasons not joined by '; ' in one line"
+[ "$(echo "$OUT" | grep -c 'may be stale')" -eq 1 ] || fail "both: expected exactly one note line"
+
 # Budget: a 300-line old snapshot beside an oversized ATLAS.md stays under the inline limit, note kept.
 D="$TMP/big"; mkdir -p "$D/.claude"; cd "$D" || exit 1
 { echo "## Where to Look"; i=0; while [ "$i" -lt 400 ]; do echo "| thing $i | path/to/file_$i.ext:1-50 | long filler text to fill space |"; i=$((i+1)); done; } > ATLAS.md
