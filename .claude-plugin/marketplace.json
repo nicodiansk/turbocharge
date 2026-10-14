@@ -1,0 +1,24 @@
+{
+  "name": "turbocharge",
+  "owner": {
+    "name": "Nicholas",
+    "email": "nicholasprevitali96@gmail.com"
+  },
+  "metadata": {
+    "description": "Engineering team orchestration plugins for Claude Code"
+  },
+  "renames": {
+    "turboflow": "turbocharge"
+  },
+  "plugins": [
+    {
+      "name": "turbocharge",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/nicodiansk/turbocharge.git"
+      },
+      "description": "Engineering team orchestration for Claude Code. 10 skills, 6 agents, 2 hooks, 1 workflow — single pipeline from brainstorm to shipped code.",
+      "strict": true
+    }
+  ]
+}
