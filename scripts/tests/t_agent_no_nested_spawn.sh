@@ -4,7 +4,7 @@
 source "$PLUGIN_DIR/scripts/tests/helpers.sh"
 # list_field FILE KEY — print one comma-separated frontmatter list value per line, trimmed.
 list_field() { frontmatter "$1" | sed -n "s/^$2:[[:space:]]*//p" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//'; }
-for a in researcher task-reviewer code-reviewer; do
+for a in researcher task-reviewer code-reviewer verifier; do
     F="$PLUGIN_DIR/agents/$a.md"
     assert_file "$F" || exit 1
     list_field "$F" disallowedTools | grep -qx "Agent" \

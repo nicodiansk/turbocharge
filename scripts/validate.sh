@@ -85,7 +85,7 @@ echo ""
 
 # 3. Check agents
 echo "--- Agents ---"
-EXPECTED_AGENTS="builder task-reviewer code-reviewer planner researcher"
+EXPECTED_AGENTS="builder task-reviewer code-reviewer planner researcher verifier"
 for agent in $EXPECTED_AGENTS; do
     agent_file="$PLUGIN_DIR/agents/$agent.md"
     if [[ -f "$agent_file" ]]; then
@@ -101,6 +101,8 @@ for agent in $EXPECTED_AGENTS; do
         fi
         if grep -q "^memory:" "$agent_file"; then
             pass "agents/$agent.md — has memory field"
+        elif [[ "$agent" == "verifier" ]]; then
+            pass "agents/$agent.md — no memory by design (judges the evidence in front of it)"
         else
             warn "agents/$agent.md — missing memory field"
         fi
