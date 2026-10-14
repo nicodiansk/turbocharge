@@ -80,6 +80,38 @@ git checkout <base-branch>
 git branch -D <feature-branch>
 ```
 
+## Watch and triage
+
+Reached from Option 2's watch offer, or from `--watch <PR#>`. Waits for the PR's checks, then triages its review comments.
+
+**One OK up front.** In one message, before any outward action, ask once to: push fix commits to `<branch>` (never force-push), reply in comment threads, post issue comments, run at most 2 fix rounds, and never merge. A no gives read-only triage: classify and report, nothing outward.
+
+**Resolve:**
+```bash
+gh pr view <n> --json number,url,headRefName,isDraft
+gh repo view --json nameWithOwner   # {owner}/{repo}
+gh api user --jq .login             # me
+```
+
+**Checks:** run `gh pr checks <n> --watch` with `run_in_background` and wait for its completion notification. Red checks go in the report with the failing job; they are not auto-fixed.
+
+**Don't wait for a new automated review.** Once the checks finish, collect what exists. After `gh pr ready` or a push, a new automated review may never come.
+
+**Collect**, bots included (the automated reviewer posts issue comments):
+```bash
+gh api --paginate repos/{owner}/{repo}/pulls/{pr}/comments    # inline
+gh api --paginate repos/{owner}/{repo}/issues/{pr}/comments   # issue
+```
+
+**Skip what is already answered**, so a rerun or round 2 answers nothing twice:
+- comments written by `me`;
+- inline comments whose thread (the same `in_reply_to_id` root) has a later reply by `me`;
+- issue comments whose `html_url` appears in a later comment by `me`.
+
+Each remaining comment becomes an item: id, kind (inline or issue), author, path:line (inline), body, url.
+
+**Offline:** comments handed over as a file or pasted become the same items, with no checks, no push and no replies; draft the replies instead.
+
 ## Step 5: Cleanup Worktree (Options 1 and 2, or after a discard)
 
 ```bash
