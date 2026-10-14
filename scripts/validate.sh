@@ -157,10 +157,18 @@ fi
 # A missing CLI is a visible warning, never a silent skip.
 echo "--- claude plugin validate --strict ---"
 if command -v claude >/dev/null 2>&1; then
+    # `validate <dir>` sees .claude-plugin/marketplace.json and checks only that; the plugin
+    # manifest run is what inspects skills, agents and hooks.
     if STRICT_OUT=$(claude plugin validate "$PLUGIN_DIR" --strict 2>&1); then
-        pass "claude plugin validate --strict passed"
+        pass "claude plugin validate --strict passed (marketplace)"
     else
-        error "claude plugin validate --strict failed:"
+        error "claude plugin validate --strict failed (marketplace):"
+        printf '%s\n' "$STRICT_OUT" | sed 's/^/         /'
+    fi
+    if STRICT_OUT=$(claude plugin validate "$PLUGIN_DIR/.claude-plugin/plugin.json" --strict 2>&1); then
+        pass "claude plugin validate --strict passed (plugin)"
+    else
+        error "claude plugin validate --strict failed (plugin):"
         printf '%s\n' "$STRICT_OUT" | sed 's/^/         /'
     fi
 else
