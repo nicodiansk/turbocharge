@@ -13,5 +13,9 @@ grep -qF 'Options 1, 2, 4' "$S"             && { echo "    cleanup heading still
 grep -qF 'Option 4' "$S"                    && { echo "    ship still has an Option 4"; exit 1; }
 FM=$(frontmatter "$S")
 printf '%s\n' "$FM" | grep '^description:' | grep -qF 'or discard' && { echo "    description still offers discard"; exit 1; }
-printf '%s\n' "$FM" | grep -qx 'disable-model-invocation: true' || { echo "    ship must stay disable-model-invocation: true"; exit 1; }
+printf '%s\n' "$FM" | grep -q '^disable-model-invocation' && { echo "    ship must be model-invocable (no disable-model-invocation)"; exit 1; }
+printf '%s\n' "$FM" | grep '^description:' | grep -qF -- '--watch' || { echo "    description must mention --watch"; exit 1; }
+for p in "waits for the user's pick" 'Never merge' 'Watch PR #' '--watch <PR#>'; do
+  grep -qF -- "$p" "$S" || { echo "    ship missing: $p"; exit 1; }
+done
 exit 0

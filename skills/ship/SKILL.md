@@ -1,7 +1,7 @@
 ---
 name: ship
-description: Use when implementation and review are complete and you need to integrate the work. Verifies tests, presents options to merge, open a PR, or keep the branch; discards only on explicit request, and handles cleanup.
-disable-model-invocation: true
+description: Use when implementation and review are complete and you need to integrate the work, or to watch a pull request's checks and triage its review comments. Verifies tests, presents options to merge, open a PR, or keep the branch; can watch the PR it opens (--watch <PR#> attaches to an existing one); discards only on explicit request, and handles cleanup.
+argument-hint: "[--watch <PR#>]"
 ---
 
 # Ship
@@ -40,6 +40,10 @@ Which option?
 
 Present the menu exactly as written. Discarding the work is not an option on it: it happens only when the user explicitly asks (see below).
 
+The menu waits for the user's pick, even when Claude invoked ship on its own. Never merge (Option 1) or discard unless the user picked it or asked for it in this conversation.
+
+If `$ARGUMENTS` holds `--watch <PR#>`, run Step 1 (tests), then go straight to **Watch and triage** for that PR and skip this menu.
+
 ## Step 4: Execute Choice
 
 ### Option 1: Merge Locally
@@ -63,6 +67,8 @@ gh pr create --title "<title>" --body "$(cat <<'EOF'
 EOF
 )"
 ```
+
+After the PR is created, offer once: `Watch PR #<n>? I'd wait for its checks, fix valid review comments, and reply in their threads, after one OK for the outward actions.` A yes goes to **Watch and triage**.
 
 ### Option 3: Keep As-Is
 Report: "Keeping branch. Worktree preserved at <path>."
