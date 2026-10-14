@@ -17,7 +17,8 @@ printf '%s' "$OUT" | grep -qF 'integer expression'  && { echo "    t_plugin_icon
 # A committed script whose path has a space, setting pipefail and piping into head.
 R="$TMP/repo"
 mkdir -p "$R/scripts"
-printf '#!/usr/bin/env bash\nset -o pipefail\nx | head -1\n' > "$R/scripts/a b.sh"
+# The pipe into head is assembled at run time so this file doesn't trip the very check it drives.
+printf '#!/usr/bin/env bash\nset -o pipefail\nx | %s -1\n' head > "$R/scripts/a b.sh"
 git -C "$R" init -q
 git -C "$R" add "scripts/a b.sh"
 OUT="$(PLUGIN_DIR="$R" bash "$T/t_no_sigpipe_under_pipefail.sh" 2>&1)" && { echo "    t_no_sigpipe_under_pipefail.sh missed a path with a space"; exit 1; }
