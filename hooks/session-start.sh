@@ -14,6 +14,8 @@ CODEMAP_CAP=1200
 # other sections leave over (minus SNAPSHOT_OVERHEAD for its header/footer/marker).
 TOTAL_BUDGET=9500
 SNAPSHOT_OVERHEAD=200
+# A snapshot written more than this many days ago gets a "may be stale" note.
+SNAPSHOT_STALE_DAYS=3
 
 # cap_section MAX HINT — print stdin up to MAX bytes, cutting only at line
 # boundaries (never mid-character). On overflow, append a marker telling the
@@ -96,6 +98,34 @@ emit_nudge() {
     fi
 }
 
+# snapshot_stale_note FILE — print at most one line warning that the snapshot is old.
+# jq-free: the date comes from a sed match, the day count from awk's civil-day formula
+# (no `date -d` / `date -j`, which differ between GNU and BSD). Nothing goes to stderr.
+snapshot_stale_note() {
+    local snap_date today days reasons=""
+    snap_date=$(sed -n 's/.*"date"[[:space:]]*:[[:space:]]*"\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\)".*/\1/p' "$1" 2>/dev/null | head -n 1)
+    today=$(date +%Y-%m-%d 2>/dev/null)
+    if [ -n "$snap_date" ] && [ -n "$today" ]; then
+        days=$(awk -v a="$snap_date" -v b="$today" '
+            function civil(s,   p, y, m, d, era, yoe, doy) {
+                split(s, p, "-"); y = p[1] + 0; m = p[2] + 0; d = p[3] + 0
+                if (m < 1 || m > 12 || d < 1 || d > 31) return -1
+                if (m <= 2) y--
+                era = int(y / 400); yoe = y - era * 400
+                doy = int((153 * (m + (m > 2 ? -3 : 9)) + 2) / 5) + d - 1
+                return era * 146097 + yoe * 365 + int(yoe / 4) - int(yoe / 100) + doy
+            }
+            BEGIN { x = civil(a); z = civil(b); if (x < 0 || z < 0) print ""; else print z - x }
+        ' 2>/dev/null)
+        if [ -n "$days" ] && [ "$days" -gt "$SNAPSHOT_STALE_DAYS" ] 2>/dev/null; then
+            reasons="written $snap_date, $days days ago"
+        fi
+    fi
+    if [ -n "$reasons" ]; then
+        printf 'Note: this snapshot may be stale (%s). Check it against git log before relying on it.\n' "$reasons"
+    fi
+}
+
 # Captured in shell variables (no temp files — the hook stays write-free). Command
 # substitution strips trailing newlines, so printf '%s\n' puts one back when printing.
 HEAD_OUT="$(emit_head)"
@@ -117,11 +147,15 @@ if [ -n "$SNAPSHOT" ]; then
     HEAD_BYTES=$(printf '%s\n' "$HEAD_OUT" | wc -c | tr -d ' ')
     NUDGE_BYTES=0
     [ -n "$NUDGE_OUT" ] && NUDGE_BYTES=$(printf '%s\n' "$NUDGE_OUT" | wc -c | tr -d ' ')
-    SNAPSHOT_CAP=$((TOTAL_BUDGET - HEAD_BYTES - NUDGE_BYTES - SNAPSHOT_OVERHEAD))
+    STALE_NOTE="$(snapshot_stale_note "$SNAPSHOT")"
+    STALE_BYTES=0
+    [ -n "$STALE_NOTE" ] && STALE_BYTES=$(printf '%s\n' "$STALE_NOTE" | wc -c | tr -d ' ')
+    SNAPSHOT_CAP=$((TOTAL_BUDGET - HEAD_BYTES - NUDGE_BYTES - SNAPSHOT_OVERHEAD - STALE_BYTES))
     # No budget left → skip the optional snapshot rather than print an empty block.
     if [ "$SNAPSHOT_CAP" -gt 0 ]; then
         echo ""
         echo "--- Session snapshot (previous /wrap) ---"
+        [ -n "$STALE_NOTE" ] && printf '%s\n' "$STALE_NOTE"
         cap_section "$SNAPSHOT_CAP" "Read $SNAPSHOT" < "$SNAPSHOT"
         echo "--- end snapshot ---"
     fi
