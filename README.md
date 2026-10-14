@@ -1,27 +1,27 @@
 <p align="center">
-  <img src="images/hero-banner-v2.svg" alt="turbocharge — one plugin, one pipeline, no conflicts" width="100%">
+  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/hero-banner-v2.svg" alt="turbocharge — one plugin, one pipeline, no conflicts" width="100%">
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square&color=58a6ff&labelColor=0d1117" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/claude_code-plugin-7c3aed.svg?style=flat-square&labelColor=0d1117" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/skills-10-3b82f6.svg?style=flat-square&labelColor=0d1117" alt="10 Skills">
-  <img src="https://img.shields.io/badge/agents-5-8b5cf6.svg?style=flat-square&labelColor=0d1117" alt="5 Agents">
+  <img src="https://img.shields.io/badge/agents-6-8b5cf6.svg?style=flat-square&labelColor=0d1117" alt="6 Agents">
 </p>
 
 ---
 
 You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that contradict each other, and a `planner-actually-good.md` you wrote at 2 AM. Claude picks whichever it finds first. You can't remember which is current. Neither can Claude.
 
-**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 5 agents, 2 hooks. One system to install, nothing to maintain.
+**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 6 agents, 2 hooks, 1 workflow. One system to install, nothing to maintain.
 
 <p align="center">
-  <img src="images/before-after.svg" alt="Before: scattered, contradictory config. After: one ordered pipeline." width="100%">
+  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/before-after.svg" alt="Before: scattered, contradictory config. After: one ordered pipeline." width="100%">
 </p>
 
 ## Install
 
-Requires **Claude Code 2.1.288 or later** (`claude --version`).
+Requires **Claude Code 2.1.287 or later** (`claude --version`). Tested with Claude Code 2.1.296 and 2.1.287 (stable channel).
 
 Install **Turbocharge** from Claude's plugin directory. Claude Code has the directory built in, so there's no marketplace to add first:
 
@@ -51,7 +51,7 @@ Restart Claude Code, then start building:
 Every skill announces itself, does one job well, and hands you the next step:
 
 <p align="center">
-  <img src="images/brainstorm-session.svg" alt="A brainstorm session: Socratic dialogue, a captured design doc, and a chain-forward to /turbocharge:story" width="92%">
+  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/brainstorm-session.svg" alt="A brainstorm session: Socratic dialogue, a captured design doc, and a chain-forward to /turbocharge:story" width="92%">
 </p>
 
 <details>
@@ -65,7 +65,7 @@ claude --plugin-dir ./turbocharge
 
 ### Upgrading
 
-From the directory or from 2.x, update as usual with the update command for your copy above. Your commands stay `/turbocharge:<skill>`, and your session snapshot and setup's CLAUDE.md blocks carry over. 3.x needs Claude Code 2.1.288 or later. Full notes are in the [CHANGELOG](CHANGELOG.md).
+From the directory or from 2.x, update as usual with the update command for your copy above. Your commands stay `/turbocharge:<skill>`, and your session snapshot and setup's CLAUDE.md blocks carry over. 3.4 needs Claude Code 2.1.287 or later. Full notes are in the [CHANGELOG](CHANGELOG.md).
 
 ## Where it works
 
@@ -74,11 +74,12 @@ Turbocharge is built for **Claude Code**, where the whole pipeline runs. Each Cl
 | | Claude Code | Cowork | Chat (claude.ai, desktop, mobile) |
 |:--|:--:|:--:|:--:|
 | 10 skills | ✓ | ✓ | ✓ |
-| 5 agents (builder, reviewers, planner, researcher) | ✓ | ✓ | ignored |
+| 6 agents (builder, reviewers, verifier, planner, researcher) | ✓ | ✓ | ignored |
+| Review workflow (`workflows/review-swarm.js`) | ✓ | one reviewer (fallback) | ignored |
 | SessionStart hook | ✓ | ✓ | ignored |
 | Builder exit gate hook (SubagentStop; PreToolUse on SubagentHandback) | ✓ | ✓ | ignored |
 
-In Chat, agents and hooks are ignored, so the planning skills (`brainstorm`, `story`, `plan`) are the useful part there. `build`, `review`, `ship` and `debug` need a shell and git, which means Claude Code. A plugin you add on claude.ai also reaches Claude Code at your next session start.
+In Chat, agents and hooks are ignored, so the planning skills (`brainstorm`, `story`, `plan`) are the useful part there. The review workflow runs when you type `/turbocharge:review` and dynamic workflows are on (Pro plans turn them on in `/config`). Where they're off, review runs one code-reviewer and says how to turn them on. `build`, `review`, `ship` and `debug` need a shell and git, which means Claude Code. A plugin you add on claude.ai also reaches Claude Code at your next session start.
 
 ## The Pipeline
 
@@ -102,9 +103,9 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 | **story** | `/turbocharge:story` | INVEST-compliant story breakdown with acceptance criteria |
 | **plan** | `/turbocharge:plan` | Lean plans — decisions, exact paths and test assertions in 2-5 min tasks, grouped into file-disjoint lanes |
 | **build** | `/turbocharge:build` | Runs each lane inline or with one Sonnet builder, overlaps independent lanes, then one full-suite gate. Opt-in per-lane review (`--reviewed`). |
-| **review** | `/turbocharge:review` | Holistic pre-merge code review against the original plan |
+| **review** | `/turbocharge:review` | Pre-merge review against the plan by one senior reviewer. The verified review runs when you type `/turbocharge:review`: five lens reviewers, then verifiers that try to refute each finding |
 | **debug** | `/turbocharge:debug` | Systematic 4-phase root-cause investigation — no fix until cause is proven |
-| **ship** | `/turbocharge:ship` | Test verification, then merge / PR / keep (discard only when you ask) |
+| **ship** | `/turbocharge:ship` | Test verification, then merge / PR / keep (discard only when you ask); `--watch` triages a PR's review comments after one OK |
 | **wrap** | `/turbocharge:wrap` | Session continuity — captures state, generates resume prompt |
 
 ## Why a Pipeline
@@ -117,7 +118,7 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 ## How Build Works
 
 <p align="center">
-  <img src="images/build-review-chain.svg" alt="Build execution per lane: inline or one Sonnet builder with self-review, or the opt-in --reviewed lane review with a Sonnet task-reviewer and resumed fix rounds" width="100%">
+  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/build-review-chain.svg" alt="Build execution per lane: inline or one Sonnet builder with self-review, or the opt-in --reviewed lane review with a Sonnet task-reviewer and resumed fix rounds" width="100%">
 </p>
 
 A plan groups its tasks into **lanes** — sets of tasks that own disjoint files. Build routes each lane one of two ways:
@@ -156,7 +157,7 @@ The suite lives in `evals/` and runs only when a maintainer runs `scripts/eval.s
 Dispatched by skills. You never invoke them directly.
 
 <p align="center">
-  <img src="images/model-tiering.svg" alt="Smart model routing — right model for each role" width="100%">
+  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/model-tiering.svg" alt="Smart model routing — right model for each role" width="100%">
 </p>
 
 | Agent | Role | Model |
@@ -166,8 +167,9 @@ Dispatched by skills. You never invoke them directly.
 | **researcher** | Fast background codebase exploration | Sonnet |
 | **task-reviewer** | Spec + Quality verdicts on a lane diff (opt-in) | Sonnet |
 | **code-reviewer** | Holistic pre-merge assessment | Sonnet |
+| **verifier** | Tries to refute one finding or review comment; read-only | Sonnet |
 
-All agents have `memory: project` for persistent codebase knowledge across sessions.
+All agents except the verifier have `memory: project` for persistent codebase knowledge across sessions; the verifier judges each finding fresh.
 
 ## Hooks
 
@@ -192,9 +194,15 @@ All agents have `memory: project` for persistent codebase knowledge across sessi
 |:--------|:-----|
 | `codemap stats` | Only when the project has a `.codemap/` index and the `codemap` CLI is installed |
 
-`hooks/builder-exit-gate.sh` runs when a `turbocharge:builder` subagent stops (`SubagentStop`), and in auto mode just before such a builder hands back its report (`PreToolUse` on `SubagentHandback`). For any other agent or tool it returns at once. It reads the hook input on stdin and that builder's transcript, lists the files the builder edited with Edit or Write, and runs `git status --porcelain` on those files only. If any are uncommitted, it keeps the builder going with "commit these by pathspec … or say why they must stay uncommitted". It does this once per builder: it finds its own earlier message in the transcript, so a builder resumed later for a fix round isn't checked again. It writes no files, changes no settings, and sends nothing over the network. It needs `jq`, and does nothing without it. Inline lanes, which run in your main session, aren't covered.
+`hooks/builder-exit-gate.sh` runs when a `turbocharge:builder` subagent stops (`SubagentStop`), and in auto mode just before such a builder hands back its report (`PreToolUse` on `SubagentHandback`). For any other agent or tool it returns at once. It reads the hook input on stdin and that builder's transcript, lists the files the builder edited with Edit or Write, and runs `git status --porcelain` on those files only. If any are uncommitted, it keeps the builder going with "commit these by pathspec … or say why they must stay uncommitted". It does this once per instruction: it looks for its own earlier denial after the builder's latest prompt, so a builder resumed for a fix round is checked again. Each file is checked in its own repository, so edits in another worktree count too. It writes no files, changes no settings, and sends nothing over the network. It needs `jq`, and does nothing without it. Inline lanes, which run in your main session, aren't covered.
 
-**Not part of the plugin:** this repo's `.github/workflows` run Claude's GitHub Action on pull requests, using the repo's own `CLAUDE_CODE_OAUTH_TOKEN` secret. They're CI for maintaining Turbocharge: they never run on your machine and never load into your sessions.
+### What the review workflow does
+
+`workflows/review-swarm.js` runs only when you type `/turbocharge:review` (or ask for the verified review in your own words). Claude Code asks before it runs: the first launch in auto mode, every run in manual mode unless you choose "don't ask again". A review Claude starts on its own uses one code-reviewer instead.
+
+It starts at most 25 subagents: five lens reviewers (plan compliance as `turbocharge:code-reviewer`, four on Sonnet, told not to edit) and `turbocharge:verifier` agents, which can't write or edit. The script itself has no file, shell or network access. Its agents read the repository and may run git and your tests. It writes no files, and its report returns to your session (progress in `/workflows`).
+
+**Not part of the plugin:** this repo's `.github/workflows` run Claude's GitHub Action on pull requests, using the repo's own `CLAUDE_CODE_OAUTH_TOKEN` secret. They're CI for maintaining Turbocharge: they never run on your machine and never load into your sessions. The directory installs a trimmed copy (the `release` branch, built by `scripts/release.sh`) holding only the plugin's own files, so this repo's CI, scripts, evals and project notes never reach it.
 
 ## Quick Start Examples
 
@@ -212,7 +220,7 @@ All agents have `memory: project` for persistent codebase knowledge across sessi
 /turbocharge:wrap
 ```
 
-See [`examples/`](examples/) for sample outputs from each stage.
+See [`examples/`](https://github.com/nicodiansk/turbocharge/tree/master/examples) for sample outputs from each stage.
 
 ## What to Remove After Installing
 
@@ -232,8 +240,10 @@ turbocharge/
 │   └── marketplace.json         # Distribution config
 ├── skills/                      # 10 skill definitions
 │   └── <skill-name>/SKILL.md
-├── agents/                      # 5 agent definitions
+├── agents/                      # 6 agent definitions
 │   └── <agent-name>.md
+├── workflows/
+│   └── review-swarm.js          # Review swarm (launched by /turbocharge:review)
 ├── hooks/
 │   ├── hooks.json               # Hook registration
 │   ├── *.sh                     # Hook scripts (SessionStart, builder exit gate)

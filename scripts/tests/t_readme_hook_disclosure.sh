@@ -22,10 +22,17 @@ for p in \
     "builder-exit-gate.sh" \
     "git status --porcelain" \
     "commit these by pathspec" \
-    "isn't checked again" \
+    "checked again" \
+    "### What the review workflow does" \
+    "workflows/review-swarm.js" \
+    "at most 25" \
+    "turbocharge:verifier" \
+    "writes no files" \
+    "trimmed copy" \
     "jq"; do
     grep -qF "$p" "$F" || { echo "    README missing hook disclosure: $p"; rc=1; }
 done
+grep -qF "isn't checked again" "$F" && { echo "    README still says a resumed builder isn't checked again"; rc=1; }
 grep -qF "### What the hook does" "$F" && { echo "    README still has the single-hook heading"; rc=1; }
 grep -qF "merge / PR / keep / discard" "$F" && { echo "    README ship row still offers discard"; rc=1; }
 # Hook output reaches the model as context, so "nothing leaves" would overclaim.
