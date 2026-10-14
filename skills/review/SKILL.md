@@ -1,15 +1,12 @@
 ---
 name: review
-description: Use before merging to verify completed work meets requirements and quality standards. Dispatches code-reviewer for holistic assessment of the full git diff against the original plan.
-context: fork
-agent: code-reviewer
-background: false
+description: Use when a branch, pull request or diff should be checked before it merges: a review, a bug hunt against a spec, a last look before shipping. Runs lens reviewers over the diff, then verifiers that try to refute each finding, and reports what survived with a merge verdict.
 argument-hint: "[plan-or-description]"
 ---
 
 # Code Review
 
-Holistic pre-merge review of completed work against the original plan.
+Verified pre-merge review of completed work against the original plan. It runs in this session: five lens reviewers find defects, then verifier agents try to refute each finding, and only what survives is reported as confirmed.
 
 **Announce:** "Using review to assess this work before merge."
 
@@ -23,7 +20,46 @@ NO MERGE WITHOUT CODE REVIEW
 
 The plan or requirements being reviewed: $ARGUMENTS
 
-Dispatch the code-reviewer agent with this prefix so the subagent sees the navigation index (subagents do not inherit parent history):
+## Step 1: Scope the diff
+
+```bash
+BASE_SHA=$(git merge-base HEAD main 2>/dev/null || git merge-base HEAD develop 2>/dev/null || git merge-base HEAD master 2>/dev/null)
+git diff --stat $BASE_SHA..HEAD
+git diff --name-only $BASE_SHA..HEAD
+```
+
+- Empty diff: print `Nothing to review: HEAD has no commits beyond <base>.` (naming the base branch) and stop.
+- Uncommitted tracked changes (`git status --porcelain`): say in one line that they are not part of this review.
+- The plan is `$ARGUMENTS` when it names a file. Otherwise the plan is the description, or none.
+
+## Step 2: Launch the swarm
+
+Call the **Workflow** tool with `name: "turbocharge:review-swarm"` and these args as JSON:
+
+```json
+{"base": "<BASE_SHA>", "head": "<HEAD sha>", "files": ["<name-only list>"], "plan": "<plan file path or description>", "context": ["<paths>"], "stat": "<git diff --stat output>"}
+```
+
+`context` lists the navigation and convention files that exist, by path: `ATLAS.md` (navigation index — Module Map + Key Symbols locate touched modules) and `CLAUDE.md` (conventions, rules). Omit either if the file doesn't exist. Exception: if CLAUDE.md is missing but `AGENTS.md` exists, use `AGENTS.md` in its place. `.claude/CLAUDE.md` counts as a CLAUDE.md: if the project keeps it there, list `.claude/CLAUDE.md`.
+
+The workflow runs in the background. Wait for its completion notification. Don't review in parallel, and don't poll.
+
+## Step 3: Report
+
+From the workflow's result:
+
+- **Confirmed findings** by severity (Critical / Important / Minor): `file:line`, evidence, and which lenses found it.
+- **Not verified**: findings no verifier could settle (a verifier failed, or the agent cap was reached), with why. Never present these as confirmed or as refuted.
+- **Declined to judge**: each behavior a lens set aside, one line each with why (or `Declined to judge: none`). The session that receives this report rules on each line before shipping, by what a reasonable user would expect.
+- **Refuted**: one collapsed line each, with the verifier's reason.
+- **Dropped work**: any lens that failed, so its coverage is missing.
+- **Assessment** = the workflow's verdict: Yes / No / With fixes / Incomplete.
+
+After review, offer: "Ready to ship?" → chains to `/turbocharge:ship`
+
+## Fallback: no Workflow tool
+
+If there is no Workflow tool (workflows are off), or the launch fails because workflows are off, dispatch `turbocharge:code-reviewer` instead, with this prefix so the subagent sees the navigation index (subagents do not inherit parent history):
 
 ```
 @ATLAS.md (navigation index — use Module Map + Key Symbols to locate touched modules)
@@ -32,32 +68,14 @@ Dispatch the code-reviewer agent with this prefix so the subagent sees the navig
 
 Omit either reference if the file doesn't exist. Exception: if CLAUDE.md is missing but `AGENTS.md` exists, use `@AGENTS.md` in its place. `.claude/CLAUDE.md` counts as a CLAUDE.md: if the project keeps it there, use `@.claude/CLAUDE.md`.
 
-**No agent here:** if this review isn't already running as the code-reviewer and `turbocharge:code-reviewer` can't be dispatched (no Agent tool, or the agent type is not registered, as on surfaces that load skills without agents), run the review inline in this session with the same steps and report shape, and say so in one line.
+Give it the diff range and the plan. Wait for it, report its result in the shape above (it has no refuted or not-verified lists), then print once: `Tip: turn on Dynamic workflows in /config for the verified multi-lens review.`
 
-## Your Review
+**No agent here:** if `turbocharge:code-reviewer` can't be dispatched either (no Agent tool, or the agent type is not registered, as on surfaces that load skills without agents), run the review inline in this session: read every changed file against the plan, check plan alignment, code quality, architecture and security, and judge behavior the spec doesn't mention (an empty input, a duplicate, error text, a rerun) by what a reasonable user would expect. Say so in one line.
 
-1. Get the git diff:
-   ```bash
-   BASE_SHA=$(git merge-base HEAD main 2>/dev/null || git merge-base HEAD develop 2>/dev/null || git merge-base HEAD master 2>/dev/null)
-   git diff $BASE_SHA..HEAD
-   ```
+## Review for
 
-2. Read the plan/requirements referenced above
-
-3. Review for:
-   - **Plan alignment** — Does implementation match what was planned?
-   - **Code quality** — Clean, maintainable, well-tested?
-   - **Architecture** — SOLID, good separation, integrates well?
-   - **Security** — No vulnerabilities, input validated, secrets safe?
-   - **Beyond the plan** — For behavior the spec and plan don't mention (an empty input, a duplicate, error text, a rerun), judge by what a reasonable user would expect, and grade each gap by its effect on that user. Check that every line of the plan's Review Focus has its pinning test.
-
-4. Report:
-   - **Strengths** — What was done well
-   - **Issues** — Critical / Important / Minor with `file:line` references
-   - **Declined to judge** — each behavior set aside, one line each, with why (or `Declined to judge: none`). The session that receives this report rules on each line before shipping.
-   - **Assessment** — Ready to merge? Yes / No / With fixes
-
-After review, offer: "Ready to ship?" → chains to `/turbocharge:ship`
+- **Plan alignment**, **code quality**, **architecture**, **security**
+- **Beyond the plan**: grade each gap by its effect on a reasonable user. Check that every line of the plan's Review Focus has its pinning test.
 
 ## Red Flags — Rationalizations That Mean You're Doing a Shallow Review
 
