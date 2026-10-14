@@ -1,6 +1,6 @@
 ---
 name: ship
-description: Use when implementation and review are complete and you need to integrate the work, or to watch a pull request's checks and triage its review comments. Verifies tests, presents options to merge, open a PR, or keep the branch; can watch the PR it opens (--watch <PR#> attaches to an existing one); discards only on explicit request, and handles cleanup.
+description: Use when implementation and review are complete and you need to integrate the work, or to triage a pull request's review comments, whether fetched with gh, saved to a file or pasted (verifies each, fixes the valid ones, drafts or posts replies), or to watch its checks. Verifies tests, presents options to merge, open a PR, or keep the branch; can watch the PR it opens (--watch <PR#> attaches to an existing one); discards only on explicit request, and handles cleanup.
 argument-hint: "[--watch <PR#>]"
 ---
 
@@ -114,9 +114,9 @@ Each remaining comment becomes an item: id, kind (inline or issue), author, path
 
 **Offline:** comments handed over as a file or pasted become the same items, with no checks, no push and no replies; draft the replies instead.
 
-Offline still verifies each item (`turbocharge:verifier` per item, or inline by the same rules when no agents are available) before any edit.
+Offline still verifies each item through `turbocharge:verifier` before any edit, exactly as below.
 
-**Verify.** Each item goes to `turbocharge:verifier` through the Agent tool. The prompt holds the comment, its path:line, the branch and its base, and asks "is this comment right about the current code?". Send independent items together and wait for every completion notification. No Agent tool, or the verifier is not registered: verify inline by the same rules (try to refute; quote the code).
+**Verify.** Each item goes to `turbocharge:verifier` through the Agent tool. The prompt holds the comment, its path:line, the branch and its base, and asks "is this comment right about the current code?". Send independent items together and wait for every completion notification. Never verify an item yourself while the Agent tool can dispatch the verifier, even when the comment looks obviously right or wrong: a public reply or a fix needs a check that didn't come from the session making the fix. Only with no Agent tool, or with the verifier not registered, verify inline by the same rules (try to refute; quote the code) and say so in the report.
 
 **Classify.** CONFIRMED + defect = valid. CONFIRMED + nit = nit. REFUTED = false positive. UNCERTAIN = the user's batch, because a public reply needs evidence.
 
@@ -134,7 +134,7 @@ Offline still verifies each item (`turbocharge:verifier` per item, or inline by 
 
 **Rounds.** A round = fixes, push, replies. Then the checks run again and round 2 collects new comments. Stop after 2 fix rounds and report what is left.
 
-**Report**, per item: its class, the action, the commit and the reply link. Add the red checks and the batch.
+**Report**, per item: its class, verified by (`turbocharge:verifier` or inline, with why), the action, the commit and the reply link. Add the red checks and the batch.
 
 ## Step 5: Cleanup Worktree (Options 1 and 2, or after a discard)
 

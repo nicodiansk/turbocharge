@@ -26,4 +26,13 @@ for p in triage 'Watch and triage' pasted; do
   printf '%s\n' "$PRE" | grep -qF -- "$p" || { echo "    routing text before Step 1 missing: $p"; fail=1; }
 done
 need 'never edited'
+# Triage skipped the verifier when it could dispatch one (3.4 Mac measurement): checking an item yourself is the
+# no-agent fallback only, and the report names who verified each item.
+need 'Never verify an item yourself'
+need 'verified by'
+DESC=$(frontmatter "$S" | grep '^description:')
+printf '%s\n' "$DESC" | grep -qF 'pasted' || { echo "    ship description must name offline triage (comments saved or pasted)"; fail=1; }
+for p in 'pr-comments.json' 'PR #7' 'slugify'; do
+  printf '%s\n' "$DESC" | grep -qF -- "$p" && { echo "    ship description quotes an eval prompt: '$p'"; fail=1; }
+done
 exit $fail
