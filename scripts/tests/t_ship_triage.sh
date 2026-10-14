@@ -14,4 +14,11 @@ for p in 'gh pr checks' '--watch' 'run_in_background' 'completion notification' 
   'never force-push' "Don't wait for a new automated review" 'Offline'; do
   need "$p"
 done
+for p in 'turbocharge:verifier' 'UNCERTAIN' 'false positive' 'nit' '/replies' 'gh pr comment' 'html_url' '2 fix rounds' 'decided earlier' 'stop' 'not registered'; do
+  need "$p"
+done
+printf '%s\n' "$SEC" | grep -F -- '/replies' | grep -q 'inline' || { echo "    the /replies line must say inline"; fail=1; }
+printf '%s\n' "$SEC" | grep -F -- 'gh pr comment' | grep -q 'issue comment' || { echo "    the gh pr comment line must say issue comment (no thread)"; fail=1; }
+printf '%s\n' "$SEC" | grep -Eq 'git push .*(--force|-f )' && { echo "    a git push line forces"; fail=1; }
+printf '%s\n' "$SEC" | grep -qF 'gh pr merge' && { echo "    triage must never run gh pr merge"; fail=1; }
 exit $fail

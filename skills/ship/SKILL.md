@@ -112,6 +112,26 @@ Each remaining comment becomes an item: id, kind (inline or issue), author, path
 
 **Offline:** comments handed over as a file or pasted become the same items, with no checks, no push and no replies; draft the replies instead.
 
+**Verify.** Each item goes to `turbocharge:verifier` through the Agent tool. The prompt holds the comment, its path:line, the branch and its base, and asks "is this comment right about the current code?". Send independent items together and wait for every completion notification. No Agent tool, or the verifier is not registered: verify inline by the same rules (try to refute; quote the code).
+
+**Classify.** CONFIRMED + defect = valid. CONFIRMED + nit = nit. REFUTED = false positive. UNCERTAIN = the user's batch, because a public reply needs evidence.
+
+**Conflict stop.** A comment that asks to change something the user decided earlier (this conversation, the plan's Rulings, a design doc, CLAUDE.md) makes triage stop. Bring it to the user, quoting the decision.
+
+**Valid:** fix it inline, or through `turbocharge:builder` when it is larger. Run the tests, commit by pathspec, then `git push`. A rejected push stops triage: no rebase, no force.
+
+**Reply**, naming the fix commit:
+- inline comment: `gh api -X POST repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies -f body=…`
+- issue comment: it has no thread, so post `gh pr comment <pr> --body …` linking its `html_url`; never use the `/replies` endpoint for it (it 404s).
+
+**False positive:** reply by the same two routes with evidence (file:line, what the code or test shows).
+
+**Nits and uncertain:** one batched list for the user; nothing changes.
+
+**Rounds.** A round = fixes, push, replies. Then the checks run again and round 2 collects new comments. Stop after 2 fix rounds and report what is left.
+
+**Report**, per item: its class, the action, the commit and the reply link. Add the red checks and the batch.
+
 ## Step 5: Cleanup Worktree (Options 1 and 2, or after a discard)
 
 ```bash
