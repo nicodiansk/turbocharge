@@ -10,6 +10,8 @@ Complete development work by verifying tests and presenting integration options.
 
 **Announce:** "Using ship to finalize this work."
 
+**Routing.** If the request is to triage review comments (`--watch <PR#>`, a PR number, or comments in a file or pasted into the conversation), run Step 1 (tests), then go straight to **Watch and triage** and skip the menu. Triage offline when the comments were handed over or `gh` can't reach the PR.
+
 ## Step 1: Verify Tests
 
 ```bash
@@ -112,6 +114,8 @@ Each remaining comment becomes an item: id, kind (inline or issue), author, path
 
 **Offline:** comments handed over as a file or pasted become the same items, with no checks, no push and no replies; draft the replies instead.
 
+Offline still verifies each item (`turbocharge:verifier` per item, or inline by the same rules when no agents are available) before any edit.
+
 **Verify.** Each item goes to `turbocharge:verifier` through the Agent tool. The prompt holds the comment, its path:line, the branch and its base, and asks "is this comment right about the current code?". Send independent items together and wait for every completion notification. No Agent tool, or the verifier is not registered: verify inline by the same rules (try to refute; quote the code).
 
 **Classify.** CONFIRMED + defect = valid. CONFIRMED + nit = nit. REFUTED = false positive. UNCERTAIN = the user's batch, because a public reply needs evidence.
@@ -126,7 +130,7 @@ Each remaining comment becomes an item: id, kind (inline or issue), author, path
 
 **False positive:** reply by the same two routes with evidence (file:line, what the code or test shows).
 
-**Nits and uncertain:** one batched list for the user; nothing changes.
+**Nits and uncertain:** a nit is never edited, even when it touches a line you are changing for a valid comment. Nits and uncertain items go only in one batched list for the user; nothing changes.
 
 **Rounds.** A round = fixes, push, replies. Then the checks run again and round 2 collects new comments. Stop after 2 fix rounds and report what is left.
 

@@ -21,4 +21,9 @@ printf '%s\n' "$SEC" | grep -F -- '/replies' | grep -q 'inline' || { echo "    t
 printf '%s\n' "$SEC" | grep -F -- 'gh pr comment' | grep -q 'issue comment' || { echo "    the gh pr comment line must say issue comment (no thread)"; fail=1; }
 printf '%s\n' "$SEC" | grep -Eq 'git push .*(--force|-f )' && { echo "    a git push line forces"; fail=1; }
 printf '%s\n' "$SEC" | grep -qF 'gh pr merge' && { echo "    triage must never run gh pr merge"; fail=1; }
+PRE=$(awk '{ sub(/\r$/, "") } /^## Step 1/ { exit } /^---$/ { n++; next } n>=2' "$S")
+for p in triage 'Watch and triage' pasted; do
+  printf '%s\n' "$PRE" | grep -qF -- "$p" || { echo "    routing text before Step 1 missing: $p"; fail=1; }
+done
+need 'never edited'
 exit $fail
