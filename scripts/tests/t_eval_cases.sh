@@ -160,4 +160,25 @@ for p in "$EVALS"/defects/*/prompt.md; do
     [ "${t:-0}" -ge 1800 ] 2>/dev/null || fail "${p#$EVALS/}: timeout_seconds ${t:-unset} < 1800"
 done
 
+# --- PR triage case ----------------------------------------------------------
+T="$EVALS/triage/pr-comments"
+[ "$(find "$T/graders" -name '*.md' 2>/dev/null | wc -l)" -eq 5 ] || fail "triage-pr-comments should have 5 graders"
+if [ -d "$T" ]; then
+    ws="$(scaffold "$T")"
+    [ "$(git -C "$ws" branch --show-current)" = feature/slugify ] || fail "triage fixture not on feature/slugify"
+    [ -z "$(git -C "$ws" status --porcelain)" ] || fail "triage fixture tree not clean"
+    [ -f "$ws/pr-comments.json" ] || fail "triage fixture lacks pr-comments.json"
+    if command -v jq >/dev/null 2>&1; then
+        [ "$(jq -r '[.comments[].kind] | join(",")' "$ws/pr-comments.json")" = "inline,issue,inline" ] || fail "pr-comments.json kinds != inline,issue,inline"
+        [ "$(jq '.comments | length' "$ws/pr-comments.json")" = 3 ] || fail "pr-comments.json should hold 3 comments"
+    else
+        echo "    jq not installed, skipping pr-comments.json checks"
+    fi
+    if [ -n "$PY" ]; then
+        (cd "$ws" && "$PY" -m unittest >/dev/null 2>&1) || fail "triage fixture tests should pass"
+        got="$(cd "$ws" && "$PY" -c "from slug import slugify; print(slugify('  Hello  World '))")"
+        [ "$got" != "hello-world" ] || fail "triage fixture: slugify bug is not present"
+    fi
+fi
+
 [ "$FAIL" -eq 0 ] && echo "  $CASES cases ok" || exit 1
