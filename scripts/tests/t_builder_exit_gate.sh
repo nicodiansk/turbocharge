@@ -108,6 +108,46 @@ tr_of "$(prompt_e p1)" "$(deny_pre_e p1)"; printf '{"type":"user","message":{"co
 pre; expect_quiet "truncated last line after denial"
 make_tr
 
+# Task 17: each edited file is checked in its own repository
+OTHER="$ROOT/other repo"; mkdir -p "$OTHER"
+git -C "$OTHER" init -q; git -C "$OTHER" config user.email t@example.com; git -C "$OTHER" config user.name t
+echo b1 > "$OTHER/b.txt"; git -C "$OTHER" add -A; git -C "$OTHER" commit -q -m init
+clean; echo b2 > "$OTHER/b.txt"
+{ tool Edit "$OTHER/b.txt"; } > "$TR"
+run < <(input SubagentStop turbocharge:builder false)
+[ "$RC" = 2 ] || fail "file in another repo: expected exit 2, got $RC"
+grep -q 'b.txt' "$ERR" || fail "file in another repo: stderr lacks b.txt"
+git -C "$OTHER" checkout -q -- b.txt
+
+echo loose > "$ROOT/loose.txt"
+{ tool Write "$ROOT/loose.txt"; } > "$TR"
+run < <(input SubagentStop turbocharge:builder false); expect_quiet "file outside any repo"
+
+clean; echo two > "$REPO/a.txt"
+{ tool Edit "$REPO\\a.txt"; } > "$TR"
+run < <(input SubagentStop turbocharge:builder false); [ "$RC" = 2 ] || fail "backslash path: expected exit 2, got $RC"
+grep -q 'a.txt' "$ERR" || fail "backslash path: stderr lacks a.txt"
+{ tool Edit 'C:\Users\nobody\x.txt'; } > "$TR"
+run < <(input SubagentStop turbocharge:builder false); expect_quiet "windows drive path that is not here"
+
+{ tool Edit "a.txt"; } > "$TR"
+run < <(input SubagentStop turbocharge:builder false); [ "$RC" = 2 ] || fail "relative path: expected exit 2, got $RC"
+grep -q 'a.txt' "$ERR" || fail "relative path: stderr lacks a.txt"
+
+clean; echo o > "$REPO/build/out.txt"
+{ tool Write "$REPO/build/out.txt"; } > "$TR"
+run < <(input SubagentStop turbocharge:builder false); expect_quiet "gitignored file only"
+
+if command -v cygpath >/dev/null 2>&1; then
+    echo two > "$REPO/a.txt"
+    { tool Edit "$(cygpath -w "$REPO/a.txt")"; } > "$TR"
+    run < <(input SubagentStop turbocharge:builder false); [ "$RC" = 2 ] || fail "cygpath -w path: expected exit 2, got $RC"
+fi
+make_tr; clean
+
+grep -q 'already dirty' "$GATE" || fail "ABOUTME lacks 'already dirty'"
+grep -q 'relative' "$GATE" || fail "ABOUTME lacks 'relative'"
+
 # malformed input fails open
 echo 'not json' | run; [ "$RC" = 0 ] || fail "malformed input should exit 0"
 

@@ -4,6 +4,8 @@
 # ABOUTME: Read-only — writes nothing, no network, runs only jq and git. Exit 2 sends stderr to the builder as its next instruction.
 # ABOUTME: Known limit — the transcript is written asynchronously, so the last turn (the report) can be missing; the edits come turns earlier.
 # ABOUTME: Known limit — blocks once per prompt: silent when its own denial follows the builder's latest prompt (dispatch or SendMessage resume).
+# ABOUTME: Known limit — a file that was already dirty before the builder started is listed too; the message's "or say why" covers it.
+# ABOUTME: Known limit — a relative path resolves against the hook's cwd, which can differ from the builder's own directory (Edit and Write pass absolute paths).
 set -u
 
 command -v jq >/dev/null 2>&1 || exit 0
@@ -63,7 +65,11 @@ paths="$(jq -r --argjson tools "$EDIT_TOOLS" '
 dirty=""
 while IFS= read -r p; do
     [ -n "$p" ] || continue
-    status="$(git -C "$cwd" status --porcelain -- "$p" 2>/dev/null)" || continue
+    np="${p//\\//}"
+    case "$np" in /*|[A-Za-z]:/*) ;; *) np="$cwd/$np" ;; esac
+    dir="$(dirname "$np")"
+    [ -d "$dir" ] || continue
+    status="$(git -C "$dir" status --porcelain -- "$np" 2>/dev/null)" || continue
     [ -n "$status" ] && dirty="${dirty}  ${p}"$'\n'
 done <<< "$paths"
 [ -n "$dirty" ] || exit 0
