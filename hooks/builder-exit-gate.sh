@@ -3,12 +3,11 @@
 # ABOUTME: Reads hook JSON on stdin with jq; checks only paths this builder edited via git status. Fails open (exit 0) on anything unexpected.
 # ABOUTME: Read-only — writes nothing, no network, runs only jq and git. Exit 2 sends stderr to the builder as its next instruction.
 # ABOUTME: Known limit — the transcript is written asynchronously, so the last turn (the report) can be missing; the edits come turns earlier.
-# ABOUTME: Known limit — blocks once per transcript: a builder resumed by SendMessage keeps its transcript, so later edits aren't checked again.
+# ABOUTME: Known limit — blocks once per prompt: silent when its own denial follows the builder's latest prompt (dispatch or SendMessage resume).
 set -u
 
 command -v jq >/dev/null 2>&1 || exit 0
 
-MARKER="turbocharge exit gate"
 EDIT_TOOLS='["Edit","Write","MultiEdit","NotebookEdit"]'
 
 INPUT="$(cat)"
@@ -33,8 +32,24 @@ if [ -z "$transcript" ]; then
 fi
 [ -r "$transcript" ] || exit 0
 
-# Block once per builder: our own earlier denial is in the transcript.
-grep -q "$MARKER" "$transcript" 2>/dev/null && exit 0
+# Block once per prompt: silent only when our own denial follows the builder's latest prompt
+# (its dispatch, or a SendMessage resume). Quoting the gate's text elsewhere doesn't count.
+# Lines are parsed one by one so a half-written last line is skipped.
+OWN_DENIAL_FILTER='
+def is_denial: .type == "user" and (
+  (.isMeta == true and (.message.content | type) == "string"
+     and (.message.content | test("^Stop hook feedback:\n\\[[^\n]*\\]: turbocharge exit gate:")))
+  or ((.message.content | type) == "array"
+     and any(.message.content[]; type == "object" and .type == "tool_result" and .is_error == true and (.content | type) == "string"
+       and (.content | test("^PreToolUse:SubagentHandback hook error: \\[[^\n]*\\]: turbocharge exit gate:")))));
+def is_prompt: .type == "user" and (.message.content | type) == "string"
+  and ((.isMeta | not) or (.origin.kind? == "coordinator"));
+[inputs | (fromjson? // empty) | select(type == "object")] as $e
+| ([$e[] | select(.type == "user") | .promptId // empty] | last) as $cur
+| if $cur != null then any($e[]; is_denial and .promptId == $cur)
+  else (([$e | to_entries[] | select(.value | is_prompt) | .key] | max // -1) as $p
+       | ([$e | to_entries[] | select(.value | is_denial) | .key] | max // -1) as $d | $d > $p) end'
+[ "$(jq -R -n -r "$OWN_DENIAL_FILTER" "$transcript" 2>/dev/null)" = "true" ] && exit 0
 
 cwd="$(field .cwd)"
 [ -n "$cwd" ] || exit 0
@@ -54,7 +69,7 @@ done <<< "$paths"
 [ -n "$dirty" ] || exit 0
 
 {
-    echo "$MARKER: commit these by pathspec before you stop (git add <new files>; git commit -m \"<message>\" -- <files>), or say why they must stay uncommitted. Then give your full report again, ending with the Status line — the orchestrator sees only your last message:"
+    echo "turbocharge exit gate: commit these by pathspec before you stop (git add <new files>; git commit -m \"<message>\" -- <files>), or say why they must stay uncommitted. Then give your full report again, ending with the Status line — the orchestrator sees only your last message:"
     printf '%s' "$dirty"
 } >&2
 exit 2
