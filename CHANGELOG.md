@@ -1,5 +1,50 @@
 # Changelog
 
+## [3.4.0] - 2026-10-14
+
+Verified review and PR triage. `/turbocharge:review` can now run a review swarm: five lens reviewers, then a verifier that tries to refute each finding, so only what survives is reported. `ship --watch` triages a pull request's review comments through the same verifier. Claude Code's Workflow tool launches only when the user opts in, so the swarm runs when you type `/turbocharge:review`; a review Claude starts on its own uses one code-reviewer.
+
+### Measured
+| Family | Cases | WITH | W/OUT | Δ | Fired |
+|---|---|---|---|---|---|
+| defects | 2 | 0.85 | 0.96 | -0.10 | 6/6 |
+| planning | 1 | 1.00 | 0.50 | +0.50 | 3/3 |
+| triage | 1 | 1.00 | 0.75 | +0.25 | 3/3 |
+| trigger | 4 | 1.00 | 0.83 | +0.17 | 6/9 |
+
+Sample: 2 defects cases, 1 planning, 4 trigger, 1 triage; 3 runs per arm, 48 runs in all, Claude Code 2.1.296, model and judge `claude-sonnet-5-5`, on the macOS host.
+- `brainstorm` fires on "add CSV export to this tool" (3/3, was 0/3); the typo fix stays at 1.00 with no skill.
+- `review` fires on both defects prompts (6/6, was 0/3).
+- Triage +0.25: without the plugin every run changed what the style nit asked for.
+- Defects −0.10 is all the false-alarm grader: the reviewer found every planted bug (36 of 36) but rated extra findings Critical or Important, some of them real bugs the larger fixture held by accident. The fixtures were cleaned afterwards and aren't re-measured yet.
+- Swarm against one reviewer (`/turbocharge:review SPEC.md`, the same two cases, 3 runs each): 34 of 36 planted bugs against 36 of 36; the false-alarm grader passed 3 of 6 against 0 of 6, at about 3–4× the cost.
+
+### Added
+- **Review swarm:** `workflows/review-swarm.js` (the plugin's first workflow) runs five lens reviewers over the branch diff (plan compliance as `code-reviewer`, four Sonnet lenses), dedupes findings by `file:line`, sends each to a verifier (three for a Critical, majority wins) under a 25-agent cap, and returns Confirmed / Not verified / Declined to judge / Refuted / Dropped plus a merge verdict. A verifier that fails leaves its finding **not verified**, never refuted (`t_review_swarm.sh`).
+- **Verifier agent:** `agents/verifier.md`, read-only Sonnet, tries to refute one finding or PR comment and answers CONFIRMED, REFUTED or UNCERTAIN with evidence (`t_verifier_agent.sh`).
+- **PR triage in ship:** `ship --watch <PR#>` waits for the PR's checks, collects review comments (bots included) that aren't answered yet, verifies each through the verifier, fixes valid ones, and replies in threads (issue comments get a linked `gh pr comment`) after one OK up front: at most 2 fix rounds, never merges, never force-pushes, never edits a nit. Comments in a file or pasted are triaged offline, with replies drafted (`t_ship_triage.sh`).
+- **Eval cases:** `defects-crossfile` (17 files, seven cross-file and spec-implied defects, three decoys) and `triage-pr-comments` (a valid bug, a false positive, a nit).
+- **SessionStart:** notes when the session snapshot is stale (more than 3 days old) or was written on another branch (`t_session_snapshot_staleness.sh`).
+- **`scripts/release.sh vX.Y.Z --push`:** builds the directory's `release` branch from a tag with only the plugin's own files, so CI, scripts, evals and project notes never reach the directory (`t_release_tree.sh`).
+
+### Changed
+- **review** runs in the main session (no longer forked). With your opt-in it launches the swarm; otherwise, or when workflows are off or the launch is declined, it dispatches one `code-reviewer` and tells you how to get the swarm. It never reviews inline when an agent can.
+- **code-reviewer** rates severity by the effect on a reasonable user: Critical = wrong results, data loss, security; Important = a real gap a user will hit; open product questions go under Declined to judge.
+- **ship** can be invoked by Claude; its menu still waits for your pick, and merge and discard stay explicit. A triage request skips the menu.
+- **brainstorm**'s description reaches short feature requests; **review**'s describes the verified review.
+- **planner** writes its plan file early and resumes a partial one.
+- **eval-report** lists with-only checks per case; **eval.sh** rejects a non-numeric cap, warns what its grants allow, and grants `Workflow`. On macOS, cases that use git need a git wrapper first on `PATH` (the eval sandbox breaks bare `git`).
+- **CI:** timeouts, concurrency, SHA-pinned actions, pinned Node, macOS and stable-CLI legs; the automated review also runs on `ready_for_review` and `reopened`.
+- **validate.sh** runs strict validation on the plugin itself, not only the marketplace manifest.
+- Requires Claude Code 2.1.287 or later (was 2.1.288); tested with 2.1.296 and 2.1.287.
+
+### Fixed
+- **Builder exit gate:** matches only its own denial (a builder quoting the gate's text no longer silences it), checks a builder again after it is resumed for a fix round, checks each edited file in its own repository, and normalizes Windows paths.
+- **setup**'s health check no longer runs `./scripts/validate.sh`, which ran your own project's script.
+
+### Upgrading
+After updating, run `/reload-plugins` or restart Claude Code: a running session keeps the old agents. The swarm runs when you type `/turbocharge:review`; Claude Code asks before its first workflow launch, and on Pro you turn on Dynamic workflows in `/config` (otherwise one reviewer runs). Ship can now be invoked by Claude and still waits for your pick.
+
 ## [3.3.0] - 2026-10-13
 
 Proven quality: Turbocharge now measures what it adds. An eval suite runs the same cases with the plugin and without it, and the first baseline is published in the README. The release also ships an 8-item quality pack and a builder exit gate.
