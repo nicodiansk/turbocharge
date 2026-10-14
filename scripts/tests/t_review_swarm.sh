@@ -72,4 +72,55 @@ check empty '.result.verdict == "Yes"'
 run nosec "{\"args\":$ARGS,\"answers\":{\"security\":null}}"
 check nosec '.result.verdict == "Incomplete"'
 check nosec '.result.dropped | map(select(contains("security"))) | length == 1'
+# F LENS FILE LINE SEVERITY — one lens answer holding one finding
+F() { printf '{"findings":[{"file":"%s","line":%s,"severity":"%s","title":"t-%s","evidence":"ev-%s"}],"declined":[]}' "$2" "$3" "$4" "$1" "$1"; }
+V() { printf '{"verdict":"%s","evidence":"e","reason":"%s"}' "$1" "$2"; }
+
+# dedupe: one finding at a.py:10 from two lenses, highest severity, three critical votes
+run dedupe "{\"args\":$ARGS,\"answers\":{\"correctness\":$(F correctness ./a.py 10 important),\"security\":$(F security a.py 10 critical)}}"
+check dedupe '.result.confirmed | length == 1'
+check dedupe '.result.confirmed[0] | .severity == "critical" and (.lenses | sort == ["correctness","security"]) and .title == "t-correctness"'
+check dedupe '[.calls[] | select(.opts.phase == "Verify") | .label] | sort == ["verify a.py:10 #1","verify a.py:10 #2","verify a.py:10 #3"]'
+check dedupe '[.calls[] | select(.opts.phase == "Verify") | .opts.agentType] | all(. == "turbocharge:verifier")'
+check dedupe '.result.verdict == "No"'
+
+# majority: confirmed/confirmed/refuted -> confirmed; confirmed/refuted/uncertain -> refuted
+A="\"answers\":{\"security\":$(F security a.py 10 critical)"
+run maj1 "{\"args\":$ARGS,$A,\"verify a.py:10 #1\":$(V confirmed x),\"verify a.py:10 #2\":$(V confirmed x),\"verify a.py:10 #3\":$(V refuted guarded)}}"
+check maj1 '(.result.confirmed | length) == 1 and (.result.refuted | length) == 0'
+run maj2 "{\"args\":$ARGS,$A,\"verify a.py:10 #1\":$(V confirmed x),\"verify a.py:10 #2\":$(V refuted guarded),\"verify a.py:10 #3\":$(V uncertain unsure)}}"
+check maj2 '(.result.confirmed | length) == 0 and (.result.refuted | length) == 1'
+check maj2 '.result.refuted[0].reason == "guarded"'
+
+# a null verifier is not verified: never confirmed, never refuted
+run null1 "{\"args\":$ARGS,\"answers\":{\"correctness\":$(F correctness a.py 10 important),\"verify a.py:10 #1\":null}}"
+check null1 '(.result.unverified | length) == 1 and .result.unverified[0].why == "verifier failed"'
+check null1 '(.result.confirmed | length) == 0 and (.result.refuted | length) == 0'
+check null1 '.result.verdict == "Incomplete"'
+run null3 "{\"args\":$ARGS,$A,\"verify a.py:10 #1\":$(V confirmed x),\"verify a.py:10 #2\":null,\"verify a.py:10 #3\":$(V refuted guarded)}}"
+check null3 '(.result.unverified | length) == 1 and (.result.confirmed | length) == 0 and (.result.refuted | length) == 0'
+
+# uncertain counts as refuted
+run unsure "{\"args\":$ARGS,\"answers\":{\"correctness\":$(F correctness a.py 10 important),\"verify a.py:10 #1\":$(V uncertain cannot-tell)}}"
+check unsure '(.result.refuted | length) == 1 and (.result.refuted[0].reason | startswith("uncertain"))'
+check unsure '.result.verdict == "Yes"'
+
+# cap: 30 distinct important findings -> 20 verifier calls, 25 agents, 10 capped and logged
+MANY=$(jq -nc '{findings: [range(1;31) | {file: "f.py", line: ., severity: "important", title: "t", evidence: "e"}], declined: []}')
+run cap "{\"args\":$ARGS,\"answers\":{\"correctness\":$MANY}}"
+check cap '[.calls[] | select(.opts.phase == "Verify")] | length == 20'
+check cap '.result.agents == 25'
+check cap '[.result.unverified[] | select(.why == "agent cap (25)")] | length == 10'
+check cap '[.logs[] | select(contains("agent cap"))] | length >= 1'
+
+# verdicts
+run vimp "{\"args\":$ARGS,\"answers\":{\"correctness\":$(F correctness a.py 10 important)}}"
+check vimp '.result.verdict == "With fixes"'
+run vmin "{\"args\":$ARGS,\"answers\":{\"correctness\":$(F correctness a.py 10 minor)}}"
+check vmin '.result.verdict == "Yes" and (.result.confirmed | length) == 1'
+
+# the same declined line from two lenses appears once
+D='{"findings":[],"declined":["error text wording: product call"]}'
+run decl "{\"args\":$ARGS,\"answers\":{\"correctness\":$D,\"security\":$D}}"
+check decl '.result.declined == ["error text wording: product call"]'
 exit 0

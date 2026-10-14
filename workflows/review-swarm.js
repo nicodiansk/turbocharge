@@ -115,10 +115,112 @@ found.forEach((res, i) => {
   ;(res.declined || []).forEach((d) => declined.push(d))
 })
 
+// Barrier: dedupe by file:line, keeping the highest severity.
+const RANK = { critical: 0, important: 1, minor: 2 }
+const byKey = new Map()
+raw.forEach((f) => {
+  const file = String(f.file).replace(/^\.\//, '')
+  const key = file + ':' + f.line
+  const prior = byKey.get(key)
+  if (!prior) {
+    byKey.set(key, { ...f, file: file, lenses: [...f.lenses] })
+    return
+  }
+  if (RANK[f.severity] < RANK[prior.severity]) prior.severity = f.severity
+  f.lenses.forEach((l) => { if (!prior.lenses.includes(l)) prior.lenses.push(l) })
+})
+const merged = [...byKey.values()].sort(
+  (a, b) => RANK[a.severity] - RANK[b.severity] || a.file.localeCompare(b.file) || a.line - b.line
+)
+const uniqueDeclined = [...new Set(declined)]
+
+// Cap: verifier slots are what is left of CAP after the lens calls. A finding that does not fit
+// is reported as unverified, never dropped.
+const votesFor = (f) => (f.severity === 'critical' ? CRITICAL_VOTES : 1)
+let slots = CAP - LENSES.length
+const toVerify = []
+const unverified = []
+merged.forEach((f) => {
+  const cost = votesFor(f)
+  if (cost <= slots) {
+    slots -= cost
+    toVerify.push(f)
+  } else {
+    log('agent cap (' + CAP + ') reached: ' + f.file + ':' + f.line + ' not verified')
+    unverified.push({ ...f, why: 'agent cap (' + CAP + ')' })
+  }
+})
+
+const VERDICT = {
+  type: 'object',
+  properties: {
+    verdict: { type: 'string', enum: ['confirmed', 'refuted', 'uncertain'] },
+    evidence: { type: 'string' },
+    reason: { type: 'string' },
+  },
+  required: ['verdict', 'evidence', 'reason'],
+}
+
+function verifyPrompt(f) {
+  return [
+    'Try to refute this review finding against the code at head. Read-only.',
+    'base: ' + input.base,
+    'head: ' + input.head,
+    'plan: ' + (input.plan || '(none)'),
+    'Finding (' + f.severity + ') at ' + f.file + ':' + f.line + ': ' + f.title,
+    'Evidence given: ' + f.evidence,
+    'Return confirmed only if the code shows the defect, refuted if the code shows the claim is wrong, uncertain otherwise.',
+  ].join('\n')
+}
+
+const tally = await parallel(
+  toVerify.map((f) => async () => {
+    const n = votesFor(f)
+    const votes = await parallel(
+      Array.from({ length: n }, (_, k) => () =>
+        agent(verifyPrompt(f), {
+          label: 'verify ' + f.file + ':' + f.line + ' #' + (k + 1),
+          phase: 'Verify',
+          agentType: 'turbocharge:verifier',
+          schema: VERDICT,
+        })
+      )
+    )
+    return { f: f, votes: votes }
+  })
+)
+
+const confirmed = []
+const refuted = []
+tally.forEach((t) => {
+  if (t === null) return
+  const need = Math.floor(t.votes.length / 2) + 1
+  const yes = t.votes.filter((v) => v && v.verdict === 'confirmed')
+  const failed = t.votes.filter((v) => v === null || v === undefined).length
+  if (yes.length >= need) {
+    confirmed.push({ ...t.f, verification: yes[0].evidence })
+  } else if (yes.length + failed >= need) {
+    unverified.push({ ...t.f, why: 'verifier failed' })
+  } else {
+    const no = t.votes.find((v) => v && v.verdict !== 'confirmed')
+    const reason = no.verdict === 'uncertain' ? 'uncertain: ' + no.reason : no.reason
+    refuted.push({ ...t.f, reason: reason })
+  }
+})
+
+const hasSeverity = (list, sev) => list.some((f) => f.severity === sev)
+const open = hasSeverity(unverified, 'critical') || hasSeverity(unverified, 'important')
+let verdict = 'Yes'
+if (hasSeverity(confirmed, 'critical')) verdict = 'No'
+else if (hasSeverity(confirmed, 'important')) verdict = 'With fixes'
+else if (dropped.length || open) verdict = 'Incomplete'
+
 return {
-  verdict: dropped.length ? 'Incomplete' : 'Yes',
-  findings: raw,
-  declined: declined,
+  verdict: verdict,
+  confirmed: confirmed,
+  refuted: refuted,
+  unverified: unverified,
+  declined: uniqueDeclined,
   dropped: dropped,
-  agents: LENSES.length,
+  agents: LENSES.length + (CAP - LENSES.length - slots),
 }
