@@ -85,6 +85,8 @@ Each task MUST follow this format:
 
 Write plan to: `docs/plans/YYYY-MM-DD-<feature-name>.md`. When the request names a path for the plan, write it there instead.
 
+The planner writes the file early, with line 1 `<!-- plan: in progress -->`, appends tasks as it goes, and removes the marker once its self-review passes. A rerun on a path whose line 1 is that marker resumes it: it keeps the header and every task with its `**Commit:**` line, and continues from the next task. A finished plan at the path is never overwritten; the new one goes to `<name>-2.md`.
+
 Report: plan location, number of tasks, any assumptions made. End with exactly:
 
 ``Next: review `<path>`, then `/turbocharge:build <path>`.``

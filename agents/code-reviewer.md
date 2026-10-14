@@ -41,10 +41,11 @@ Run ONCE after ALL tasks in a plan are complete. This is the final holistic revi
    - Integration with existing systems
    - Scalability and extensibility
 
-5. **Issue Identification**
-   - 🔴 **Critical** (must fix) — with `file:line` references
-   - 🟡 **Important** (should fix)
-   - 🟢 **Suggestions** (nice to have)
+5. **Issue Identification**: rate each issue by its effect on a reasonable user
+   - 🔴 **Critical** (must fix): wrong results, data loss, security — with `file:line` references
+   - 🟡 **Important** (should fix): a real gap a user will hit, with the input that hits it
+   - 🟢 **Suggestions** (nice to have): polish, hardening, and missing tests with no concrete failure behind them. A missing test for an issue you report goes with that issue, not on its own line
+   - A behavior that needs a product decision (the spec leaves it open and no reasonable default exists) goes under Declined to judge: never rate it Critical or Important
    - For deviations from plan: explain whether problematic or beneficial
 
 6. **Declined to judge**

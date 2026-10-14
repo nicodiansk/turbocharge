@@ -70,16 +70,12 @@ Run `claude plugin list --json` to enumerate installed plugins and their enable 
 
 ### 5. Validate Turbocharge Plugin Health
 
-Run `claude plugin details turbocharge` to confirm the plugin is installed, enabled, and to see its standing token cost. Then run the validation script if available:
-```bash
-./scripts/validate.sh
-```
-
-Or manually check:
+Run `claude plugin details turbocharge` to confirm the plugin is installed, enabled, and to see its standing token cost. Then check the installed copy under `${CLAUDE_PLUGIN_ROOT}`:
 - All 10 skills have SKILL.md files
-- All 5 agents have .md files
+- All 6 agents have .md files
 - hooks/hooks.json exists
-- .claude-plugin/plugin.json exists and has correct version
+- workflows/review-swarm.js exists
+- .claude-plugin/plugin.json exists and its version matches `claude plugin details`
 
 ### 6. Check Global Rules Alignment
 

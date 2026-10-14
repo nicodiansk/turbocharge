@@ -36,7 +36,7 @@ check_case() {
     while IFS= read -r key; do
         case "$PROMPT_KEYS" in *" $key "*) ;; *) fail "$name: unknown prompt.md key '$key'" ;; esac
     done < <(frontmatter "$p" | sed -n 's/^\([A-Za-z_][A-Za-z_0-9]*\):.*/\1/p')
-    case "$name" in trigger-*|defects-*|planning-*) ;; *) fail "bad case name '$name'" ;; esac
+    case "$name" in trigger-*|defects-*|planning-*|triage-*) ;; *) fail "bad case name '$name'" ;; esac
 
     local graders=("$dir"/graders/*.md) behavior=0
     [ -f "${graders[0]}" ] || { fail "$name: no graders"; return; }
@@ -131,5 +131,98 @@ done
 [ "$found" -eq 1 ] || fail "brainstorm: needs a regex grader on contacts.py with match: not_contains"
 ws="$(scaffold "$B")"
 grep -qiE 'csv|export' "$ws/contacts.py" && fail "brainstorm fixture contacts.py must not mention csv or export"
+
+# --- harder planted-defect case (seven defects, three decoys, larger branch) --
+X="$EVALS/defects/crossfile"
+[ "$(find "$X/graders" -name '*.md' 2>/dev/null | wc -l)" -eq 9 ] || fail "defects-crossfile should have 9 graders"
+if [ -d "$X" ]; then
+    ws="$(scaffold "$X")"
+    [ "$(git -C "$ws" branch --show-current)" = feature/invoices ] || fail "crossfile fixture not on feature/invoices"
+    [ "$(git -C "$ws" diff main --name-only | wc -l | tr -d ' ')" -ge 8 ] || fail "crossfile branch should change 8+ files"
+    added="$(git -C "$ws" diff main --numstat | awk '{ n += $1 } END { print n + 0 }')"
+    { [ "$added" -ge 500 ] && [ "$added" -le 700 ]; } || fail "crossfile branch adds $added lines (want 500-700)"
+    grep -q 'TAX_RATE *= *0\.0825' "$ws/config.py" || fail "config.py lacks TAX_RATE = 0.0825"
+    grep -q 'apply_rate(.*config\.TAX_RATE' "$ws/invoice.py" || fail "invoice.py lacks apply_rate(..., config.TAX_RATE)"
+    grep -q '< end' "$ws/invoice.py" || fail "invoice.py lacks '< end'"
+    grep -q 'store\.add(' "$ws/importer.py" || fail "importer.py lacks store.add("
+    grep -q '\* 100' "$ws/importer.py" || fail "importer.py lacks '* 100'"
+    grep -q 'store\.get(' "$ws/importer.py" && fail "importer.py must not call store.get("
+    grep -q '\.lower()' "$ws/importer.py" && fail "importer.py must not call .lower()"
+    grep -q 'os\.path\.join(config\.EXPORT_DIR' "$ws/exporter.py" || fail "exporter.py lacks os.path.join(config.EXPORT_DIR"
+    grep -qE 'commonpath|realpath' "$ws/exporter.py" && fail "exporter.py must not check the export path"
+    awk '/except Exception:/ { getline nxt; if (nxt ~ /return \[\]/) found = 1 } END { exit !found }' "$ws/persistence.py" || fail "persistence.py lacks 'except Exception:' then 'return []'"
+    grep -q 'today < ' "$ws/discounts.py" || fail "decoy missing: exclusive expiry in discounts.py"
+    grep -q 'SPEC' "$ws/discounts.py" || fail "decoy missing: discounts.py comment citing SPEC"
+    grep -q 'raise$' "$ws/cli.py" && grep -q 'except Exception' "$ws/cli.py" || fail "decoy missing: broad except that re-raises in cli.py"
+    grep -q 'cents / 100' "$ws/report.py" || fail "decoy missing: display-only float in report.py"
+    [ -f "$ws/SPEC.md" ] || fail "crossfile fixture lacks SPEC.md"
+    grep -qiE 'twice|again|duplicat|rerun|re-run|case|lower|inclusive|round' "$ws/SPEC.md" && fail "crossfile SPEC.md gives a defect away"
+    grep -q 'through' "$ws/SPEC.md" || fail "crossfile SPEC.md lacks 'through'"
+    if [ -n "$PY" ]; then
+        (cd "$ws" && "$PY" -m unittest >/dev/null 2>&1) || fail "crossfile fixture tests should pass"
+    fi
+    # Only the seven defects are planted: every arm reported these as real (3.4 baseline), so the fixture rules them out.
+    grep -q 'the CSV that `import_file` reads' "$ws/SPEC.md" || fail "crossfile SPEC.md must say which CSV carries a decimal total"
+    grep -q 'amounts in integer cents' "$ws/SPEC.md" || fail "crossfile SPEC.md must say invoice exports hold cents"
+    if [ -n "$PY" ]; then
+        (cd "$ws" && HOME="$ws" "$PY" - >/dev/null 2>&1 <<'CHECK'
+import os, cli, config, importer, models, persistence, store
+config.DATA_FILE = os.path.join(os.getcwd(), "data.json")
+for name, row in (("a.csv", "1,ann@x.com,1.00,2026-03-02"), ("b.csv", "2,bob@x.com,2.00,2026-03-03")):
+    with open(name, "w") as handle:
+        handle.write("id,email,total,date\n" + row + "\n")
+    cli.main(["import", name])
+assert len(persistence.load_orders(config.DATA_FILE)) == 2, "a second import lost saved orders"
+for row in ({"id": "x", "email": "a@x.com", "total": "1.00", "date": "2026-03-02"},
+            {"id": "3", "email": None, "total": None, "date": None}):
+    try:
+        models.validate_row(row)
+        raise AssertionError("bad row accepted")
+    except models.RowError:
+        pass
+store.clear()
+good = {"id": "4", "email": "c@x.com", "total": "1.00", "date": "2026-03-02"}
+try:
+    importer.import_orders([good, {"id": "5", "email": "bad", "total": "1.00", "date": "2026-03-02"}])
+except models.RowError:
+    pass
+assert store.get(4) is None, "a bad row left earlier rows stored"
+CHECK
+        ) || fail "crossfile fixture holds an unplanted defect (import replaces saved data, a bad id or short row escapes RowError, or a bad row leaves earlier rows stored)"
+    fi
+fi
+for g in "$EVALS/defects/crossfile/graders/no-false-alarms.md" "$EVALS/defects/review-branch/graders/no-false-alarms.md"; do
+    grep -q 'Count each defect once' "$g" || fail "${g#$EVALS/}: must count a defect once however it is split"
+done
+grep -q 'daily_report' "$EVALS/defects/review-branch/graders/no-false-alarms.md" || fail "defects-review no-false-alarms must count the daily_report crash as defect (3)"
+for c in defects/review-branch defects/crossfile trigger/review; do
+    [ -f "$EVALS/$c/prompt.md" ] || continue
+    frontmatter "$EVALS/$c/prompt.md" | grep '^allowed_tools:' | grep -q 'Workflow' || fail "$c: allowed_tools lacks Workflow"
+done
+for p in "$EVALS"/defects/*/prompt.md; do
+    t="$(fm_get "$p" timeout_seconds)"
+    [ "${t:-0}" -ge 1800 ] 2>/dev/null || fail "${p#$EVALS/}: timeout_seconds ${t:-unset} < 1800"
+done
+
+# --- PR triage case ----------------------------------------------------------
+T="$EVALS/triage/pr-comments"
+[ "$(find "$T/graders" -name '*.md' 2>/dev/null | wc -l)" -eq 5 ] || fail "triage-pr-comments should have 5 graders"
+if [ -d "$T" ]; then
+    ws="$(scaffold "$T")"
+    [ "$(git -C "$ws" branch --show-current)" = feature/slugify ] || fail "triage fixture not on feature/slugify"
+    [ -z "$(git -C "$ws" status --porcelain)" ] || fail "triage fixture tree not clean"
+    [ -f "$ws/pr-comments.json" ] || fail "triage fixture lacks pr-comments.json"
+    if command -v jq >/dev/null 2>&1; then
+        [ "$(jq -r '[.comments[].kind] | join(",")' "$ws/pr-comments.json")" = "inline,issue,inline" ] || fail "pr-comments.json kinds != inline,issue,inline"
+        [ "$(jq '.comments | length' "$ws/pr-comments.json")" = 3 ] || fail "pr-comments.json should hold 3 comments"
+    else
+        echo "    jq not installed, skipping pr-comments.json checks"
+    fi
+    if [ -n "$PY" ]; then
+        (cd "$ws" && "$PY" -m unittest >/dev/null 2>&1) || fail "triage fixture tests should pass"
+        got="$(cd "$ws" && "$PY" -c "from slug import slugify; print(slugify('  Hello  World '))")"
+        [ "$got" != "hello-world" ] || fail "triage fixture: slugify bug is not present"
+    fi
+fi
 
 [ "$FAIL" -eq 0 ] && echo "  $CASES cases ok" || exit 1

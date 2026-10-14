@@ -7,6 +7,9 @@ assert_file "$I" || exit 1
 MAGIC=$(od -An -tx1 -N8 "$I" | tr -d ' \n')
 [ "$MAGIC" = "89504e470d0a1a0a" ] || { echo "    icon.png is not a PNG (magic $MAGIC)"; exit 1; }
 read -r W H < <(od -An -tu1 -j16 -N8 "$I" | awk '{print $1*16777216+$2*65536+$3*256+$4, $5*16777216+$6*65536+$7*256+$8}')
+# A file cut short after the magic reads empty (GNU od) or 0 (BSD od prints a blank line); a PNG side is never 0.
+case "${W:-x}${H:-x}" in *[!0-9]*) W=0 ;; esac
+[ "$W" -gt 0 ] && [ "$H" -gt 0 ] || { echo "    could not read icon.png's width and height (file too short or not a PNG header)"; exit 1; }
 [ "$W" = "$H" ] || { echo "    icon.png is ${W}x${H}, must be square"; exit 1; }
 [ "$W" -ge 512 ] && [ "$W" -le 2048 ] || { echo "    icon.png is ${W}px, must be 512–2048"; exit 1; }
 SIZE=$(wc -c < "$I" | tr -d ' ')

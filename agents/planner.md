@@ -57,9 +57,28 @@ Group tasks into lanes in a `## Lanes` table after the header:
 - If longer, break it into smaller tasks
 - Tasks are atomic — complete in themselves
 
-## Spec Self-Review (MANDATORY — before writing the plan to disk)
+## Write Early, Resume a Partial Plan
 
-After drafting the full plan and BEFORE you Write it to `docs/plans/`, run this
+A forked plan run can die partway (the machine sleeps, the network drops, a usage
+limit hits). Write the plan file as you go, so a rerun can pick it up:
+
+1. Once domain understanding is done, write the plan file with line 1
+   `<!-- plan: in progress -->`, then the header, the Lanes table and Review Focus
+   (plus any sections the project's plans use).
+2. Append each task as you finish it.
+3. At the end, run the Spec Self-Review below, fix gaps in place, then delete line 1.
+
+**Resume:** when the target path exists and its line 1 is `<!-- plan: in progress -->`,
+read it. Keep the header and every task that has its `**Commit:**` line, drop a
+trailing task without one, and continue from the next task number. Say
+`resumed from a partial plan (<n> tasks kept)` in your report.
+
+**No silent overwrite:** when the target holds a finished plan (no marker), write to
+`<name>-2.md` (the next free suffix) and say so in your report.
+
+## Spec Self-Review (MANDATORY — before you remove the in-progress marker)
+
+After drafting the full plan and before you remove the in-progress marker, run this
 5-point self-review on your own plan and fix every gap inline. No subagent, no
 re-review — you fix it yourself, now.
 
@@ -82,7 +101,7 @@ re-review — you fix it yourself, now.
    An empty section (`None found — <why>`) means you checked and found none,
    not that you skipped the check.
 
-Only after all five pass do you write the plan file.
+Only after all five pass do you remove the in-progress marker.
 
 ## Plan Format
 
@@ -122,6 +141,6 @@ Before submitting:
 
 ## Remember
 
-- Write plans to `docs/plans/YYYY-MM-DD-<feature-name>.md` — unless the request names a path for the plan: then write it there
+- Write plans to `docs/plans/YYYY-MM-DD-<feature-name>.md` — unless the request names a path for the plan: then write it there. Write early, behind the in-progress marker, and append tasks as you go (Write Early)
 - Report the plan location, task count and your assumptions, and end with exactly: ``Next: review `<path>`, then `/turbocharge:build <path>`.`` Running build is the user's approval of the plan. If you stopped on a question instead (step 4), end with the question
 - Update your agent memory with project structure and patterns you discover

@@ -10,6 +10,8 @@ command -v jq >/dev/null 2>&1 || { echo "eval-report: jq is required" >&2; exit 
 [ -f "$F" ] || { echo "eval-report: no such file: $F" >&2; exit 1; }
 jq -e 'type == "object"' "$F" >/dev/null 2>&1 || { echo "eval-report: not a JSON result document: $F" >&2; exit 1; }
 
+# Checked against Claude Code 2.1.296's texts (`timed out after Ns`, `Reached maximum number of turns (N)`).
+# A rewording fails closed: the run reads as an infrastructure error and the report exits 1.
 # A budget error is the case's own limit (turn cap, timeout): the run was graded on what it produced.
 BUDGET='test("timed out after|max(imum)?[ _-]*(number of )?turns"; "i")'
 # Every run, flattened with its case, arm and 1-based index.
@@ -52,6 +54,11 @@ def opt(fn): if . == null then \"—\" else fn end;
   ( \$cs[] | \"| \(.name) | \((.s // 0) | f2) | \(if .d == null then \"—\" else (.w // 0) | f2 end) | \(if .d == null then \"—\" else .d | sgn end) | \(.fired | firedstr) | \$\(.cost | f2) |\" )
 " "$F" || { echo "eval-report: could not summarize $F" >&2; exit 1; }
 
+WITHONLY="$(jq -r '[.cases[]? | . as $c | [($c.arms.with // [])[] | .graders[]? | select(.withOnly == true and .name != "skill-fired")] | group_by(.name)
+  | map("\(.[0].name) \([.[] | select(.passed == true)] | length)/\(length)") | select(length > 0) | "- \($c.name): \(join(", "))"] | .[]' "$F")"
+if [ -n "$WITHONLY" ]; then
+    printf '\nWith-only checks (WITH runs passed):\n%s\n' "$WITHONLY"
+fi
 MEASURED="$(jq -r "$RUNS | .[] | select(.run.error != null) | \"- \(.case) \(.arm) run \(.n): \(.run.error)\"" "$F")"
 if [ -n "$MEASURED" ]; then
     printf '\nRun errors counted as measured:\n%s\n' "$MEASURED"

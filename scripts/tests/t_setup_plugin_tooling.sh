@@ -13,3 +13,6 @@ assert_grep "$F" "orchestration plugin"               || exit 1
 assert_grep "$F" "Conflicts With"                      || exit 1
 # disable-model-invocation retained (cannot be preloaded; setup is a manual run)
 assert_grep "$F" "disable-model-invocation: true"      || exit 1
+# Step 5 must not run the project's own ./scripts/validate.sh; it checks the installed copy instead
+assert_no_grep "$F" "scripts/validate.sh"              || exit 1
+assert_grep "$F" "All 6 agents"                        || exit 1

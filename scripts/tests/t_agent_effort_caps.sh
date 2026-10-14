@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ABOUTME: Asserts the effort/maxTurns capability-refresh fields are present per agent.
-# ABOUTME: researcher=low+maxTurns, code-reviewer=high, planner=high, task-reviewer=medium.
+# ABOUTME: researcher=low+maxTurns, code-reviewer=high, planner=high, task-reviewer=medium, verifier=medium+maxTurns.
 source "$PLUGIN_DIR/scripts/tests/helpers.sh"
 
 R="$PLUGIN_DIR/agents/researcher.md"
@@ -17,3 +17,6 @@ assert_grep "$P"  "^model: inherit"     || exit 1
 assert_grep "$TR" "^effort: medium"     || exit 1
 # builder must NOT carry an effort field (inherits)
 assert_no_grep "$PLUGIN_DIR/agents/builder.md" "^effort:" || exit 1
+# verifier: medium effort, bounded turns
+assert_grep "$PLUGIN_DIR/agents/verifier.md" "^effort: medium" || exit 1
+assert_grep "$PLUGIN_DIR/agents/verifier.md" "^maxTurns: 20"   || exit 1

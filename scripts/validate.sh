@@ -85,7 +85,7 @@ echo ""
 
 # 3. Check agents
 echo "--- Agents ---"
-EXPECTED_AGENTS="builder task-reviewer code-reviewer planner researcher"
+EXPECTED_AGENTS="builder task-reviewer code-reviewer planner researcher verifier"
 for agent in $EXPECTED_AGENTS; do
     agent_file="$PLUGIN_DIR/agents/$agent.md"
     if [[ -f "$agent_file" ]]; then
@@ -101,6 +101,8 @@ for agent in $EXPECTED_AGENTS; do
         fi
         if grep -q "^memory:" "$agent_file"; then
             pass "agents/$agent.md — has memory field"
+        elif [[ "$agent" == "verifier" ]]; then
+            pass "agents/$agent.md — no memory by design (judges the evidence in front of it)"
         else
             warn "agents/$agent.md — missing memory field"
         fi
@@ -157,10 +159,18 @@ fi
 # A missing CLI is a visible warning, never a silent skip.
 echo "--- claude plugin validate --strict ---"
 if command -v claude >/dev/null 2>&1; then
+    # `validate <dir>` sees .claude-plugin/marketplace.json and checks only that; the plugin
+    # manifest run is what inspects skills, agents and hooks.
     if STRICT_OUT=$(claude plugin validate "$PLUGIN_DIR" --strict 2>&1); then
-        pass "claude plugin validate --strict passed"
+        pass "claude plugin validate --strict passed (marketplace)"
     else
-        error "claude plugin validate --strict failed:"
+        error "claude plugin validate --strict failed (marketplace):"
+        printf '%s\n' "$STRICT_OUT" | sed 's/^/         /'
+    fi
+    if STRICT_OUT=$(claude plugin validate "$PLUGIN_DIR/.claude-plugin/plugin.json" --strict 2>&1); then
+        pass "claude plugin validate --strict passed (plugin)"
+    else
+        error "claude plugin validate --strict failed (plugin):"
         printf '%s\n' "$STRICT_OUT" | sed 's/^/         /'
     fi
 else

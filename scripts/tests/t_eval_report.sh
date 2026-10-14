@@ -66,6 +66,18 @@ echo "$OUT" | grep -qF 'Run errors counted as measured:' || { echo "    missing 
 echo "$OUT" | grep -qF -- '- trigger-cap with run 1: Reached maximum number of turns (25)' || { echo "    turn cap line missing"; echo "$OUT"; exit 1; }
 echo "$OUT" | grep -qF -- '- trigger-cap with run 2: timed out after 600s' || { echo "    timeout line missing"; exit 1; }
 
+# --- with-only checks per case (skill-fired is the Fired column, never listed here)
+wo() { # wo <review-focus passed> <lanes-table passed>
+    printf '{"score":1,"costUsd":0.1,"error":null,"skippedPaidGraders":false,"graders":[{"name":"skill-fired","passed":true,"withOnly":true},{"name":"review-focus","passed":%s,"withOnly":true},{"name":"lanes-table","passed":%s,"withOnly":true},{"name":"plain","passed":true}]}' "$1" "$2"
+}
+doc "[{\"name\":\"planning-x\",\"aggregates\":{\"score\":1,\"scoreWithout\":0.5,\"delta\":0.5},\"arms\":{\"with\":[$(wo true true),$(wo true false)],\"without\":[$(run none 0.1 0)]}}]" > "$T/withonly.json"
+OUT="$(bash "$R" "$T/withonly.json" 2>"$T/err")" || { echo "    with-only fixture exited non-zero: $(cat "$T/err")"; exit 1; }
+echo "$OUT" | grep -qF 'With-only checks (WITH runs passed):' || { echo "    missing with-only heading"; echo "$OUT"; exit 1; }
+echo "$OUT" | grep -qF -- '- planning-x: lanes-table 1/2, review-focus 2/2' || { echo "    with-only line wrong"; echo "$OUT"; exit 1; }
+echo "$OUT" | grep -F -- '- planning-x:' | grep -q 'skill-fired' && { echo "    with-only line must not name skill-fired"; exit 1; }
+bash "$R" "$T/ok.json" 2>/dev/null | grep -q 'With-only checks' && { echo "    happy path must print no With-only heading"; exit 1; }
+grep -qF '2.1.296' "$R" && grep -qF 'fails closed' "$R" || { echo "    eval-report.sh should note the checked CLI version and that it fails closed"; exit 1; }
+
 # --- partial
 doc '[]' ',"partial":true,"partialReason":"cost_ceiling"' | jq '.partial=true | .partialReason="cost_ceiling"' > "$T/partial.json"
 if bash "$R" "$T/partial.json" >/dev/null 2>"$T/err"; then echo "    partial should exit 1"; exit 1; fi

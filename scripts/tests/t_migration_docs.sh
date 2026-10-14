@@ -7,7 +7,7 @@ assert_file "$README" || exit 1
 rc=0
 grep -qF "### Upgrading" "$README"      || { echo "    README missing the Upgrading section"; rc=1; }
 grep -qF "update as usual" "$README"    || { echo "    README must tell directory and 2.x users to update as usual"; rc=1; }
-grep -qF "2.1.288" "$README"            || { echo "    README must state the Claude Code floor"; rc=1; }
+grep -qF "2.1.287 or later" "$README"   || { echo "    README must state the Claude Code floor (2.1.287 since 3.4.0)"; rc=1; }
 # Nobody but the maintainer installed the interim turboflow releases: no migration steps for them.
 for p in \
     "Coming from turboflow" \

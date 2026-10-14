@@ -60,10 +60,94 @@ export HOME="$HOME_SAVE"
 run < <(input PreToolUse turbocharge:builder false 'del(.agent_transcript_path)'); expect_block "pretooluse"
 run < <(input PreToolUse turbocharge:researcher false 'del(.agent_transcript_path)'); expect_quiet "pretooluse other agent"
 run < <(input PreToolUse turbocharge:builder false 'del(.agent_transcript_path)|.tool_name="Bash"'); expect_quiet "pretooluse other tool"
-# block once: marker in transcript
-jq -nc '{type:"user",message:{content:[{type:"tool_result",is_error:true,content:"turbocharge exit gate: commit these"}]}}' >> "$TR"
-run < <(input PreToolUse turbocharge:builder false 'del(.agent_transcript_path)'); expect_quiet "pretooluse marker"
-run < <(input SubagentStop turbocharge:builder false); expect_quiet "stop marker"
+
+# Transcript entries in the shapes recorded from real builder transcripts (3.4.0 spike).
+GATE_TXT='turbocharge exit gate: commit these by pathspec before you stop'
+prompt_e() { jq -nc --arg pid "$1" --arg t "${2:-Implement the lane}" '{type:"user",promptId:$pid,message:{content:$t}}'; }
+resume_e() { jq -nc --arg pid "$1" '{type:"user",isMeta:true,origin:{kind:"coordinator"},promptId:$pid,message:{content:"The coordinator sent a message while you were working:\nfix it\n\nAddress this before completing your current task."}}'; }
+deny_pre_e() { jq -nc --arg pid "$1" --arg g "$GATE_TXT" '{type:"user",promptId:$pid,toolDenialKind:"permission-rule",message:{content:[{type:"tool_result",is_error:true,content:("PreToolUse:SubagentHandback hook error: [bash \"/p/hooks/builder-exit-gate.sh\"]: " + $g)}]}}'; }
+deny_stop_e() { jq -nc --arg pid "$1" --arg g "$GATE_TXT" '{type:"user",isMeta:true,promptId:$pid,message:{content:("Stop hook feedback:\n[bash \"/p/hooks/builder-exit-gate.sh\"]: " + $g)}}'; }
+# tr_of ENTRY... : rebuild the transcript from the edit entries plus the given lines
+tr_of() { make_tr; for e in "$@"; do printf '%s\n' "$e" >> "$TR"; done; }
+pre() { run < <(input PreToolUse turbocharge:builder false 'del(.agent_transcript_path)'); }
+dirty
+
+# block once: the gate's own denial follows the latest prompt
+tr_of "$(prompt_e p1)" "$(deny_pre_e p1)"; pre; expect_quiet "pretooluse denial"
+tr_of "$(prompt_e p1)" "$(deny_stop_e p1)"; run < <(input SubagentStop turbocharge:builder false); expect_quiet "stop denial"
+# no promptId anywhere: falls back to entry order
+tr_of "$(prompt_e p1 | jq -c 'del(.promptId)')" "$(deny_pre_e x | jq -c 'del(.promptId)')"; pre; expect_quiet "denial without promptId"
+# denial alone (no prompt entry) still counts as blocked once
+tr_of "$(deny_pre_e p1)"; pre; expect_quiet "denial without prompt entry"
+
+# quoting the gate's text is not the gate's denial
+tr_of "$(jq -nc --arg g "$GATE_TXT" '{type:"user",message:{content:[{type:"tool_result",content:("- Fixed: " + $g)}]}}')"
+pre; expect_block "read result quoting the gate"
+tr_of "$(jq -nc --arg g "$GATE_TXT" '{type:"user",message:{content:[{type:"tool_result",is_error:true,content:("Error: " + $g)}]}}')"
+pre; expect_block "error result quoting the gate"
+tr_of "$(jq -nc '{type:"assistant",message:{content:[{type:"text",text:"turbocharge exit gate: commit these"}]}}')"
+pre; expect_block "assistant text quoting the gate"
+tr_of "$(prompt_e p1 'Note: the turbocharge exit gate: commit these by pathspec message may appear')"
+pre; expect_block "dispatch prompt quoting the gate"
+
+# a builder resumed for a fix round is checked again
+tr_of "$(prompt_e p1)" "$(deny_pre_e p1)" "$(resume_e p2)" "$(tool Edit "$REPO/a.txt")"
+pre; expect_block "resume after denial (PreToolUse)"
+tr_of "$(prompt_e p1)" "$(deny_stop_e p1)" "$(resume_e p2)" "$(tool Edit "$REPO/a.txt")"
+run < <(input SubagentStop turbocharge:builder false); expect_block "resume after denial (SubagentStop)"
+tr_of "$(prompt_e p1 | jq -c 'del(.promptId)')" "$(deny_pre_e x | jq -c 'del(.promptId)')" "$(resume_e x | jq -c 'del(.promptId)')"
+pre; expect_block "resume after denial without promptId"
+# ...and silent again once its own denial follows the resume
+tr_of "$(prompt_e p1)" "$(deny_pre_e p1)" "$(resume_e p2)" "$(deny_pre_e p2)"
+pre; expect_quiet "second denial after resume"
+
+# half-written last line is skipped, not fatal
+tr_of "$(prompt_e p1)"; printf '{"type":"user","message":{"cont' >> "$TR"
+pre; expect_block "truncated last line"
+tr_of "$(prompt_e p1)" "$(deny_pre_e p1)"; printf '{"type":"user","message":{"cont' >> "$TR"
+pre; expect_quiet "truncated last line after denial"
+make_tr
+
+# Task 17: each edited file is checked in its own repository
+OTHER="$ROOT/other repo"; mkdir -p "$OTHER"
+git -C "$OTHER" init -q; git -C "$OTHER" config user.email t@example.com; git -C "$OTHER" config user.name t
+echo b1 > "$OTHER/b.txt"; git -C "$OTHER" add -A; git -C "$OTHER" commit -q -m init
+clean; echo b2 > "$OTHER/b.txt"
+{ tool Edit "$OTHER/b.txt"; } > "$TR"
+run < <(input SubagentStop turbocharge:builder false)
+[ "$RC" = 2 ] || fail "file in another repo: expected exit 2, got $RC"
+grep -q 'b.txt' "$ERR" || fail "file in another repo: stderr lacks b.txt"
+git -C "$OTHER" checkout -q -- b.txt
+
+echo loose > "$ROOT/loose.txt"
+{ tool Write "$ROOT/loose.txt"; } > "$TR"
+run < <(input SubagentStop turbocharge:builder false); expect_quiet "file outside any repo"
+
+clean; echo two > "$REPO/a.txt"
+{ tool Edit "$REPO\\a.txt"; } > "$TR"
+run < <(input SubagentStop turbocharge:builder false); [ "$RC" = 2 ] || fail "backslash path: expected exit 2, got $RC"
+grep -q 'a.txt' "$ERR" || fail "backslash path: stderr lacks a.txt"
+{ tool Edit 'C:\Users\nobody\x.txt'; } > "$TR"
+run < <(input SubagentStop turbocharge:builder false); expect_quiet "windows drive path that is not here"
+
+{ tool Edit "a.txt"; } > "$TR"
+run < <(input SubagentStop turbocharge:builder false); [ "$RC" = 2 ] || fail "relative path: expected exit 2, got $RC"
+grep -q 'a.txt' "$ERR" || fail "relative path: stderr lacks a.txt"
+
+clean; echo o > "$REPO/build/out.txt"
+{ tool Write "$REPO/build/out.txt"; } > "$TR"
+run < <(input SubagentStop turbocharge:builder false); expect_quiet "gitignored file only"
+
+if command -v cygpath >/dev/null 2>&1; then
+    echo two > "$REPO/a.txt"
+    { tool Edit "$(cygpath -w "$REPO/a.txt")"; } > "$TR"
+    run < <(input SubagentStop turbocharge:builder false); [ "$RC" = 2 ] || fail "cygpath -w path: expected exit 2, got $RC"
+fi
+make_tr; clean
+
+grep -q 'already dirty' "$GATE" || fail "ABOUTME lacks 'already dirty'"
+grep -q 'relative' "$GATE" || fail "ABOUTME lacks 'relative'"
+
 # malformed input fails open
 echo 'not json' | run; [ "$RC" = 0 ] || fail "malformed input should exit 0"
 

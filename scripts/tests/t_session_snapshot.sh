@@ -23,7 +23,7 @@ echo "$OUT" | grep -q "FLOW_SNAPSHOT_5150" \
 
 # Both present, turbocharge newer (a 3.2+ /wrap) -> it wins, the 3.x one is not emitted.
 echo '{"marker":"CHARGE_SNAPSHOT_6260"}' > .claude/turbocharge-session.json
-touch -d '2026-07-01' .claude/turboflow-session.json
+touch -t 202607010000 .claude/turboflow-session.json
 OUT="$(bash "$F" 2>&1 || true)"
 echo "$OUT" | grep -q "CHARGE_SNAPSHOT_6260" || { echo "    newer turbocharge snapshot not emitted"; cleanup; exit 1; }
 echo "$OUT" | grep -q "FLOW_SNAPSHOT_5150"   && { echo "    3.x snapshot emitted alongside the turbocharge one"; cleanup; exit 1; }
@@ -31,7 +31,7 @@ echo "$OUT" | grep -q "FLOW_SNAPSHOT_5150"   && { echo "    3.x snapshot emitted
 # Both present, turboflow newer: a stale 2.x file was left behind by 3.0-3.1 (whose /wrap wrote only the
 # turboflow name) -> the newer 3.x snapshot wins.
 echo '{"marker":"STALE_2X_7370"}' > .claude/turbocharge-session.json
-touch -d '2026-07-01' .claude/turbocharge-session.json
+touch -t 202607010000 .claude/turbocharge-session.json
 echo '{"marker":"FRESH_3X_8480"}' > .claude/turboflow-session.json
 OUT="$(bash "$F" 2>&1 || true)"
 cleanup

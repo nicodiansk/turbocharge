@@ -11,18 +11,38 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   gate:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      # Bump both CLI pins each release: the npm `latest` the release was checked on, and the current `stable`.
+      # macOS runs BSD userland (no GNU touch -d, cp --backup, sed -i without a suffix) and bash 3.2.
+      matrix:
+        include:
+          - { os: ubuntu-latest, cli: '2.1.296' }
+          - { os: ubuntu-latest, cli: '2.1.287' }
+          - { os: macos-latest, cli: '2.1.296' }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      # assert_jq skips silently without jq, which has masked real failures before.
-      - name: Require jq
-        run: jq --version
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22.23.3'
+
+      # assert_jq skips silently without jq, which has masked real failures before; node runs the review workflow's logic tests.
+      - name: Require jq and node
+        run: |
+          jq --version
+          node --version
 
       - name: Install Claude Code CLI (for plugin validate --strict)
-        run: npm install -g @anthropic-ai/claude-code@2.1.296
+        run: npm install -g @anthropic-ai/claude-code@${{ matrix.cli }}
 
       - name: Full gate
         run: bash scripts/validate.sh

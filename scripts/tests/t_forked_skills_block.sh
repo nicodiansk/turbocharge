@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # ABOUTME: Asserts every `context: fork` skill sets `background: false` so it blocks until done.
-# ABOUTME: Claude Code 2.1.218+ runs forked skills in the background; plan/review output gates the next step.
+# ABOUTME: Claude Code 2.1.218+ runs forked skills in the background; plan output gates the next step (review no longer forks).
 source "$PLUGIN_DIR/scripts/tests/helpers.sh"
-for s in plan review; do
+for s in plan; do
     F="$PLUGIN_DIR/skills/$s/SKILL.md"
     assert_file "$F" || exit 1
     frontmatter "$F" | grep -qx "background: false" \

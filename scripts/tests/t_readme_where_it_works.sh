@@ -8,7 +8,7 @@ SECTION="$(mktemp)"
 awk '/^## Where it works/{f=1; print; next} f && /^## /{exit} f' "$R" > "$SECTION"
 rc=0
 [ -s "$SECTION" ] || { echo "    README missing a '## Where it works' section"; rm -f "$SECTION"; exit 1; }
-for p in "Claude Code" "Cowork" "Chat" "agents and hooks" "ignored" "SubagentStop"; do
+for p in "Claude Code" "Cowork" "Chat" "agents and hooks" "ignored" "SubagentStop" "review-swarm"; do
     grep -qF -- "$p" "$SECTION" || { echo "    'Where it works' missing: $p"; rc=1; }
 done
 rm -f "$SECTION"

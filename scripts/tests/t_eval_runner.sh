@@ -6,8 +6,14 @@ E="$PLUGIN_DIR/scripts/eval.sh"
 assert_file "$E" || exit 1
 if ERR="$(bash "$E" 2>&1 >/dev/null)"; then echo "    eval.sh with no cap should exit non-zero"; exit 1; fi
 echo "$ERR" | grep -qi 'usage' || { echo "    eval.sh with no cap should print usage on stderr"; exit 1; }
+echo "$ERR" | grep -qF -- '--trust-plugin' || { echo "    usage should carry the --trust-plugin note"; exit 1; }
+# The cap must be a positive number, checked before any platform or tool check.
+for bad in abc 0 1.5x 0.0; do
+    if ERR="$(bash "$E" "$bad" 2>&1 >/dev/null)"; then echo "    cap '$bad' should exit 1"; exit 1; fi
+    echo "$ERR" | grep -qF 'positive number' && echo "$ERR" | grep -qF "'$bad'" || { echo "    cap '$bad' stderr should say positive number and quote it: $ERR"; exit 1; }
+done
 for p in '--trust-plugin' '--scaffold' '--threshold 0' '--no-publish' '--judge-model' '--max-cost-usd' \
-         '--allow-tools Bash Write Edit' '--output-dir' 'aggregate-result.json' 'eval-report.sh' 'evals/summary/' 'MINGW'; do
+         '--allow-tools Bash Write Edit Workflow' '--output-dir' 'aggregate-result.json' 'eval-report.sh' 'evals/summary/' 'MINGW'; do
     grep -qF -- "$p" "$E" || { echo "    missing '$p' in eval.sh"; exit 1; }
 done
 if grep -qF -- '--json' "$E"; then echo "    eval.sh must not use --json"; exit 1; fi
@@ -25,6 +31,13 @@ if ERR="$(PATH="$FAKE:$PATH" TC_EVAL_CLAUDE=/mnt/c/fake/claude bash "$E" 1 2>&1 
     echo "    a /mnt/ claude should exit 1"; exit 1
 fi
 echo "$ERR" | grep -qF 'WSL interop' || { echo "    stderr should mention WSL interop: $ERR"; exit 1; }
+
+# Native Windows is refused and the message names every supported platform.
+mkdir -p "$FAKE/win"
+printf '#!/bin/sh\necho MINGW64_NT-10.0\n' > "$FAKE/win/uname"
+chmod +x "$FAKE/win/uname"
+if ERR="$(PATH="$FAKE/win:$PATH" bash "$E" 1 2>&1 >/dev/null)"; then echo "    native Windows should exit 1"; exit 1; fi
+echo "$ERR" | grep -qF 'macOS' || { echo "    the MINGW refusal should name macOS: $ERR"; exit 1; }
 
 # The run uses the claude the guard checked (TC_EVAL_CLAUDE), not whatever is first on PATH.
 # A copy of eval.sh in a temp root, with a report stub that rejects, so nothing lands in this repo.

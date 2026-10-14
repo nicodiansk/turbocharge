@@ -16,6 +16,11 @@ d=$(grep -nF 'Declined to judge' "$C" | head -1 | cut -d: -f1)
 a=$(grep -nF 'Assessment' "$C" | head -1 | cut -d: -f1)
 [ -n "$d" ] && [ -n "$a" ] && [ "$d" -lt "$a" ] || { echo "    code-reviewer: Declined to judge (line $d) must precede Assessment (line $a)"; exit 1; }
 grep -qF 'Review Focus' "$C" || { echo "    code-reviewer must check the plan's Review Focus pins"; exit 1; }
+# code-reviewer rates severity like the swarm's lenses: it is the default reviewer, and without these rules it rated
+# hardening and open product questions Critical/Important in 6 of 6 runs (3.4 Mac baseline, no-false-alarms).
+for p in 'wrong results, data loss, security' 'a real gap a user will hit' 'needs a product decision' 'never rate it'; do
+    grep -qF "$p" "$C" || { echo "    code-reviewer severity rules missing: $p"; exit 1; }
+done
 
 # task-reviewer: build reads the two verdict lines first, so the Report Shape fence must still open with Spec.
 first=$(awk '{ sub(/\r$/, "") } /^## Report Shape/ { s=1 } s && /^```/ { f=1; next } f { print; exit }' "$T")

@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: Use when starting creative work - creating features, building components, adding functionality, or modifying behavior. Explores requirements through Socratic dialogue before any implementation.
+description: Use when the user asks to add, build or change a feature and hasn't said exactly how, including a one-line request such as "add JSON output to the list command". Sizes the request first - a clear quick fix gets done directly, and anything with open choices is explored with questions before any code.
 ---
 
 # Brainstorm

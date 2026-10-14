@@ -7,13 +7,18 @@ set -uo pipefail
 CAP="${1:-}"
 if [ -z "$CAP" ]; then
     echo "usage: scripts/eval.sh <max-cost-usd> [extra claude plugin eval args]" >&2
+    echo "note: --trust-plugin with --allow-tools Bash Write Edit lets the model run shell commands and edit files inside the eval sandbox; run it only on a plugin you trust." >&2
+    exit 1
+fi
+if ! printf '%s' "$CAP" | grep -Eq '^[0-9]+([.][0-9]+)?$' || ! awk -v c="$CAP" 'BEGIN { exit !(c > 0) }'; then
+    echo "eval.sh: <max-cost-usd> must be a positive number, got '$CAP'" >&2
     exit 1
 fi
 shift
 
 case "$(uname -s)" in
     MINGW*|MSYS*|CYGWIN*)
-        echo "run under WSL2 or Linux: Claude Code has no sandbox on native Windows, so Bash-granted eval runs are refused" >&2
+        echo "run under WSL2, Linux or macOS: Claude Code has no sandbox on native Windows, so Bash-granted eval runs are refused" >&2
         exit 1 ;;
 esac
 CLAUDE_BIN="${TC_EVAL_CLAUDE:-$(command -v claude 2>/dev/null)}"
@@ -31,7 +36,7 @@ RESULT_DIR="$ROOT/evals/results/$LABEL"
 RESULT="$RESULT_DIR/aggregate-result.json"
 
 # --output-dir writes the same document and keeps progress printing through a long run.
-"$CLAUDE_BIN" plugin eval "$ROOT" --trust-plugin --scaffold --allow-tools Bash Write Edit \
+"$CLAUDE_BIN" plugin eval "$ROOT" --trust-plugin --scaffold --allow-tools Bash Write Edit Workflow \
     --model "${TC_EVAL_MODEL:-claude-sonnet-5-5}" --judge-model "${TC_EVAL_JUDGE:-claude-sonnet-5-5}" \
     --threshold 0 --no-publish --max-cost-usd "$CAP" --output-dir "$RESULT_DIR" "$@"
 EVAL_RC=$?
