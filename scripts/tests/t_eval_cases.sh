@@ -36,7 +36,7 @@ check_case() {
     while IFS= read -r key; do
         case "$PROMPT_KEYS" in *" $key "*) ;; *) fail "$name: unknown prompt.md key '$key'" ;; esac
     done < <(frontmatter "$p" | sed -n 's/^\([A-Za-z_][A-Za-z_0-9]*\):.*/\1/p')
-    case "$name" in trigger-*|defects-*|planning-*) ;; *) fail "bad case name '$name'" ;; esac
+    case "$name" in trigger-*|defects-*|planning-*|triage-*) ;; *) fail "bad case name '$name'" ;; esac
 
     local graders=("$dir"/graders/*.md) behavior=0
     [ -f "${graders[0]}" ] || { fail "$name: no graders"; return; }
@@ -131,5 +131,33 @@ done
 [ "$found" -eq 1 ] || fail "brainstorm: needs a regex grader on contacts.py with match: not_contains"
 ws="$(scaffold "$B")"
 grep -qiE 'csv|export' "$ws/contacts.py" && fail "brainstorm fixture contacts.py must not mention csv or export"
+
+# --- harder planted-defect case (cross-file and spec-implied) --------------
+X="$EVALS/defects/crossfile"
+[ "$(find "$X/graders" -name '*.md' 2>/dev/null | wc -l)" -eq 7 ] || fail "defects-crossfile should have 7 graders"
+if [ -d "$X" ]; then
+    ws="$(scaffold "$X")"
+    [ "$(git -C "$ws" branch --show-current)" = feature/invoices ] || fail "crossfile fixture not on feature/invoices"
+    grep -q '0\.0825' "$ws/invoice.py" || fail "invoice.py lacks 0.0825"
+    grep -q '< end' "$ws/invoice.py" || fail "invoice.py lacks '< end'"
+    grep -q 'store\.add(' "$ws/importer.py" || fail "importer.py lacks store.add("
+    grep -q '\* 100' "$ws/importer.py" || fail "importer.py lacks '* 100'"
+    grep -q 'store\.get(' "$ws/importer.py" && fail "importer.py must not call store.get("
+    grep -q '\.lower()' "$ws/importer.py" && fail "importer.py must not call .lower()"
+    [ -f "$ws/SPEC.md" ] || fail "crossfile fixture lacks SPEC.md"
+    grep -qiE 'twice|again|duplicat|rerun|re-run|case|lower|inclusive|round' "$ws/SPEC.md" && fail "crossfile SPEC.md gives a defect away"
+    grep -q 'through' "$ws/SPEC.md" || fail "crossfile SPEC.md lacks 'through'"
+    if [ -n "$PY" ]; then
+        (cd "$ws" && "$PY" -m unittest >/dev/null 2>&1) || fail "crossfile fixture tests should pass"
+    fi
+fi
+for c in defects/review-branch defects/crossfile trigger/review; do
+    [ -f "$EVALS/$c/prompt.md" ] || continue
+    frontmatter "$EVALS/$c/prompt.md" | grep '^allowed_tools:' | grep -q 'Workflow' || fail "$c: allowed_tools lacks Workflow"
+done
+for p in "$EVALS"/defects/*/prompt.md; do
+    t="$(fm_get "$p" timeout_seconds)"
+    [ "${t:-0}" -ge 1800 ] 2>/dev/null || fail "${p#$EVALS/}: timeout_seconds ${t:-unset} < 1800"
+done
 
 [ "$FAIL" -eq 0 ] && echo "  $CASES cases ok" || exit 1
