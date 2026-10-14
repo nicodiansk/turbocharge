@@ -7,6 +7,8 @@ It also has three decoys that look wrong but are correct, each backed by a test 
 
 FAIL if the final reply calls any of the three decoys a defect or a bug to fix (a remark that they were checked and are fine does not count).
 
+Count each defect once, however many findings it is split into: a symptom and its cause are one finding.
+
 Otherwise count the findings in the final reply that the reviewer rated Critical or Important (or equivalently severe) and that are not one of the seven defects. PASS if there is at most one. Minor or nit-level remarks do not count.
 
 FAIL if there are two or more such findings.

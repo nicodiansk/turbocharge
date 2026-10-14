@@ -8,8 +8,9 @@ cat > SPEC.md <<'MD'
 # Invoicing
 
 An order is a dict: `id`, `email`, `total_cents` (integer cents) and `date`
-(ISO `YYYY-MM-DD`). Exported rows carry `total` instead, a decimal string
-such as `"12.50"`. Money is stored as integer cents.
+(ISO `YYYY-MM-DD`). Rows in an order export, the CSV that `import_file` reads,
+carry `total` instead, a decimal string such as `"12.50"`. Money is stored as
+integer cents.
 
 Customers are identified by their email address.
 
@@ -53,6 +54,7 @@ Customers are identified by their email address.
 
 - Exports are written inside the export directory (`config.EXPORT_DIR`),
   under a file name the caller supplies.
+- An invoice export has one row per invoice, with its amounts in integer cents.
 
 ## Saved data
 
@@ -158,9 +160,15 @@ class RowError(ValueError):
 
 
 def check_required(row):
-    missing = [name for name in REQUIRED_FIELDS if name not in row]
+    missing = [name for name in REQUIRED_FIELDS if row.get(name) in (None, "")]
     if missing:
         raise RowError("row is missing " + ", ".join(missing))
+
+
+def check_id(text):
+    if not text.strip().isdigit():
+        raise RowError("bad id: %r" % text)
+    return text
 
 
 def check_email(email):
@@ -186,6 +194,7 @@ def check_total(text):
 def validate_row(row):
     """Return the row when every field is usable, else raise RowError."""
     check_required(row)
+    check_id(row["id"])
     check_email(row["email"])
     check_date(row["date"])
     check_total(row["total"])
@@ -250,12 +259,10 @@ def row_to_order(row):
 
 
 def import_orders(rows):
-    imported = []
-    for row in rows:
-        order = row_to_order(row)
+    orders = [row_to_order(row) for row in rows]
+    for order in orders:
         store.add(order)
-        imported.append(order)
-    return imported
+    return orders
 
 
 def read_rows(path):
@@ -425,7 +432,8 @@ def build_parser():
 
 def run_import(args):
     orders = importer.import_file(args.path)
-    persistence.save_orders(config.DATA_FILE, orders)
+    saved = persistence.load_orders(config.DATA_FILE)
+    persistence.save_orders(config.DATA_FILE, saved + orders)
     return ["imported %d orders" % len(orders)]
 
 

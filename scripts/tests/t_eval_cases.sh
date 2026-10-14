@@ -161,7 +161,40 @@ if [ -d "$X" ]; then
     if [ -n "$PY" ]; then
         (cd "$ws" && "$PY" -m unittest >/dev/null 2>&1) || fail "crossfile fixture tests should pass"
     fi
+    # Only the seven defects are planted: every arm reported these as real (3.4 baseline), so the fixture rules them out.
+    grep -q 'the CSV that `import_file` reads' "$ws/SPEC.md" || fail "crossfile SPEC.md must say which CSV carries a decimal total"
+    grep -q 'amounts in integer cents' "$ws/SPEC.md" || fail "crossfile SPEC.md must say invoice exports hold cents"
+    if [ -n "$PY" ]; then
+        (cd "$ws" && HOME="$ws" "$PY" - >/dev/null 2>&1 <<'CHECK'
+import os, cli, config, importer, models, persistence, store
+config.DATA_FILE = os.path.join(os.getcwd(), "data.json")
+for name, row in (("a.csv", "1,ann@x.com,1.00,2026-03-02"), ("b.csv", "2,bob@x.com,2.00,2026-03-03")):
+    with open(name, "w") as handle:
+        handle.write("id,email,total,date\n" + row + "\n")
+    cli.main(["import", name])
+assert len(persistence.load_orders(config.DATA_FILE)) == 2, "a second import lost saved orders"
+for row in ({"id": "x", "email": "a@x.com", "total": "1.00", "date": "2026-03-02"},
+            {"id": "3", "email": None, "total": None, "date": None}):
+    try:
+        models.validate_row(row)
+        raise AssertionError("bad row accepted")
+    except models.RowError:
+        pass
+store.clear()
+good = {"id": "4", "email": "c@x.com", "total": "1.00", "date": "2026-03-02"}
+try:
+    importer.import_orders([good, {"id": "5", "email": "bad", "total": "1.00", "date": "2026-03-02"}])
+except models.RowError:
+    pass
+assert store.get(4) is None, "a bad row left earlier rows stored"
+CHECK
+        ) || fail "crossfile fixture holds an unplanted defect (import replaces saved data, a bad id or short row escapes RowError, or a bad row leaves earlier rows stored)"
+    fi
 fi
+for g in "$EVALS/defects/crossfile/graders/no-false-alarms.md" "$EVALS/defects/review-branch/graders/no-false-alarms.md"; do
+    grep -q 'Count each defect once' "$g" || fail "${g#$EVALS/}: must count a defect once however it is split"
+done
+grep -q 'daily_report' "$EVALS/defects/review-branch/graders/no-false-alarms.md" || fail "defects-review no-false-alarms must count the daily_report crash as defect (3)"
 for c in defects/review-branch defects/crossfile trigger/review; do
     [ -f "$EVALS/$c/prompt.md" ] || continue
     frontmatter "$EVALS/$c/prompt.md" | grep '^allowed_tools:' | grep -q 'Workflow' || fail "$c: allowed_tools lacks Workflow"
