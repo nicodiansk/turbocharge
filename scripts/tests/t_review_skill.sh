@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ABOUTME: Asserts the review skill runs in the main session, launches the review-swarm workflow, and falls back to the single reviewer.
+# ABOUTME: Asserts the review skill runs in the main session, launches the review-swarm workflow on the user's opt-in, and otherwise uses the single reviewer.
 # ABOUTME: Its description must not quote an eval prompt (that would measure the eval, not the trigger).
 source "$PLUGIN_DIR/scripts/tests/helpers.sh"
 R="$PLUGIN_DIR/skills/review/SKILL.md"
@@ -10,6 +10,15 @@ printf '%s\n' "$FM" | grep -q '^agent:' && { echo "    review must not set agent
 for p in 'review-swarm' 'Workflow' 'completion notification' 'Nothing to review' 'Not verified' \
          'Declined to judge' 'Refuted' '/config' 'turbocharge:code-reviewer' 'not registered'; do
     assert_grep "$R" "$p" || exit 1
+done
+# The Workflow tool launches only on the user's opt-in: a review Claude invoked from a plain request goes to the
+# single reviewer, and a declined launch never becomes an inline review (3.4 Mac measurement, defects-review).
+assert_grep "$R" '## Step 2: Pick the reviewer' || exit 1
+assert_grep "$R" 'Never review inline' || exit 1
+SR=$(awk '{ sub(/\r$/, "") } /^## Single reviewer/ { f=1; next } f && /^## / { exit } f' "$R")
+[ -n "$SR" ] || { echo "    could not find the '## Single reviewer' section"; exit 1; }
+for p in 'No opt-in' 'declined' '/config' 'Tip: type /turbocharge:review'; do
+    printf '%s\n' "$SR" | grep -qF -- "$p" || { echo "    Single reviewer missing: $p"; exit 1; }
 done
 DESC=$(printf '%s\n' "$FM" | grep '^description:')
 for p in 'review my branch' 'feature/' 'SPEC.md'; do
