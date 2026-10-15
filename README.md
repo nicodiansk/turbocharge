@@ -208,7 +208,7 @@ All agents except the verifier have `memory: project` for persistent codebase kn
 
 It starts at most 25 subagents: five lens reviewers (plan compliance as `turbocharge:code-reviewer`, four on Sonnet, told not to edit) and `turbocharge:verifier` agents, which can't write or edit. The script itself has no file, shell or network access. Its agents read the repository and may run git and your tests. It writes no files, and its report returns to your session (progress in `/workflows`).
 
-**Not part of the plugin:** this repo's `.github/workflows` run Claude's GitHub Action on pull requests, using the repo's own `CLAUDE_CODE_OAUTH_TOKEN` secret. They're CI for maintaining Turbocharge: they never run on your machine and never load into your sessions. The directory installs a trimmed copy (the `release` branch, built by `scripts/release.sh`) holding only the plugin's own files, so this repo's CI, scripts, evals and project notes never reach it.
+**Not part of the plugin:** this repo's `.github/workflows` run Claude's GitHub Action on pull requests, with a token stored in this repo's GitHub secrets. They're CI for maintaining Turbocharge: they never run on your machine and never load into your sessions. The directory installs a trimmed copy (the `release` branch, built by `scripts/release.sh`) holding only the plugin's own files, so this repo's CI, scripts, evals and project notes never reach it.
 
 ## Quick Start Examples
 
