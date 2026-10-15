@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.4.1] - 2026-10-15
+
+Directory fix. The claude.ai directory held 3.4.0 because the review skill's frontmatter wasn't strict YAML: its description held an unquoted `merges: a review`. Claude Code reads such a value and the skill worked, but the directory's scan couldn't parse it (REACH_UNKNOWN).
+
+### Fixed
+- **review**: the description is quoted, so its frontmatter is strict YAML. The text is unchanged, so triggering is too.
+- **Strict frontmatter test:** `t_frontmatter_yaml.sh` parses every skill's and agent's frontmatter with a strict YAML parser (Ruby, or Python with PyYAML; skipped when neither is present). `claude plugin validate --strict` accepts the loose form, so it can't catch this.
+- **README:** the CI note no longer names the repo's OAuth secret; the directory installs a trimmed copy without `.github/`, so the shipped README only says CI uses a token stored in the repo's GitHub secrets.
+
 ## [3.4.0] - 2026-10-14
 
 Verified review and PR triage. `/turbocharge:review` can now run a review swarm: five lens reviewers, then a verifier that tries to refute each finding, so only what survives is reported. `ship --watch` triages a pull request's review comments through the same verifier. Claude Code's Workflow tool launches only when the user opts in, so the swarm runs when you type `/turbocharge:review`; a review Claude starts on its own uses one code-reviewer.
