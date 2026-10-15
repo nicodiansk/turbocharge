@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use when a branch, pull request or diff should be checked before it merges: a review, a bug hunt against a spec, a last look before shipping. Runs lens reviewers over the diff, then verifiers that try to refute each finding, and reports what survived with a merge verdict.
+description: "Use when a branch, pull request or diff should be checked before it merges: a review, a bug hunt against a spec, a last look before shipping. Runs lens reviewers over the diff, then verifiers that try to refute each finding, and reports what survived with a merge verdict."
 argument-hint: "[plan-or-description]"
 ---
 
