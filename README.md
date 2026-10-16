@@ -1,3 +1,6 @@
+<!-- repo-only -->
+<!-- Lines from a repo-only marker through its closing marker stay on GitHub only: scripts/release.sh drops them
+from the directory copy, whose scan holds any version that names an image file or tells you to fetch or run code. -->
 <p align="center">
   <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/hero-banner-v2.svg" alt="turbocharge — one plugin, one pipeline, no conflicts" width="100%">
 </p>
@@ -10,14 +13,17 @@
 </p>
 
 ---
+<!-- /repo-only -->
 
 You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that contradict each other, and a `planner-actually-good.md` you wrote at 2 AM. Claude picks whichever it finds first. You can't remember which is current. Neither can Claude.
 
 **Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 6 agents, 2 hooks, 1 workflow. One system to install, nothing to maintain.
 
+<!-- repo-only -->
 <p align="center">
   <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/before-after.svg" alt="Before: scattered, contradictory config. After: one ordered pipeline." width="100%">
 </p>
+<!-- /repo-only -->
 
 ## Install
 
@@ -31,6 +37,7 @@ claude plugin install turbocharge-nicodiansk@anthropic-plugin-directory
 claude plugin update turbocharge-nicodiansk@anthropic-plugin-directory
 ```
 
+<!-- repo-only -->
 Or from this repo's marketplace, which gets each release as soon as it merges instead of after the directory's review:
 
 ```bash
@@ -40,7 +47,9 @@ claude plugin install turbocharge@turbocharge
 claude plugin update turbocharge@turbocharge
 ```
 
-Install one or the other, not both: both copies register the same `/turbocharge:` commands. In a session, `/plugin` → **Discover** → search "turbocharge" and pick `turbocharge-nicodiansk` also works.
+Install one or the other, not both: both copies register the same `/turbocharge:` commands.
+<!-- /repo-only -->
+In a session, `/plugin` → **Discover** → search "turbocharge" and pick `turbocharge-nicodiansk` also works.
 
 Restart Claude Code, then start building:
 
@@ -48,8 +57,9 @@ Restart Claude Code, then start building:
 /turbocharge:brainstorm I want to build a CLI tool that manages git worktrees
 ```
 
-Every skill announces itself, does one job well, and hands you the next step:
+Every skill announces itself, does one job well, and hands you the next step.
 
+<!-- repo-only -->
 <p align="center">
   <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/brainstorm-session.svg" alt="A brainstorm session: Socratic dialogue, a captured design doc, and a chain-forward to /turbocharge:story" width="92%">
 </p>
@@ -62,10 +72,11 @@ Every skill announces itself, does one job well, and hands you the next step:
 claude --plugin-dir ./turbocharge
 ```
 </details>
+<!-- /repo-only -->
 
 ### Upgrading
 
-From the directory or from 2.x, update as usual with the update command for your copy above. Your commands stay `/turbocharge:<skill>`, and your session snapshot and setup's CLAUDE.md blocks carry over. 3.4 needs Claude Code 2.1.287 or later. Full notes are in the [CHANGELOG](CHANGELOG.md).
+From the directory or from 2.x, update as usual with the update command for your copy above. Your commands stay `/turbocharge:<skill>`, and your session snapshot and setup's CLAUDE.md blocks carry over. 3.4 needs Claude Code 2.1.287 or later. Full notes are in the [CHANGELOG](https://github.com/nicodiansk/turbocharge/blob/master/CHANGELOG.md).
 
 ## Where it works
 
@@ -117,9 +128,11 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 
 ## How Build Works
 
+<!-- repo-only -->
 <p align="center">
   <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/build-review-chain.svg" alt="Build execution per lane: inline or one Sonnet builder with self-review, or the opt-in --reviewed lane review with a Sonnet task-reviewer and resumed fix rounds" width="100%">
 </p>
+<!-- /repo-only -->
 
 A plan groups its tasks into **lanes** — sets of tasks that own disjoint files. Build routes each lane one of two ways:
 
@@ -156,15 +169,20 @@ Swarm against one reviewer (the same two defects cases, with the prompt `/turboc
 
 Claude Code 2.1.296 · model `claude-sonnet-5-5`, judge `claude-sonnet-5-5` · 3 runs per arm · 2026-10-14 · $6.59 list-price estimate (run on a Max plan, so it drew plan usage, not billing). Measured on the plugin as released (`e5abd26`); only the eval fixtures changed after.
 
-The suite lives in `evals/` and runs only when a maintainer runs `scripts/eval.sh` (`claude plugin eval`). It never runs in your sessions.
+The suite runs on the maintainer's machine before a release, and never runs in your sessions.
+<!-- repo-only -->
+It lives in `evals/` and runs through `scripts/eval.sh` (`claude plugin eval`).
+<!-- /repo-only -->
 
 ## Agents
 
 Dispatched by skills. You never invoke them directly.
 
+<!-- repo-only -->
 <p align="center">
   <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/model-tiering.svg" alt="Smart model routing — right model for each role" width="100%">
 </p>
+<!-- /repo-only -->
 
 | Agent | Role | Model |
 |:------|:-----|:------|
@@ -208,7 +226,9 @@ All agents except the verifier have `memory: project` for persistent codebase kn
 
 It starts at most 25 subagents: five lens reviewers (plan compliance as `turbocharge:code-reviewer`, four on Sonnet, told not to edit) and `turbocharge:verifier` agents, which can't write or edit. The script itself has no file, shell or network access. Its agents read the repository and may run git and your tests. It writes no files, and its report returns to your session (progress in `/workflows`).
 
+<!-- repo-only -->
 **Not part of the plugin:** this repo's `.github/workflows` run Claude's GitHub Action on pull requests, with a token stored in this repo's GitHub secrets. They're CI for maintaining Turbocharge: they never run on your machine and never load into your sessions. The directory installs a trimmed copy (the `release` branch, built by `scripts/release.sh`) holding only the plugin's own files, so this repo's CI, scripts, evals and project notes never reach it.
+<!-- /repo-only -->
 
 ## Quick Start Examples
 
@@ -220,7 +240,7 @@ It starts at most 25 subagents: five lens reviewers (plan compliance as `turboch
 /turbocharge:plan docs/plans/my-feature-stories.md
 
 # Debug a specific issue
-/turbocharge:debug The auth middleware is rejecting valid tokens
+/turbocharge:debug The CSV export drops rows that contain commas
 
 # Wrap up your session
 /turbocharge:wrap
@@ -236,6 +256,7 @@ Turbocharge replaces scattered config. `/turbocharge:setup` handles this, but in
 - Commands in `.claude/commands/` for story-authoring, task-breakdown, session-wrap
 - Rule files that reference competing agents
 
+<!-- repo-only -->
 ## Project Structure
 
 ```
@@ -269,6 +290,7 @@ turbocharge/
 ```bash
 ./scripts/validate.sh
 ```
+<!-- /repo-only -->
 
 ## License
 

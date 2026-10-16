@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.4.2] - 2026-10-16
+
+Directory fix. The claude.ai directory held 3.4.1 for review on two findings in the shipped README and CHANGELOG: text naming the bundled plugin icon (UNREAD_ASSET_REFERENCED), and wording the scan reads as fetching code and running it (RUNTIME_FETCH_EXEC), most likely the repo-marketplace install and the maintainer's `./scripts/…` commands. Nothing in the plugin itself changed.
+
+### Changed
+- **Directory copy:** the directory's README is README.md without its repo-only blocks: no images, no repo-marketplace install, no CI note, no project layout. The full CHANGELOG stays on GitHub, and the README links to it. `scripts/directory-readme.sh` does the filtering; `scripts/release.sh` runs it.
+- **release.sh** refuses a release whose shipped text names a bundled image or font, pipes a download into a shell, or keeps a repo-only marker.
+- **README:** the debug example no longer mentions tokens.
+- New `t_directory_readme.sh` checks the directory README and the shipped text; `t_release_tree.sh` covers the filtered README and the refusals.
+
 ## [3.4.1] - 2026-10-15
 
 Directory fix. The claude.ai directory held 3.4.0 because the review skill's frontmatter wasn't strict YAML: its description held an unquoted `merges: a review`. Claude Code reads such a value and the skill worked, but the directory's scan couldn't parse it (REACH_UNKNOWN).
