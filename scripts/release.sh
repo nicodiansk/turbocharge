@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# ABOUTME: Builds the directory's `release` commit from an annotated vX.Y.Z tag: only the plugin's files, chained
-# ABOUTME: onto origin's release branch. Prints the commit; with --push, plain-pushes it (never rewrites history).
+# ABOUTME: Builds the directory's `release` commit from an annotated vX.Y.Z tag: only the plugin's files, README
+# ABOUTME: filtered by directory-readme.sh, chained onto origin's release. With --push, plain-pushes it (never rewrites).
 set -euo pipefail
 
-SHIPPED=(.claude-plugin agents hooks skills templates workflows CHANGELOG.md LICENSE README.md)
+SHIPPED=(.claude-plugin agents hooks skills templates workflows LICENSE README.md)
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 g() { git -C "$ROOT" "$@"; }
@@ -27,7 +27,26 @@ for entry in "${SHIPPED[@]}"; do
     [ -n "$(g ls-tree --name-only "$TAG_TREE" -- "$entry")" ] || die "$entry is missing from $TAG's tree"
 done
 
-TREE="$(g ls-tree "$TAG_TREE" -- "${SHIPPED[@]}" | g mktree)"
+# The directory copy's README drops the repo-only blocks (images, the repo marketplace, CI, project layout).
+README_BLOB="$(g show "$TAG:README.md" | bash "$ROOT/scripts/directory-readme.sh" | g hash-object -w --stdin)" \
+    || die "could not filter $TAG's README.md"
+TREE="$(g ls-tree "$TAG_TREE" -- "${SHIPPED[@]}" \
+    | awk -F'\t' -v b="$README_BLOB" '{ split($1, m, " "); if ($2 == "README.md") m[3] = b; print m[1] " " m[2] " " m[3] "\t" $2 }' \
+    | g mktree)"
+
+# What the directory scan holds a version for: shipped text naming a bundled image or font, or fetch-and-run.
+# scan prints git grep's matches in the release tree (none is fine) and fails only when git grep itself fails.
+scan() { local out rc=0; out="$(g grep "$@" 2>&1)" || rc=$?; [ "$rc" -le 1 ] || die "git grep failed ($rc): $out"; printf '%s' "$out"; }
+ASSETS="$(g ls-tree -r --name-only "$TREE" | sed -n -E 's#^(.*/)?([^/]+\.(png|jpe?g|gif|webp|ico|svg|woff2?|ttf|otf))$#\2#p')"
+for a in $ASSETS; do
+    HITS="$(scan -lF -e "$a" "$TREE" -- . ":(exclude)*$a")"
+    [ -z "$HITS" ] || die "shipped text names the bundled $a, which the directory scan holds for review: $HITS"
+done
+HITS="$(scan -nEi -e '(curl|wget)[^|]*[|][[:space:]]*(sudo[[:space:]]+)?(ba|z)?sh([^[:alnum:]]|$)' "$TREE")"
+[ -z "$HITS" ] || die "shipped text pipes a download into a shell: $HITS"
+HITS="$(scan -nF -e 'repo-only -->' "$TREE")"
+[ -z "$HITS" ] || die "a repo-only marker reached the release tree: $HITS"
+
 TAG_COMMIT="$(g rev-parse "$TAG^{commit}")"
 
 PARENT=""
