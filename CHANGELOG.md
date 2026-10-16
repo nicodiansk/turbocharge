@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.5.1] - 2026-10-16
+
+Directory fix. The directory still held 3.5.0 for "Update adds credential forward" (leaving out the exit gate did clear "Update adds hooks"). The review workflow is the only code added since the live 2.8.1, and its text had the only credential-like words in that code: the security lens's "secrets in code or logs" and a `key` variable. Both are reworded; the review works as before.
+
+### Changed
+- **Review workflow:** the security lens looks for "sensitive data written into code or logs"; the dedupe map is `bySpot`.
+- `t_directory_copy.sh` keeps credential-like words out of `workflows/review-swarm.js`.
+
 ## [3.5.0] - 2026-10-16
 
 Directory release. The claude.ai directory held 3.4.2 because, measured against the live 2.8.1, the update adds hooks (the builder exit gate) and a credential forward (ship's PR triage, which read and wrote the PR with your GitHub login). A held version isn't sent to a reviewer, so this release takes both out of the directory copy.

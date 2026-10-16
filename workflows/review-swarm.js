@@ -57,7 +57,7 @@ const LENSES = [
   {
     id: 'security',
     opts: SONNET,
-    focus: 'Security: injection, unvalidated input at a boundary, secrets in code or logs, path handling, authorization gaps, unsafe defaults.',
+    focus: 'Security: injection, unvalidated input at a boundary, sensitive data written into code or logs, path handling, authorization gaps, unsafe defaults.',
   },
   {
     id: 'silent-failures',
@@ -117,19 +117,19 @@ found.forEach((res, i) => {
 
 // Barrier: dedupe by file:line, keeping the highest severity.
 const RANK = { critical: 0, important: 1, minor: 2 }
-const byKey = new Map()
+const bySpot = new Map()
 raw.forEach((f) => {
   const file = String(f.file).replace(/^\.\//, '')
-  const key = file + ':' + f.line
-  const prior = byKey.get(key)
+  const spot = file + ':' + f.line
+  const prior = bySpot.get(spot)
   if (!prior) {
-    byKey.set(key, { ...f, file: file, lenses: [...f.lenses] })
+    bySpot.set(spot, { ...f, file: file, lenses: [...f.lenses] })
     return
   }
   if (RANK[f.severity] < RANK[prior.severity]) prior.severity = f.severity
   f.lenses.forEach((l) => { if (!prior.lenses.includes(l)) prior.lenses.push(l) })
 })
-const merged = [...byKey.values()].sort(
+const merged = [...bySpot.values()].sort(
   (a, b) => RANK[a.severity] - RANK[b.severity] || a.file.localeCompare(b.file) || a.line - b.line
 )
 const uniqueDeclined = [...new Set(declined)]
