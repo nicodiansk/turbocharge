@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.5.2] - 2026-10-16
+
+Directory fix. The directory still held 3.5.1 for "Update adds credential forward". Compared with the live 2.8.1, the one new read of a personal file in code was the SessionStart hook's: it read `CLAUDE.local.md`'s lines, and hook output goes into the session. The hook no longer reads it.
+
+### Changed
+- **SessionStart hook:** it checks only that `CLAUDE.local.md` and `AGENTS.md` exist. The nudge ("AGENTS.md May Not Be Loaded") asks Claude to check `CLAUDE.local.md`, which Claude Code already loads, for the `@AGENTS.md` import, and to stay quiet when it's there.
+- **README:** the hook disclosure says the contents of `CLAUDE.md`, `CLAUDE.local.md` and `AGENTS.md` are never read.
+- `t_claudemd_variants.sh` checks that the hook's output doesn't depend on `CLAUDE.local.md`'s content, even when the file is unreadable.
+
 ## [3.5.1] - 2026-10-16
 
 Directory fix. The directory still held 3.5.0 for "Update adds credential forward" (leaving out the exit gate did clear "Update adds hooks"). The review workflow is the only code added since the live 2.8.1, and its text had the only credential-like words in that code: the security lens's "secrets in code or logs" and a `key` variable. Both are reworded; the review works as before.

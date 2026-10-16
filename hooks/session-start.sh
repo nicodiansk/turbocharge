@@ -83,8 +83,9 @@ emit_nudge() {
         return 0
     fi
     if [ -f "CLAUDE.local.md" ]; then
-        # Reads only CLAUDE.local.md's import lines, to see whether the nudge's fix is already in place.
-        if [ -f "AGENTS.md" ] && ! grep -qE '(^|[[:space:]])@(\./)?AGENTS\.md([[:space:]]|$)' "CLAUDE.local.md"; then
+        # Existence only: the hook never reads CLAUDE.local.md, a personal file. Claude Code already loads it into the
+        # session, so the nudge asks Claude to check it for the @AGENTS.md import.
+        if [ -f "AGENTS.md" ]; then
             echo ""
             cat "$HOOK_DIR/agentsmd-not-loaded-nudge.md"
         fi
