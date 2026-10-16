@@ -1,12 +1,12 @@
 ---
 name: review
-description: "Use when a branch, pull request or diff should be checked before it merges: a review, a bug hunt against a spec, a last look before shipping. Runs lens reviewers over the diff, then verifiers that try to refute each finding, and reports what survived with a merge verdict."
+description: "Use when a branch, pull request or diff should be checked before it merges: a review, a bug hunt against a spec, a last look before shipping. Reviews the diff against the plan and reports the findings with a merge verdict."
 argument-hint: "[plan-or-description]"
 ---
 
 # Code Review
 
-Pre-merge review of completed work against the original plan. It runs in this session. When the user opts in, five lens reviewers find defects, then verifier agents try to refute each finding, and only what survives is reported as confirmed. Otherwise one senior reviewer agent reviews the diff.
+Pre-merge review of completed work against the original plan, by one senior reviewer agent. It runs in this session.
 
 **Announce:** "Using review to assess this work before merge."
 
@@ -32,45 +32,9 @@ git diff --name-only $BASE_SHA..HEAD
 - Uncommitted tracked changes (`git status --porcelain`): say in one line that they are not part of this review.
 - The plan is `$ARGUMENTS` when it names a file. Otherwise the plan is the description, or none.
 
-## Step 2: Pick the reviewer
-
-The swarm is a workflow, and the Workflow tool launches only on the user's opt-in. Opt-in means the user typed `/turbocharge:review`, or asked in their own words for the swarm, a multi-agent or multi-lens review, or a workflow. This skill reaching you some other way is not an opt-in: you invoked it yourself from a plain request ("check my branch before I merge"), or another skill chained into it.
-
-- Opt-in → **Step 3**.
-- No opt-in → **Single reviewer**.
-
-Never review inline when an agent can do it. The inline review is only for **No agent here**.
-
-## Step 3: Launch the swarm
-
-Call the **Workflow** tool with `name: "turbocharge:review-swarm"` and these args as JSON:
-
-```json
-{"base": "<BASE_SHA>", "head": "<HEAD sha>", "files": ["<name-only list>"], "plan": "<plan file path or description>", "context": ["<paths>"], "stat": "<git diff --stat output>"}
-```
-
-`context` lists the navigation and convention files that exist, by path: `ATLAS.md` (navigation index — Module Map + Key Symbols locate touched modules) and `CLAUDE.md` (conventions, rules). Omit either if the file doesn't exist. Exception: if CLAUDE.md is missing but `AGENTS.md` exists, use `AGENTS.md` in its place. `.claude/CLAUDE.md` counts as a CLAUDE.md: if the project keeps it there, list `.claude/CLAUDE.md`.
-
-The workflow runs in the background. Wait for its completion notification. Don't review in parallel, and don't poll.
-
-If the launch is declined, denied or fails, go to **Single reviewer** and say why in one line.
-
-## Step 4: Report
-
-From the workflow's result:
-
-- **Confirmed findings** by severity (Critical / Important / Minor): `file:line`, evidence, and which lenses found it.
-- **Not verified**: findings no verifier could settle (a verifier failed, or the agent cap was reached), with why. Never present these as confirmed or as refuted.
-- **Declined to judge**: each behavior a lens set aside, one line each with why (or `Declined to judge: none`). The session that receives this report rules on each line before shipping, by what a reasonable user would expect.
-- **Refuted**: one collapsed line each, with the verifier's reason.
-- **Dropped work**: any lens that failed, so its coverage is missing.
-- **Assessment** = the workflow's verdict: Yes / No / With fixes / Incomplete.
-
-After review, offer: "Ready to ship?" → chains to `/turbocharge:ship`
-
 ## Single reviewer
 
-Reached on no opt-in (Step 2), when there is no Workflow tool (workflows are off), or when the swarm's launch was declined or failed (Step 3). Dispatch `turbocharge:code-reviewer`, with this prefix so the subagent sees the navigation index (subagents do not inherit parent history):
+Dispatch `turbocharge:code-reviewer`, with this prefix so the subagent sees the navigation index (subagents do not inherit parent history):
 
 ```
 @ATLAS.md (navigation index — use Module Map + Key Symbols to locate touched modules)
@@ -79,13 +43,17 @@ Reached on no opt-in (Step 2), when there is no Workflow tool (workflows are off
 
 Omit either reference if the file doesn't exist. Exception: if CLAUDE.md is missing but `AGENTS.md` exists, use `@AGENTS.md` in its place. `.claude/CLAUDE.md` counts as a CLAUDE.md: if the project keeps it there, use `@.claude/CLAUDE.md`.
 
-Give it the diff range and the plan. Wait for it, then report its result in the shape above (it has no refuted or not-verified lists). End with one tip, printed once:
+Give it the diff range and the plan. Wait for it, then report:
 
-- No opt-in: `Tip: type /turbocharge:review for the verified multi-lens review (five lens reviewers plus a verifier per finding; slower, about 10x the cost).`
-- No Workflow tool: `Tip: turn on Dynamic workflows in /config for the verified multi-lens review.`
-- Launch declined or failed: no tip; the one line from Step 3 says why.
+- **Findings** by severity (Critical / Important / Minor): `file:line` and evidence.
+- **Declined to judge**: each behavior the reviewer set aside, one line each with why (or `Declined to judge: none`). The session that receives this report rules on each line before shipping, by what a reasonable user would expect.
+- **Assessment**: Yes / No / With fixes.
 
 **No agent here:** if `turbocharge:code-reviewer` can't be dispatched either (no Agent tool, or the agent type is not registered, as on surfaces that load skills without agents), run the review inline in this session: read every changed file against the plan, check plan alignment, code quality, architecture and security, and judge behavior the spec doesn't mention (an empty input, a duplicate, error text, a rerun) by what a reasonable user would expect. Say so in one line.
+
+## After the review
+
+Offer: "Ready to ship?" → chains to `/turbocharge:ship`
 
 ## Review for
 
@@ -104,7 +72,7 @@ If you catch yourself thinking any of these, **STOP — you are about to deliver
 | "This is a minor change, quick review is fine" | Minor changes to core logic cause major production incidents |
 | "I've reviewed similar code before, I know the patterns" | This review is about THIS diff, not past patterns |
 | "Let me check the main concerns and wrap up" | Checking "main concerns" is a euphemism for a partial review |
-| "The diff is small, I'll review it inline" | With no opt-in the reviewer is `turbocharge:code-reviewer`. Inline is only for when no agent can be dispatched |
+| "The diff is small, I'll review it inline" | A reviewer agent does the review. Inline is only for when no agent can be dispatched |
 
 ### Review Completeness Checklist
 

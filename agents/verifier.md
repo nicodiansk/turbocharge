@@ -2,8 +2,8 @@
 name: verifier
 description: |
   Tries to refute one finding or review comment about the current code, and returns
-  confirmed, refuted or uncertain with evidence. Read-only. Dispatched by the review
-  swarm (one call per vote) and by ship's PR-comment triage.
+  confirmed, refuted or uncertain with evidence. Read-only. Dispatched once per claim
+  (a review finding or a PR comment).
 disallowedTools: Write, Edit, NotebookEdit, Agent
 model: sonnet
 effort: medium

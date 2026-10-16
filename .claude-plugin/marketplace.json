@@ -17,7 +17,7 @@
         "source": "url",
         "url": "https://github.com/nicodiansk/turbocharge.git"
       },
-      "description": "Engineering team orchestration for Claude Code. 10 skills, 6 agents, 1 hook, 1 workflow — single pipeline from brainstorm to shipped code.",
+      "description": "Engineering team orchestration for Claude Code. 10 skills, 6 agents, 1 hook — single pipeline from brainstorm to shipped code.",
       "strict": true
     }
   ]
