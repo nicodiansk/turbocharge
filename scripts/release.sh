@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ABOUTME: Builds the directory's `release` commit from an annotated vX.Y.Z tag: the plugin's files as the directory copy
-# ABOUTME: (filtered markdown, no exit gate or review workflow), chained onto origin's release. --push plain-pushes it.
+# ABOUTME: (filtered markdown, no exit gate or review workflow, user-only ship), chained onto origin's release. --push plain-pushes it.
 set -euo pipefail
 
 SHIPPED=(.claude-plugin agents hooks skills templates workflows LICENSE README.md)
@@ -13,6 +13,11 @@ DIRECTORY_HOOKS_JQ='del(.hooks.SubagentStop, .hooks.PreToolUse)'
 HOOKS_REPO='2 hooks'
 HOOKS_DIRECTORY='1 hook'
 WORKFLOWS_REPO='1 workflow'
+# The directory copy keeps these skills user-only: only the user starts them, Claude can't. Ship pushes and opens PRs with
+# the user's GitHub login. 2.8.1 and 3.3.0 had it user-only and passed the scan; 3.4.0 let Claude start it and was the
+# first version held for "Update adds credential forward".
+DIRECTORY_USER_ONLY=(skills/ship/SKILL.md)
+USER_ONLY_FLAG='disable-model-invocation: true'
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 g() { git -C "$ROOT" "$@"; }
@@ -56,6 +61,19 @@ MARKED="$(scan -lF -e '<!-- repo-only -->' -e '<!-- directory-only' "$TAG_TREE" 
 for f in $MARKED; do
     f="${f#*:}"
     g show "$TAG:$f" | bash "$ROOT/scripts/directory-filter.sh" | put "$f" || die "could not filter $f"
+done
+# user_only puts the flag last in the frontmatter (stdin), in place of any disable-model-invocation line there.
+user_only() {
+    awk -v flag="$USER_ONLY_FLAG" '
+        NR == 1 { if ($0 != "---") exit 1; fm = 1; print; next }
+        fm && /^disable-model-invocation:/ { next }
+        fm && $0 == "---" { print flag; fm = 0; done = 1 }
+        { print }
+        END { if (!done) exit 1 }
+    '
+}
+for f in "${DIRECTORY_USER_ONLY[@]}"; do
+    gi show ":$f" | user_only | put "$f" || die "could not make $f user-only (it needs a --- frontmatter block)"
 done
 g show "$TAG:hooks/hooks.json" | jq --indent 2 "$DIRECTORY_HOOKS_JQ" | put hooks/hooks.json || die "could not trim hooks/hooks.json"
 for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json; do
