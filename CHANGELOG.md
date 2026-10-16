@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.5.0] - 2026-10-16
+
+Directory release. The claude.ai directory held 3.4.2 because, measured against the live 2.8.1, the update adds hooks (the builder exit gate) and a credential forward (ship's PR triage, which read and wrote the PR with your GitHub login). A held version isn't sent to a reviewer, so this release takes both out of the directory copy.
+
+### Removed
+- **ship `--watch`:** ship no longer reads a PR's checks and comments or posts replies through `gh`. To watch a PR's CI and review comments, use Claude Code's `/autofix-pr`. Triage of review comments saved to a file or pasted stays: each comment is verified through the verifier, valid ones are fixed and committed locally, and the replies are drafted for you to post. Triage never pushes.
+
+### Changed
+- **Directory copy:** it leaves out the builder exit gate (its `SubagentStop` and `PreToolUse` hooks). Most directory installs run on claude.ai, where hooks are ignored; installs from this repo's marketplace keep it. The directory's README and manifests say 1 hook.
+- **`scripts/directory-filter.sh`** (was `directory-readme.sh`) filters every shipped markdown file, and `<!-- directory-only` blocks show text only in the directory copy. `release.sh` builds the directory copy in a scratch index and refuses one that names a left-out file or still says 2 hooks.
+- **Tests:** `t_ship_triage.sh` covers offline triage and forbids `gh api`, `--watch` and pushing; `t_directory_copy.sh` (was `t_directory_readme.sh`) and `t_release_tree.sh` cover the directory copy.
+
+### Upgrading
+If you used `ship --watch <PR#>`, save the PR's review comments to a file or paste them and ask ship to triage them, or run `/autofix-pr` on the PR's branch.
+
 ## [3.4.2] - 2026-10-16
 
 Directory fix. The claude.ai directory held 3.4.1 for review on two findings in the shipped README and CHANGELOG: text naming the bundled plugin icon (UNREAD_ASSET_REFERENCED), and wording the scan reads as fetching code and running it (RUNTIME_FETCH_EXEC), most likely the repo-marketplace install and the maintainer's `./scripts/…` commands. Nothing in the plugin itself changed.
