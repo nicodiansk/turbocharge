@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.5.5] - 2026-10-16
+
+Directory test. Leaving out the review workflow (3.5.3) didn't clear "Update adds credential forward". The hold started between 3.3.0 and 3.4.0. Of what 3.4.0 changed, one thing in the directory copy still touches your GitHub login: Claude could start ship, which runs `git push` and `gh pr create` with it. In 2.8.1 and 3.3.0 only you could start ship (`disable-model-invocation: true`). 3.5.4 was a test on the directory's branch only (the live 2.8.1's files with the version changed); the directory couldn't fetch it, so nothing was scanned.
+
+### Changed
+- **Directory copy:** only you can start ship again (`disable-model-invocation: true`): type `/turbocharge:ship`, and Claude offers it rather than starting it. Installs from this repo's marketplace keep the ship Claude can start. `release.sh` puts the flag in the frontmatter of each file in `DIRECTORY_USER_ONLY` and refuses one without frontmatter.
+- `t_release_tree.sh` covers the user-only ship.
+
 ## [3.5.3] - 2026-10-16
 
 Directory test. The directory still held 3.5.2 for "Update adds credential forward". No shipped file reads a credential, and the plugin's only network command is the `gh pr create` the live 2.8.1 already runs. The review workflow is the only code added since 2.8.1, so the directory copy leaves it out. Installs from this repo's marketplace keep it.
