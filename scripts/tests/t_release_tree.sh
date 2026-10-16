@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ABOUTME: Drives scripts/release.sh against a fixture repo with a bare origin: the release commit is the directory copy
-# ABOUTME: (SHIPPED, filtered markdown, no exit gate or review workflow), chains, is idempotent, refuses bad tags and scan-held text.
+# ABOUTME: (SHIPPED, filtered markdown, no exit gate or review workflow, user-only ship), chains, is idempotent, refuses bad tags and scan-held text.
 source "$PLUGIN_DIR/scripts/tests/helpers.sh"
 REL="$PLUGIN_DIR/scripts/release.sh"
 assert_file "$REL" || exit 1
@@ -35,7 +35,8 @@ HOOKS_JSON='{ "hooks": {
 set_version 9.9.9
 put agents/a.md "$(printf 'Agent\n<!-- repo-only -->\nRepo note\n<!-- /repo-only -->')"
 put hooks/h.sh h; put hooks/builder-exit-gate.sh g; put hooks/hooks.json "$HOOKS_JSON"
-put skills/s/SKILL.md s; put templates/t.md t; put workflows/w.js w; put workflows/review-swarm.js r
+put skills/s/SKILL.md s; put skills/ship/SKILL.md "$(printf -- '---\nname: ship\ndescription: Ship it\n---\nShip body')"
+put templates/t.md t; put workflows/w.js w; put workflows/review-swarm.js r
 put CHANGELOG.md c; put LICENSE l; put .claude-plugin/icon.png p
 put README.md "$(printf '<!-- repo-only -->\nIntro, 2 hooks\nRepo marketplace, builder-exit-gate.sh\n<!-- /repo-only -->\n<!-- directory-only\nIntro, 1 hook\n-->\nOutro')"
 put .claude/CLAUDE.md d; put .github/w.yml d; put scripts/x.sh d; put evals/e/prompt.md d
@@ -66,24 +67,30 @@ git -C "$F" cat-file -e "$SHA:workflows/w.js" 2>/dev/null || { echo "    release
     || { echo "    release hooks.json keeps more than SessionStart: $(git -C "$F" show "$SHA:hooks/hooks.json")"; exit 1; }
 git -C "$F" show "$SHA:.claude-plugin/plugin.json" | jq -e '.description == "3 skills, 1 hook"' >/dev/null \
     || { echo "    release plugin.json hook and workflow count: $(git -C "$F" show "$SHA:.claude-plugin/plugin.json")"; exit 1; }
+SHIP_USER_ONLY="$(printf -- '---\nname: ship\ndescription: Ship it\ndisable-model-invocation: true\n---\nShip body')"
+[ "$(git -C "$F" show "$SHA:skills/ship/SKILL.md")" = "$SHIP_USER_ONLY" ] \
+    || { echo "    release ship skill isn't user-only: $(git -C "$F" show "$SHA:skills/ship/SKILL.md")"; exit 1; }
 
-# --push: origin's release holds no dev dirs and shares the tag's skills tree.
+# --push: origin's release holds no dev dirs and shares the tag's other skills.
 OUT="$(run v9.9.9 --push)" || { echo "    --push failed: $OUT"; exit 1; }
 O="$TMP/origin.git"
 FIRST="$(git -C "$O" rev-parse refs/heads/release)" || { echo "    origin has no release after --push"; exit 1; }
 for d in .claude .github scripts evals CHANGELOG.md; do
     git -C "$O" cat-file -e "$FIRST:$d" 2>/dev/null && { echo "    release contains $d"; exit 1; }
 done
-[ "$(git -C "$O" rev-parse "$FIRST:skills")" = "$(git -C "$F" rev-parse v9.9.9:skills)" ] \
-    || { echo "    release skills tree differs from the tag's"; exit 1; }
+[ "$(git -C "$O" rev-parse "$FIRST:skills/s")" = "$(git -C "$F" rev-parse v9.9.9:skills/s)" ] \
+    || { echo "    release skills/s differs from the tag's"; exit 1; }
 
-# A second release chains onto the first.
+# A second release chains onto the first. A ship that says it's model-invocable gets the user-only flag instead.
 put skills/s/SKILL.md s2; set_version 9.9.10
+put skills/ship/SKILL.md "$(printf -- '---\nname: ship\ndisable-model-invocation: false\ndescription: Ship it\n---\nShip body')"
 git -C "$F" add -A && git -C "$F" commit -q -m two && git -C "$F" tag -a v9.9.10 -m v9.9.10
 OUT="$(run v9.9.10 --push)" || { echo "    second --push failed: $OUT"; exit 1; }
 SECOND="$(git -C "$O" rev-parse refs/heads/release)"
 [ "$SECOND" != "$FIRST" ] || { echo "    release did not advance"; exit 1; }
 [ "$(git -C "$O" rev-parse "$SECOND^")" = "$FIRST" ] || { echo "    second release's parent isn't the first"; exit 1; }
+[ "$(git -C "$O" show "$SECOND:skills/ship/SKILL.md")" = "$SHIP_USER_ONLY" ] \
+    || { echo "    the flag isn't replaced: $(git -C "$O" show "$SECOND:skills/ship/SKILL.md")"; exit 1; }
 
 # Rerun: exit 0, says so, origin unchanged.
 OUT="$(run v9.9.10 --push)" || { echo "    rerun failed: $OUT"; exit 1; }
@@ -135,6 +142,8 @@ put README.md r; put templates/t.md 'Ships 2 hooks'
 refuse_release 'still says 2 hooks' "text still counting 2 hooks"
 put templates/t.md 'Ships 1 workflow'
 refuse_release 'still says 1 workflow' "text still counting the left-out workflow"
+put templates/t.md t; put skills/ship/SKILL.md 'Ship body, no frontmatter'
+refuse_release 'user-only' "a user-only skill without frontmatter"
 
 # Real repo: every top-level entry is shipped or known dev-only.
 DEV_ONLY=(.claude .gitattributes .github .gitignore CHANGELOG.md evals examples images scripts)
@@ -153,6 +162,14 @@ while IFS= read -r r; do
 done <<EOF2
 $REFS
 EOF2
+
+# The directory copy keeps ship user-only, and every user-only file is in the repo with frontmatter to put the flag in.
+USER_ONLY_LINE="$(grep '^DIRECTORY_USER_ONLY=(' "$REL")"
+printf '%s' "$USER_ONLY_LINE" | grep -qF 'skills/ship/SKILL.md' \
+    || { echo "    release.sh has no one-line DIRECTORY_USER_ONLY=(...) holding skills/ship/SKILL.md"; rc=1; }
+for u in $(printf '%s' "$USER_ONLY_LINE" | sed 's/^DIRECTORY_USER_ONLY=(//; s/)[[:space:]]*$//'); do
+    [ "$(head -n 1 "$PLUGIN_DIR/$u" 2>/dev/null)" = "---" ] || { echo "    user-only $u is missing or has no frontmatter"; rc=1; }
+done
 
 grep -qE -e '--force|[[:space:]]-f[[:space:]]|\+refs' "$REL" && { echo "    release.sh contains a force flag"; rc=1; }
 exit $rc
