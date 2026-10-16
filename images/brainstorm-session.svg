@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 560" width="1000" height="560" font-family="'SF Mono','Fira Code','Cascadia Code',monospace">
+  <defs>
+    <filter id="winShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="14" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <rect width="1000" height="560" fill="#010409"/>
+
+  <!-- Terminal window -->
+  <g filter="url(#winShadow)">
+    <rect x="40" y="30" width="920" height="500" rx="12" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+    <!-- title bar -->
+    <path d="M40,42 a12,12 0 0 1 12,-12 h896 a12,12 0 0 1 12,12 v26 h-920 z" fill="#161b22"/>
+    <circle cx="64" cy="49" r="6" fill="#ff5f56"/>
+    <circle cx="84" cy="49" r="6" fill="#ffbd2e"/>
+    <circle cx="104" cy="49" r="6" fill="#27c93f"/>
+    <text x="500" y="54" text-anchor="middle" fill="#6e7681" font-size="12">claude — turbocharge</text>
+  </g>
+
+  <!-- Terminal content -->
+  <g font-size="14.5">
+    <!-- command -->
+    <text x="70" y="100"><tspan fill="#7ee787">❯</tspan> <tspan fill="#e6edf3">/turbocharge:brainstorm</tspan> <tspan fill="#8b949e">a CLI tool to manage git worktrees</tspan></text>
+
+    <!-- announce -->
+    <text x="70" y="138"><tspan fill="#a78bfa">●</tspan> <tspan fill="#c9d1d9">Using brainstorm to explore this idea before implementation.</tspan></text>
+
+    <!-- dialogue -->
+    <text x="92" y="174" fill="#58a6ff">What problem are you solving, and who hits it today?</text>
+    <text x="92" y="200"><tspan fill="#6e7681">❯</tspan> <tspan fill="#8b949e">devs juggling several worktrees lose track of what's where</tspan></text>
+
+    <text x="92" y="238" fill="#58a6ff">Three approaches — which fits?</text>
+    <text x="110" y="262"><tspan fill="#7ee787">1.</tspan> <tspan fill="#c9d1d9">Thin wrapper around git worktree</tspan>   <tspan fill="#6e7681">no state · fast to build</tspan></text>
+    <text x="110" y="286"><tspan fill="#7ee787">2.</tspan> <tspan fill="#c9d1d9">Stateful manager (SQLite)</tspan>          <tspan fill="#6e7681">richer · can drift</tspan></text>
+    <text x="110" y="310"><tspan fill="#7ee787">3.</tspan> <tspan fill="#c9d1d9">Git-hooks integration</tspan>              <tspan fill="#6e7681">zero-touch · fragile</tspan></text>
+    <text x="92" y="338"><tspan fill="#6e7681">❯</tspan> <tspan fill="#8b949e">1 — YAGNI on the database</tspan></text>
+
+    <!-- result block -->
+    <rect x="70" y="362" width="860" height="120" rx="8" fill="#7ee787" fill-opacity="0.04" stroke="#238636" stroke-width="1" stroke-opacity="0.4"/>
+    <text x="90" y="392"><tspan fill="#7ee787">✓</tspan> <tspan fill="#e6edf3" font-weight="600">Design captured</tspan> <tspan fill="#6e7681">→ docs/design.md</tspan></text>
+    <text x="108" y="416" fill="#8b949e" font-size="13">Problem · Users · Constraints · 3 approaches · Decision · Architecture</text>
+
+    <line x1="90" y1="434" x2="910" y2="434" stroke="#21262d" stroke-width="1"/>
+    <text x="90" y="460"><tspan fill="#a78bfa">→</tspan> <tspan fill="#c9d1d9">Next step:</tspan> <tspan fill="#58a6ff">/turbocharge:story</tspan></text>
+  </g>
+</svg>

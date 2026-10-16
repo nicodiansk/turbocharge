@@ -70,11 +70,16 @@ Run `claude plugin list --json` to enumerate installed plugins and their enable 
 
 ### 5. Validate Turbocharge Plugin Health
 
-Run `claude plugin details turbocharge` to confirm the plugin is installed, enabled, and to see its standing token cost. Then check the installed copy under `${CLAUDE_PLUGIN_ROOT}`:
+Run `claude plugin details turbocharge` to confirm the plugin is installed, enabled, and to see its standing token cost. Then run the validation script if available:
+```bash
+./scripts/validate.sh
+```
+
+Or manually check:
 - All 10 skills have SKILL.md files
-- All 6 agents have .md files
+- All 5 agents have .md files
 - hooks/hooks.json exists
-- .claude-plugin/plugin.json exists and its version matches `claude plugin details`
+- .claude-plugin/plugin.json exists and has correct version
 
 ### 6. Check Global Rules Alignment
 
@@ -133,15 +138,11 @@ The interview must be completable in under 90 seconds.
 
 ### 3. Render and Append
 
-Read `${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE-turbocharge.md`. Substitute answers (test command, naming style, file-header convention, domain terms). Each block is delimited by `<!-- turbocharge:NAME -->` and `<!-- /turbocharge:NAME -->`. Versions 3.0–3.1 wrote the same blocks under `<!-- turboflow:NAME -->` / `<!-- /turboflow:NAME -->`: treat those as the same block — replace it in place and rewrite its markers to `turbocharge`; never append a duplicate. If both a `turbocharge:NAME` and a `turboflow:NAME` block exist (3.x setup appended a copy), update the turbocharge block and remove the turboflow duplicate.
+Read `${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE-turbocharge.md`. Substitute answers (test command, naming style, file-header convention, domain terms). Each block is delimited by `<!-- turbocharge:NAME -->` and `<!-- /turbocharge:NAME -->`.
 
-CLAUDE.md here means `./CLAUDE.md`, or `./.claude/CLAUDE.md` when the project keeps it there — edit the one that exists, never create a second. Imports resolve relative to the file that contains them, so inside `.claude/CLAUDE.md` the import is `@../AGENTS.md`: write that form wherever the bullets below say `@AGENTS.md`, and treat either form as the import already being present.
-
-- If CLAUDE.md exists, `AGENTS.md` also exists, and CLAUDE.md has no `@AGENTS.md` line → offer to add `@AGENTS.md` as its first line. Claude Code ignores AGENTS.md whenever a CLAUDE.md exists, so without the import its instructions never load. Leave the file unchanged if the user declines.
 - If CLAUDE.md exists and contains a block with the same marker → replace between markers, leave surrounding content untouched.
 - If CLAUDE.md exists and does not contain that block → append to end of file.
-- If CLAUDE.md does not exist but `AGENTS.md` does → create CLAUDE.md with `@AGENTS.md` as its first line, then append the rendered blocks below it. Claude Code reads AGENTS.md only while no CLAUDE.md exists, so this import is what keeps AGENTS.md loading once CLAUDE.md is created.
-- If neither CLAUDE.md nor AGENTS.md exists → suggest `/init` first, do not create a bare CLAUDE.md from the template alone.
+- If CLAUDE.md does not exist → suggest `/init` first, do not create a bare CLAUDE.md from the template alone.
 
 ### 4. Show Diff, Confirm, Write
 
