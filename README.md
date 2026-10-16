@@ -21,7 +21,7 @@ You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that c
 **Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 6 agents, 2 hooks, 1 workflow. One system to install, nothing to maintain.
 <!-- /repo-only -->
 <!-- directory-only
-**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 6 agents, 1 hook, 1 workflow. One system to install, nothing to maintain.
+**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 6 agents, 1 hook. One system to install, nothing to maintain.
 -->
 
 <!-- repo-only -->
@@ -101,11 +101,14 @@ Turbocharge is built for **Claude Code**, where the whole pipeline runs. Each Cl
 |:--|:--:|:--:|:--:|
 | 10 skills | ✓ | ✓ | ✓ |
 | 6 agents (builder, reviewers, verifier, planner, researcher) | ✓ | ✓ | ignored |
-| Review workflow (`workflows/review-swarm.js`) | ✓ | one reviewer (fallback) | ignored |
 | SessionStart hook | ✓ | ✓ | ignored |
 -->
 
-In Chat, agents and hooks are ignored, so the planning skills (`brainstorm`, `story`, `plan`) are the useful part there. The review workflow runs when you type `/turbocharge:review` and dynamic workflows are on (Pro plans turn them on in `/config`). Where they're off, review runs one code-reviewer and says how to turn them on. `build`, `review`, `ship` and `debug` need a shell and git, which means Claude Code. A plugin you add on claude.ai also reaches Claude Code at your next session start.
+In Chat, agents and hooks are ignored, so the planning skills (`brainstorm`, `story`, `plan`) are the useful part there. `build`, `review`, `ship` and `debug` need a shell and git, which means Claude Code. A plugin you add on claude.ai also reaches Claude Code at your next session start.
+
+<!-- repo-only -->
+The review workflow runs when you type `/turbocharge:review` and dynamic workflows are on (Pro plans turn them on in `/config`). Where they're off, review runs one code-reviewer and says how to turn them on.
+<!-- /repo-only -->
 
 ## The Pipeline
 
@@ -129,10 +132,14 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 | **story** | `/turbocharge:story` | INVEST-compliant story breakdown with acceptance criteria |
 | **plan** | `/turbocharge:plan` | Lean plans — decisions, exact paths and test assertions in 2-5 min tasks, grouped into file-disjoint lanes |
 | **build** | `/turbocharge:build` | Runs each lane inline or with one Sonnet builder, overlaps independent lanes, then one full-suite gate. Opt-in per-lane review (`--reviewed`). |
-| **review** | `/turbocharge:review` | Pre-merge review against the plan by one senior reviewer. The verified review runs when you type `/turbocharge:review`: five lens reviewers, then verifiers that try to refute each finding |
+| **review** | `/turbocharge:review` | Pre-merge review against the plan by one senior reviewer |
 | **debug** | `/turbocharge:debug` | Systematic 4-phase root-cause investigation — no fix until cause is proven |
 | **ship** | `/turbocharge:ship` | Test verification, then merge / PR / keep (discard only when you ask). Triages review comments you save to a file or paste: verifies each, fixes the valid ones, drafts the replies |
 | **wrap** | `/turbocharge:wrap` | Session continuity — captures state, generates resume prompt |
+
+<!-- repo-only -->
+The verified review runs when you type `/turbocharge:review`: five lens reviewers, then verifiers that try to refute each finding.
+<!-- /repo-only -->
 
 ## Why a Pipeline
 
@@ -180,7 +187,9 @@ Sample: 2 defects cases, 1 planning, 4 trigger, 1 triage; 3 runs per arm, 48 run
 
 What 3.4.0 shows: `brainstorm` now fires on "add CSV export to this tool" (3/3, was 0/3), lifting trigger to +0.17, while the typo fix still gets no ceremony. `review` fires on both defects prompts (6/6, was 0/3). Triage gains +0.25: without the plugin, every run changed `slugify`'s signature, which the style nit asked for and the plugin leaves to you. Planning holds at +0.50. Defects reads −0.10, and all of it is the false-alarm grader: with the plugin, the reviewer found every planted bug in every run (36 of 36) but rated extra findings Critical or Important. Some were real bugs the larger fixture held by accident, which the grader counted as false alarms; the fixtures were cleaned after this run and aren't re-measured yet. `debug` didn't fire (0/3), and Sonnet found the root cause anyway.
 
+<!-- repo-only -->
 Swarm against one reviewer (the same two defects cases, with the prompt `/turbocharge:review SPEC.md`, 3 runs each, with the plugin only): the swarm found 34 of 36 planted bugs and one reviewer 36 of 36. The swarm's false-alarm grader passed 3 of 6 runs, one reviewer's 0 of 6, at about 3–4× the cost ($0.9–1.3 a review against $0.25–0.45). So the swarm runs when you ask for it, and one reviewer runs otherwise.
+<!-- /repo-only -->
 
 Claude Code 2.1.296 · model `claude-sonnet-5-5`, judge `claude-sonnet-5-5` · 3 runs per arm · 2026-10-14 · $6.59 list-price estimate (run on a Max plan, so it drew plan usage, not billing). Measured on the plugin as released (`e5abd26`); only the eval fixtures changed after.
 
@@ -244,11 +253,13 @@ All agents except the verifier have `memory: project` for persistent codebase kn
 `hooks/builder-exit-gate.sh` runs when a `turbocharge:builder` subagent stops (`SubagentStop`), and in auto mode just before such a builder hands back its report (`PreToolUse` on `SubagentHandback`). For any other agent or tool it returns at once. It reads the hook input on stdin and that builder's transcript, lists the files the builder edited with Edit or Write, and runs `git status --porcelain` on those files only. If any are uncommitted, it keeps the builder going with "commit these by pathspec … or say why they must stay uncommitted". It does this once per instruction: it looks for its own earlier denial after the builder's latest prompt, so a builder resumed for a fix round is checked again. Each file is checked in its own repository, so edits in another worktree count too. It writes no files, changes no settings, and sends nothing over the network. It needs `jq`, and does nothing without it. Inline lanes, which run in your main session, aren't covered.
 <!-- /repo-only -->
 
+<!-- repo-only -->
 ### What the review workflow does
 
 `workflows/review-swarm.js` runs only when you type `/turbocharge:review` (or ask for the verified review in your own words). Claude Code asks before it runs: the first launch in auto mode, every run in manual mode unless you choose "don't ask again". A review Claude starts on its own uses one code-reviewer instead.
 
 It starts at most 25 subagents: five lens reviewers (plan compliance as `turbocharge:code-reviewer`, four on Sonnet, told not to edit) and `turbocharge:verifier` agents, which can't write or edit. The script itself has no file, shell or network access. Its agents read the repository and may run git and your tests. It writes no files, and its report returns to your session (progress in `/workflows`).
+<!-- /repo-only -->
 
 <!-- repo-only -->
 **Not part of the plugin:** this repo's `.github/workflows` run Claude's GitHub Action on pull requests, with a token stored in this repo's GitHub secrets. They're CI for maintaining Turbocharge: they never run on your machine and never load into your sessions. The directory installs a trimmed copy (the `release` branch, built by `scripts/release.sh`) holding only the plugin's own files, so this repo's CI, scripts, evals and project notes never reach it.

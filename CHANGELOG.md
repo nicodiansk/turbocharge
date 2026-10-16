@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.5.3] - 2026-10-16
+
+Directory test. The directory still held 3.5.2 for "Update adds credential forward". No shipped file reads a credential, and the plugin's only network command is the `gh pr create` the live 2.8.1 already runs. The review workflow is the only code added since 2.8.1, so the directory copy leaves it out. Installs from this repo's marketplace keep it.
+
+### Changed
+- **Directory copy:** no `workflows/review-swarm.js`. Review runs one code-reviewer there. The README, the review skill and setup's health check don't mention the workflow, and the manifests drop "1 workflow". `release.sh` refuses a directory copy that still names a left-out file (by its name without the extension, so `turbocharge:review-swarm` counts) or says `1 workflow`.
+- **Review skill:** the description says what both copies do: it reviews the diff against the plan and reports the findings with a merge verdict. The single reviewer's report is spelled out, and "Ready to ship?" has its own section that both paths reach.
+- **Verifier:** its description no longer names the swarm.
+- `t_directory_copy.sh` and `t_release_tree.sh` cover the directory copy without the workflow.
+
 ## [3.5.2] - 2026-10-16
 
 Directory fix. The directory still held 3.5.1 for "Update adds credential forward". Compared with the live 2.8.1, the one new read of a personal file in code was the SessionStart hook's: it read `CLAUDE.local.md`'s lines, and hook output goes into the session. The hook no longer reads it.
