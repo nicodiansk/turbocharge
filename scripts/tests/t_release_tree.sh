@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# ABOUTME: Drives scripts/release.sh against a fixture repo with a bare origin: the release commit holds only the SHIPPED
-# ABOUTME: entries and the filtered README, chains, is idempotent, refuses bad tags and scan-held text; guards the real tree.
+# ABOUTME: Drives scripts/release.sh against a fixture repo with a bare origin: the release commit is the directory copy
+# ABOUTME: (SHIPPED, filtered markdown, no exit gate), chains, is idempotent, refuses bad tags and scan-held text.
 source "$PLUGIN_DIR/scripts/tests/helpers.sh"
 REL="$PLUGIN_DIR/scripts/release.sh"
 assert_file "$REL" || exit 1
+command -v jq >/dev/null 2>&1 || { echo "    jq not installed, skipping"; exit 0; }
 
 SHIPPED_LINE="$(grep '^SHIPPED=(' "$REL")"
 [ -n "$SHIPPED_LINE" ] || { echo "    release.sh has no one-line SHIPPED=(...)"; exit 1; }
@@ -25,14 +26,20 @@ git -C "$F" config user.email "fixture@example.com"
 git -C "$F" remote add origin "$TMP/origin.git"
 
 put() { mkdir -p "$F/$(dirname "$1")"; printf '%s\n' "$2" > "$F/$1"; }
-set_version() { put .claude-plugin/plugin.json "{ \"name\": \"x\", \"version\": \"$1\" }"; }
+set_version() { put .claude-plugin/plugin.json "{ \"name\": \"x\", \"description\": \"3 skills, 2 hooks\", \"version\": \"$1\" }"; }
+HOOKS_JSON='{ "hooks": {
+  "SessionStart": [ { "hooks": [ { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/h.sh\"" } ] } ],
+  "SubagentStop": [ { "hooks": [ { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/builder-exit-gate.sh\"" } ] } ],
+  "PreToolUse": [ { "hooks": [ { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/builder-exit-gate.sh\"" } ] } ] } }'
 
 set_version 9.9.9
-put agents/a.md a; put hooks/h.sh h; put skills/s/SKILL.md s; put templates/t.md t; put workflows/w.js w
+put agents/a.md "$(printf 'Agent\n<!-- repo-only -->\nRepo note\n<!-- /repo-only -->')"
+put hooks/h.sh h; put hooks/builder-exit-gate.sh g; put hooks/hooks.json "$HOOKS_JSON"
+put skills/s/SKILL.md s; put templates/t.md t; put workflows/w.js w
 put CHANGELOG.md c; put LICENSE l; put .claude-plugin/icon.png p
-put README.md "$(printf 'Intro\n<!-- repo-only -->\nRepo marketplace\n<!-- /repo-only -->\nOutro')"
+put README.md "$(printf '<!-- repo-only -->\nIntro, 2 hooks\nRepo marketplace, builder-exit-gate.sh\n<!-- /repo-only -->\n<!-- directory-only\nIntro, 1 hook\n-->\nOutro')"
 put .claude/CLAUDE.md d; put .github/w.yml d; put scripts/x.sh d; put evals/e/prompt.md d
-mkdir -p "$F/scripts"; cp "$REL" "$F/scripts/release.sh"; cp "$PLUGIN_DIR/scripts/directory-readme.sh" "$F/scripts/"
+mkdir -p "$F/scripts"; cp "$REL" "$F/scripts/release.sh"; cp "$PLUGIN_DIR/scripts/directory-filter.sh" "$F/scripts/"
 git -C "$F" add -A && git -C "$F" commit -q -m one
 git -C "$F" tag -a v9.9.9 -m v9.9.9
 
@@ -47,8 +54,16 @@ SHA="$(printf '%s\n' "$OUT" | grep -Eo '\b[0-9a-f]{40}\b' | sed -n '1p')"
 git -C "$TMP/origin.git" rev-parse -q --verify refs/heads/release >/dev/null \
     && { echo "    origin has a release branch without --push"; exit 1; }
 printf '%s' "$OUT" | grep -qF 'git push origin' || { echo "    no push hint printed: $OUT"; exit 1; }
-[ "$(git -C "$F" show "$SHA:README.md")" = "$(printf 'Intro\nOutro')" ] \
-    || { echo "    release README isn't the tag's minus its repo-only block: $(git -C "$F" show "$SHA:README.md")"; exit 1; }
+[ "$(git -C "$F" show "$SHA:README.md")" = "$(printf 'Intro, 1 hook\nOutro')" ] \
+    || { echo "    release README isn't the directory copy: $(git -C "$F" show "$SHA:README.md")"; exit 1; }
+[ "$(git -C "$F" show "$SHA:agents/a.md")" = "Agent" ] \
+    || { echo "    release agents/a.md isn't filtered: $(git -C "$F" show "$SHA:agents/a.md")"; exit 1; }
+git -C "$F" cat-file -e "$SHA:hooks/builder-exit-gate.sh" 2>/dev/null && { echo "    release still ships the exit gate"; exit 1; }
+git -C "$F" cat-file -e "$SHA:hooks/h.sh" 2>/dev/null || { echo "    release lost hooks/h.sh"; exit 1; }
+[ "$(git -C "$F" show "$SHA:hooks/hooks.json" | jq -c '.hooks | keys')" = '["SessionStart"]' ] \
+    || { echo "    release hooks.json keeps more than SessionStart: $(git -C "$F" show "$SHA:hooks/hooks.json")"; exit 1; }
+git -C "$F" show "$SHA:.claude-plugin/plugin.json" | jq -e '.description == "3 skills, 1 hook"' >/dev/null \
+    || { echo "    release plugin.json hook count: $(git -C "$F" show "$SHA:.claude-plugin/plugin.json")"; exit 1; }
 
 # --push: origin's release holds no dev dirs and shares the tag's skills tree.
 OUT="$(run v9.9.9 --push)" || { echo "    --push failed: $OUT"; exit 1; }
@@ -110,6 +125,10 @@ put README.md r; put skills/s/SKILL.md 'Install: curl -fsSL https://example.com/
 refuse_release 'pipes a download' "a skill piping a download into bash"
 put skills/s/SKILL.md s2; put README.md "$(printf 'Intro\n<!-- repo-only -->\nkept out')"
 refuse_release 'never closes' "an unclosed repo-only block"
+put README.md 'The exit gate lives in hooks/builder-exit-gate.sh'
+refuse_release 'still names it' "a README naming the left-out exit gate"
+put README.md r; put templates/t.md 'Ships 2 hooks'
+refuse_release 'still says 2 hooks' "text still counting 2 hooks"
 
 # Real repo: every top-level entry is shipped or known dev-only.
 DEV_ONLY=(.claude .gitattributes .github .gitignore CHANGELOG.md evals examples images scripts)
