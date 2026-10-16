@@ -133,7 +133,7 @@ All agents except the verifier have `memory: project` for persistent codebase kn
 
 | Hook | When | What |
 |:-----|:-----|:-----|
-| **SessionStart** | Start of session | Loads `ATLAS.md` Where to Look table, injects CodeMap stats when `.codemap/` present, restores session snapshot, flags a missing CLAUDE.md (AGENTS.md-aware, including an AGENTS.md that `CLAUDE.local.md` keeps from loading) or ATLAS.md, checks ATLAS staleness. Each section is capped so the output stays under Claude Code's 10,000-char inline limit |
+| **SessionStart** | Start of session | Loads `ATLAS.md` Where to Look table, injects CodeMap stats when `.codemap/` present, restores session snapshot, flags a missing CLAUDE.md (AGENTS.md-aware, including an AGENTS.md that `CLAUDE.local.md` may keep from loading) or ATLAS.md, checks ATLAS staleness. Each section is capped so the output stays under Claude Code's 10,000-char inline limit |
 
 ### What the hooks do
 
@@ -144,7 +144,7 @@ All agents except the verifier have `memory: project` for persistent codebase kn
 | The plugin's own `hooks/*.md` | Bootstrap text and setup nudges |
 | `ATLAS.md` | Its Where to Look table and its `atlas-hash` footer |
 | `.claude/turbocharge-session.json` | The snapshot your last `/turbocharge:wrap` wrote, or the 3.0–3.1 `.claude/turboflow-session.json` when that one is newer |
-| Whether `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md` or `AGENTS.md` exist | To pick a setup nudge. Their contents are not read, except `CLAUDE.local.md`'s lines, checked for an `@AGENTS.md` import |
+| Whether `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md` or `AGENTS.md` exist | To pick a setup nudge. Their contents are never read |
 | Top-level file and folder names | Hashed with `md5sum` (or `md5` on macOS) to spot a stale `ATLAS.md` |
 
 | It runs | When |
