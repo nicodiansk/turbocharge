@@ -29,6 +29,11 @@ for p in 'claude plugin install turbocharge-nicodiansk@anthropic-plugin-director
     printf '%s' "$D" | grep -qF -- "$p" || { echo "    directory README lost: $p"; rc=1; }
 done
 
+# The workflow script is the only code added since the live 2.8.1, and the directory held 3.5.0 for "Update adds
+# credential forward". Its credential-like words ("secrets", a `key` variable) were reworded in 3.5.1; keep them out.
+grep -nEi 'secret|credential|password|token|api[_ -]?key|\bkey\b|byKey' "$PLUGIN_DIR/workflows/review-swarm.js" \
+    && { echo "    workflows/review-swarm.js has credential-like words again"; rc=1; }
+
 # No other shipped text names a bundled image or font by file name.
 cd "$PLUGIN_DIR" || exit 1
 SHIPPED_LINE="$(grep '^SHIPPED=(' scripts/release.sh | sed 's/^SHIPPED=(//; s/)[[:space:]]*$//')"
