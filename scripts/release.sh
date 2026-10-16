@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 # ABOUTME: Builds the directory's `release` commit from an annotated vX.Y.Z tag: the plugin's files as the directory copy
-# ABOUTME: (markdown through directory-filter.sh, no exit gate), chained onto origin's release. --push plain-pushes it.
+# ABOUTME: (filtered markdown, no exit gate or review workflow), chained onto origin's release. --push plain-pushes it.
 set -euo pipefail
 
 SHIPPED=(.claude-plugin agents hooks skills templates workflows LICENSE README.md)
-# The directory copy leaves out the builder exit gate. The directory holds every update that adds hook events over the
-# live version ("Update adds hooks"), and most directory installs run where hooks are ignored; repo installs keep it.
-DIRECTORY_DROP=(hooks/builder-exit-gate.sh)
+# The directory copy leaves out the builder exit gate and the review workflow; repo installs keep both. The directory
+# holds every update that adds hook events over the live version ("Update adds hooks"), and most directory installs run
+# where hooks are ignored. It held 3.5.0 to 3.5.2 for "Update adds credential forward", and the workflow is the only code
+# those added over the live 2.8.1; without it, review runs one code-reviewer.
+DIRECTORY_DROP=(hooks/builder-exit-gate.sh workflows/review-swarm.js)
 DIRECTORY_HOOKS_JQ='del(.hooks.SubagentStop, .hooks.PreToolUse)'
 HOOKS_REPO='2 hooks'
 HOOKS_DIRECTORY='1 hook'
+WORKFLOWS_REPO='1 workflow'
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 g() { git -C "$ROOT" "$@"; }
@@ -57,7 +60,8 @@ done
 g show "$TAG:hooks/hooks.json" | jq --indent 2 "$DIRECTORY_HOOKS_JQ" | put hooks/hooks.json || die "could not trim hooks/hooks.json"
 for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json; do
     [ -n "$(gi ls-files -- "$f")" ] || continue
-    g show "$TAG:$f" | sed "s/$HOOKS_REPO/$HOOKS_DIRECTORY/g" | put "$f" || die "could not update the hook count in $f"
+    g show "$TAG:$f" | sed -e "s/$HOOKS_REPO/$HOOKS_DIRECTORY/g" -e "s/, $WORKFLOWS_REPO//g" | put "$f" \
+        || die "could not update the hook and workflow counts in $f"
 done
 TREE="$(gi write-tree)"
 
@@ -72,11 +76,14 @@ HITS="$(scan -nEi -e '(curl|wget)[^|]*[|][[:space:]]*(sudo[[:space:]]+)?(ba|z)?s
 HITS="$(scan -nF -e 'repo-only -->' -e '<!-- directory-only' "$TREE")"
 [ -z "$HITS" ] || die "a repo-only or directory-only marker reached the release tree: $HITS"
 for f in "${DIRECTORY_DROP[@]}"; do
-    HITS="$(scan -nF -e "${f##*/}" "$TREE")"
+    name="${f##*/}"
+    HITS="$(scan -nF -e "${name%.*}" "$TREE")"
     [ -z "$HITS" ] || die "the directory copy leaves out $f but still names it: $HITS"
 done
 HITS="$(scan -nF -e "$HOOKS_REPO" "$TREE")"
 [ -z "$HITS" ] || die "the directory copy has $HOOKS_DIRECTORY but still says $HOOKS_REPO: $HITS"
+HITS="$(scan -nF -e "$WORKFLOWS_REPO" "$TREE")"
+[ -z "$HITS" ] || die "the directory copy leaves out the review workflow but still says $WORKFLOWS_REPO: $HITS"
 
 TAG_COMMIT="$(g rev-parse "$TAG^{commit}")"
 

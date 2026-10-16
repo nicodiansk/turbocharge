@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ABOUTME: Drives scripts/release.sh against a fixture repo with a bare origin: the release commit is the directory copy
-# ABOUTME: (SHIPPED, filtered markdown, no exit gate), chains, is idempotent, refuses bad tags and scan-held text.
+# ABOUTME: (SHIPPED, filtered markdown, no exit gate or review workflow), chains, is idempotent, refuses bad tags and scan-held text.
 source "$PLUGIN_DIR/scripts/tests/helpers.sh"
 REL="$PLUGIN_DIR/scripts/release.sh"
 assert_file "$REL" || exit 1
@@ -26,7 +26,7 @@ git -C "$F" config user.email "fixture@example.com"
 git -C "$F" remote add origin "$TMP/origin.git"
 
 put() { mkdir -p "$F/$(dirname "$1")"; printf '%s\n' "$2" > "$F/$1"; }
-set_version() { put .claude-plugin/plugin.json "{ \"name\": \"x\", \"description\": \"3 skills, 2 hooks\", \"version\": \"$1\" }"; }
+set_version() { put .claude-plugin/plugin.json "{ \"name\": \"x\", \"description\": \"3 skills, 2 hooks, 1 workflow\", \"version\": \"$1\" }"; }
 HOOKS_JSON='{ "hooks": {
   "SessionStart": [ { "hooks": [ { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/h.sh\"" } ] } ],
   "SubagentStop": [ { "hooks": [ { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/builder-exit-gate.sh\"" } ] } ],
@@ -35,7 +35,7 @@ HOOKS_JSON='{ "hooks": {
 set_version 9.9.9
 put agents/a.md "$(printf 'Agent\n<!-- repo-only -->\nRepo note\n<!-- /repo-only -->')"
 put hooks/h.sh h; put hooks/builder-exit-gate.sh g; put hooks/hooks.json "$HOOKS_JSON"
-put skills/s/SKILL.md s; put templates/t.md t; put workflows/w.js w
+put skills/s/SKILL.md s; put templates/t.md t; put workflows/w.js w; put workflows/review-swarm.js r
 put CHANGELOG.md c; put LICENSE l; put .claude-plugin/icon.png p
 put README.md "$(printf '<!-- repo-only -->\nIntro, 2 hooks\nRepo marketplace, builder-exit-gate.sh\n<!-- /repo-only -->\n<!-- directory-only\nIntro, 1 hook\n-->\nOutro')"
 put .claude/CLAUDE.md d; put .github/w.yml d; put scripts/x.sh d; put evals/e/prompt.md d
@@ -60,10 +60,12 @@ printf '%s' "$OUT" | grep -qF 'git push origin' || { echo "    no push hint prin
     || { echo "    release agents/a.md isn't filtered: $(git -C "$F" show "$SHA:agents/a.md")"; exit 1; }
 git -C "$F" cat-file -e "$SHA:hooks/builder-exit-gate.sh" 2>/dev/null && { echo "    release still ships the exit gate"; exit 1; }
 git -C "$F" cat-file -e "$SHA:hooks/h.sh" 2>/dev/null || { echo "    release lost hooks/h.sh"; exit 1; }
+git -C "$F" cat-file -e "$SHA:workflows/review-swarm.js" 2>/dev/null && { echo "    release still ships the review workflow"; exit 1; }
+git -C "$F" cat-file -e "$SHA:workflows/w.js" 2>/dev/null || { echo "    release lost workflows/w.js"; exit 1; }
 [ "$(git -C "$F" show "$SHA:hooks/hooks.json" | jq -c '.hooks | keys')" = '["SessionStart"]' ] \
     || { echo "    release hooks.json keeps more than SessionStart: $(git -C "$F" show "$SHA:hooks/hooks.json")"; exit 1; }
 git -C "$F" show "$SHA:.claude-plugin/plugin.json" | jq -e '.description == "3 skills, 1 hook"' >/dev/null \
-    || { echo "    release plugin.json hook count: $(git -C "$F" show "$SHA:.claude-plugin/plugin.json")"; exit 1; }
+    || { echo "    release plugin.json hook and workflow count: $(git -C "$F" show "$SHA:.claude-plugin/plugin.json")"; exit 1; }
 
 # --push: origin's release holds no dev dirs and shares the tag's skills tree.
 OUT="$(run v9.9.9 --push)" || { echo "    --push failed: $OUT"; exit 1; }
@@ -127,8 +129,12 @@ put skills/s/SKILL.md s2; put README.md "$(printf 'Intro\n<!-- repo-only -->\nke
 refuse_release 'never closes' "an unclosed repo-only block"
 put README.md 'The exit gate lives in hooks/builder-exit-gate.sh'
 refuse_release 'still names it' "a README naming the left-out exit gate"
+put README.md 'Review launches turbocharge:review-swarm'
+refuse_release 'still names it' "a README naming the left-out review workflow"
 put README.md r; put templates/t.md 'Ships 2 hooks'
 refuse_release 'still says 2 hooks' "text still counting 2 hooks"
+put templates/t.md 'Ships 1 workflow'
+refuse_release 'still says 1 workflow' "text still counting the left-out workflow"
 
 # Real repo: every top-level entry is shipped or known dev-only.
 DEV_ONLY=(.claude .gitattributes .github .gitignore CHANGELOG.md evals examples images scripts)

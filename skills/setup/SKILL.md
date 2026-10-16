@@ -74,8 +74,10 @@ Run `claude plugin details turbocharge` to confirm the plugin is installed, enab
 - All 10 skills have SKILL.md files
 - All 6 agents have .md files
 - hooks/hooks.json exists
-- workflows/review-swarm.js exists
 - .claude-plugin/plugin.json exists and its version matches `claude plugin details`
+<!-- repo-only -->
+- workflows/review-swarm.js exists
+<!-- /repo-only -->
 
 ### 6. Check Global Rules Alignment
 
