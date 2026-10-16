@@ -43,8 +43,8 @@ Install:      claude plugin marketplace add nicodiansk/turbocharge
 Update:       claude plugin update turbocharge@turbocharge
 Local dev:    claude --plugin-dir /path/to/turbocharge
 Directory:    claude.ai plugin directory listing "Turbocharge" (ours; submitted 2026-06-23,
-              published 2026-09-24). Managed at claude.ai/directory/manage; tracks `master` until the
-              switch to `release` (Publishing Flow step 5).
+              published 2026-09-24). Managed at claude.ai/directory/manage; tracks the trimmed `release`
+              branch since 3.4.1 (Publishing Flow step 5).
               Each new version is scanned, then needs "Publish update" (a reviewer makes it live).
               Install id: turbocharge-nicodiansk@anthropic-plugin-directory (Claude Code's
               built-in marketplace; check the live version with `claude plugin list --available --json`)
@@ -167,7 +167,8 @@ Single-repo as of v2.3.0. No cross-repo sync.
 3. Update `CHANGELOG.md` with the new entry
 4. Commit + push to `nicodiansk/turbocharge`. Users pick it up via `claude plugin update turbocharge@turbocharge`.
 5. Directory: the listing tracks a **`release`** branch, so merges to `master` don't create directory versions.
-   - **Switch pending:** until 3.2.0 is live it still tracks `master`. Switch it on the portal's Settings tab only after that, because changing the tracked branch cancels a waiting publish request. Merges to `master` don't wait for the switch: each push is scanned as a new version, and none goes live until you click **Publish update** (user ruling, 2026-10-13).
-   - To send a release to the directory: `bash scripts/release.sh vX.Y.Z --push` (repo scripts are mode 644; `core.filemode` is off). It builds a trimmed commit from the tag's plugin files (`.claude-plugin/`, `agents/`, `hooks/`, `skills/`, `templates/`, `workflows/`, README, LICENSE, CHANGELOG) and fast-forwards `release` to it; dev files (this CLAUDE.md, `.github/`, `scripts/`, `evals/`, `images/`, `examples/`) never reach the directory, whose scan flags them. A new top-level path must be added to `SHIPPED` in `scripts/release.sh` or to `DEV_ONLY` in `t_release_tree.sh`. The webhook scans `release`, and once it passes you click **Publish update**.
+   - The portal switched from `master` to `release` with 3.4.1. Change the tracked branch on its Settings tab only when no publish request is waiting, because changing it cancels a waiting publish request.
+   - To send a release to the directory: `bash scripts/release.sh vX.Y.Z --push` (repo scripts are mode 644; `core.filemode` is off). It builds a trimmed commit from the tag's plugin files (`.claude-plugin/`, `agents/`, `hooks/`, `skills/`, `templates/`, `workflows/`, README, LICENSE) and fast-forwards `release` to it; dev files (this CLAUDE.md, CHANGELOG, `.github/`, `scripts/`, `evals/`, `images/`, `examples/`) never reach the directory, whose scan flags them. A new top-level path must be added to `SHIPPED` in `scripts/release.sh` or to `DEV_ONLY` in `t_release_tree.sh`. The webhook scans `release`, and once it passes you click **Publish update**.
+   - The directory's README is README.md through `scripts/directory-readme.sh`, which drops every `<!-- repo-only -->` … `<!-- /repo-only -->` block. The scan holds a version for review when shipped text names a bundled image or font (UNREAD_ASSET_REFERENCED: `icon.png` in a file tree was enough), or reads as fetching code and running it (RUNTIME_FETCH_EXEC; the portal doesn't say which lines, and the likely ones were the repo-marketplace install and the `./scripts/…` commands). So images, the repo-marketplace install, CI notes and the project layout go in repo-only blocks, and `release.sh` refuses a tree whose text names a bundled asset, pipes a download into a shell, or keeps a marker (`t_release_tree.sh`, `t_directory_readme.sh`). The CHANGELOG stays on GitHub; the README links to it by URL.
    - Merges to `master` reach repo-marketplace installs (`turbocharge@turbocharge`) right away.
    - The live directory version shows in `claude plugin list --available --json` under `turbocharge-nicodiansk`.
