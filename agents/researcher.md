@@ -4,7 +4,7 @@ description: |
   Deep codebase exploration and context gathering. Use proactively when understanding
   existing code, finding patterns, investigating architecture, or gathering context
   before planning. Fast, read-only, runs in background by default.
-disallowedTools: Write, Edit, NotebookEdit
+disallowedTools: Write, Edit, NotebookEdit, Agent
 model: sonnet
 effort: low
 maxTurns: 25

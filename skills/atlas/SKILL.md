@@ -26,7 +26,7 @@ Do not generate from assumptions or memory. Read the actual code, configs, and d
 
 Regardless of mode:
 1. Read project structure (directory listing, key config files)
-2. Read CLAUDE.md if it exists — understand what's already documented (don't duplicate it)
+2. Read CLAUDE.md (`./CLAUDE.md` or `./.claude/CLAUDE.md`) if it exists — understand what's already documented (don't duplicate it)
 3. Read entry points (main files, CLI entry, API routers, job schedulers)
 4. Read domain models (data classes, schemas, database models)
 5. Scan integration configs (env files, connection strings, external service clients)

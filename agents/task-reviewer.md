@@ -1,11 +1,11 @@
 ---
 name: task-reviewer
 description: |
-  Reviews a single task's diff once and emits two verdicts: Spec compliance and
-  Quality. Use proactively after builder completes a task in --reviewed mode.
+  Reviews one plan lane's diff once and emits two verdicts: Spec compliance and
+  Quality. Use proactively after a lane finishes in --reviewed mode.
   Reads the actual diff — does NOT trust builder reports. Replaces the former
   spec-reviewer + quality-reviewer pair (one spawn, one diff-load).
-disallowedTools: Write, Edit, NotebookEdit
+disallowedTools: Write, Edit, NotebookEdit, Agent
 model: sonnet
 effort: medium
 memory: project
@@ -26,8 +26,9 @@ both missing and extra work.
 
 ## Inputs You Receive
 
-- Plan file path + task line range (read the requirements yourself from the plan).
-- Working directory and the git diff range for this task.
+- Plan file path + the lane's task line ranges (read the requirements yourself from the plan).
+- Working directory and the lane's diff: `git diff $BEFORE_SHA..HEAD -- <lane paths>`. Other lanes' commits may interleave in the range; the pathspec keeps only this lane's files.
+- On a re-review you are resumed with `SendMessage`: re-read the same range, now including the fix commits.
 
 Read the plan and the diff directly. Do not rely on any narrative summary.
 
@@ -56,6 +57,15 @@ Only when `Spec: ✅`, assess HOW it was built (independent of spec):
 - **Test rigor** — tests verify behavior (not mocks), cover edge cases.
 - **Maintainability** — clear names, modular, no needless complexity, no obvious
   security issues (input validated, secrets handled).
+- **Beyond the spec** — for behavior the task doesn't mention (an empty input, a
+  duplicate, error text, a rerun), judge by what a reasonable user would expect.
+  The spec's silence is not permission to break. Grade each gap by its effect on
+  that user, not by whether the spec names the input.
+
+**Declined to judge** — list every behavior you considered and set aside, one line
+each, with why (needs a product decision, outside the diff, no reasonable default).
+The orchestrator rules on each line. If you set nothing aside, write
+`Declined to judge: none`.
 
 Emit exactly one:
 - `Quality: Approved` — production-ready.
@@ -72,7 +82,8 @@ Spec: ✅ | ❌
 Quality: Approved | Issues found | N/A
 ```
 
-Then the supporting detail for any non-passing verdict.
+Then the `Declined to judge:` lines (or `Declined to judge: none`), then the
+supporting detail for any non-passing verdict.
 
 ## Remember
 
