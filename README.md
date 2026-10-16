@@ -1,6 +1,6 @@
 You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that contradict each other, and a `planner-actually-good.md` you wrote at 2 AM. Claude picks whichever it finds first. You can't remember which is current. Neither can Claude.
 
-**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 6 agents, 2 hooks, 1 workflow. One system to install, nothing to maintain.
+**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 6 agents, 1 hook, 1 workflow. One system to install, nothing to maintain.
 
 ## Install
 
@@ -26,7 +26,7 @@ Every skill announces itself, does one job well, and hands you the next step.
 
 ### Upgrading
 
-From the directory or from 2.x, update as usual with the update command for your copy above. Your commands stay `/turbocharge:<skill>`, and your session snapshot and setup's CLAUDE.md blocks carry over. 3.4 needs Claude Code 2.1.287 or later. Full notes are in the [CHANGELOG](https://github.com/nicodiansk/turbocharge/blob/master/CHANGELOG.md).
+From the directory or from 2.x, update as usual with the update command for your copy above. Your commands stay `/turbocharge:<skill>`, and your session snapshot and setup's CLAUDE.md blocks carry over. 3.5 needs Claude Code 2.1.287 or later. Full notes are in the [CHANGELOG](https://github.com/nicodiansk/turbocharge/blob/master/CHANGELOG.md).
 
 ## Where it works
 
@@ -38,7 +38,6 @@ Turbocharge is built for **Claude Code**, where the whole pipeline runs. Each Cl
 | 6 agents (builder, reviewers, verifier, planner, researcher) | ✓ | ✓ | ignored |
 | Review workflow (`workflows/review-swarm.js`) | ✓ | one reviewer (fallback) | ignored |
 | SessionStart hook | ✓ | ✓ | ignored |
-| Builder exit gate hook (SubagentStop; PreToolUse on SubagentHandback) | ✓ | ✓ | ignored |
 
 In Chat, agents and hooks are ignored, so the planning skills (`brainstorm`, `story`, `plan`) are the useful part there. The review workflow runs when you type `/turbocharge:review` and dynamic workflows are on (Pro plans turn them on in `/config`). Where they're off, review runs one code-reviewer and says how to turn them on. `build`, `review`, `ship` and `debug` need a shell and git, which means Claude Code. A plugin you add on claude.ai also reaches Claude Code at your next session start.
 
@@ -66,7 +65,7 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 | **build** | `/turbocharge:build` | Runs each lane inline or with one Sonnet builder, overlaps independent lanes, then one full-suite gate. Opt-in per-lane review (`--reviewed`). |
 | **review** | `/turbocharge:review` | Pre-merge review against the plan by one senior reviewer. The verified review runs when you type `/turbocharge:review`: five lens reviewers, then verifiers that try to refute each finding |
 | **debug** | `/turbocharge:debug` | Systematic 4-phase root-cause investigation — no fix until cause is proven |
-| **ship** | `/turbocharge:ship` | Test verification, then merge / PR / keep (discard only when you ask); `--watch` triages a PR's review comments after one OK |
+| **ship** | `/turbocharge:ship` | Test verification, then merge / PR / keep (discard only when you ask). Triages review comments you save to a file or paste: verifies each, fixes the valid ones, drafts the replies |
 | **wrap** | `/turbocharge:wrap` | Session continuity — captures state, generates resume prompt |
 
 ## Why a Pipeline
@@ -135,7 +134,6 @@ All agents except the verifier have `memory: project` for persistent codebase kn
 | Hook | When | What |
 |:-----|:-----|:-----|
 | **SessionStart** | Start of session | Loads `ATLAS.md` Where to Look table, injects CodeMap stats when `.codemap/` present, restores session snapshot, flags a missing CLAUDE.md (AGENTS.md-aware, including an AGENTS.md that `CLAUDE.local.md` keeps from loading) or ATLAS.md, checks ATLAS staleness. Each section is capped so the output stays under Claude Code's 10,000-char inline limit |
-| **SubagentStop**, **PreToolUse** on `SubagentHandback` | A `turbocharge:builder` stops, or (auto mode) is about to hand back its report | Builder exit gate: keeps the builder going once while files it edited are uncommitted |
 
 ### What the hooks do
 
@@ -152,8 +150,6 @@ All agents except the verifier have `memory: project` for persistent codebase kn
 | It runs | When |
 |:--------|:-----|
 | `codemap stats` | Only when the project has a `.codemap/` index and the `codemap` CLI is installed |
-
-`hooks/builder-exit-gate.sh` runs when a `turbocharge:builder` subagent stops (`SubagentStop`), and in auto mode just before such a builder hands back its report (`PreToolUse` on `SubagentHandback`). For any other agent or tool it returns at once. It reads the hook input on stdin and that builder's transcript, lists the files the builder edited with Edit or Write, and runs `git status --porcelain` on those files only. If any are uncommitted, it keeps the builder going with "commit these by pathspec … or say why they must stay uncommitted". It does this once per instruction: it looks for its own earlier denial after the builder's latest prompt, so a builder resumed for a fix round is checked again. Each file is checked in its own repository, so edits in another worktree count too. It writes no files, changes no settings, and sends nothing over the network. It needs `jq`, and does nothing without it. Inline lanes, which run in your main session, aren't covered.
 
 ### What the review workflow does
 
