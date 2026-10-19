@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.5.7] - 2026-10-19
+
+Directory fix, found in the portal's scan report. The report names the pair behind "Uses a credential from the user's machine". In `skills/debug/condition-based-waiting.md`, a flaky test was one that would "pass sometimes", written inside parentheses; the scan reads `pass` followed by a word there as the `pass` password-store command reading a secret. It names the SessionStart hook as what could send it. The same rule matched other lines from 2.8.1 on; from 3.4.0 it pairs them strongly and holds the version. The page shows only `plugin.json`; the file, the words and the sender are in the report's `credential_at`, `env` and `sender_at` fields.
+
+### Changed
+- **Debug skill:** the line reads "they succeed sometimes and fail under load".
+- `release.sh` refuses a directory copy where a password-store command (`pass`, `gopass`, `secret-tool`, `lpass`, `keepassxc-cli`) starts a shell segment with an argument. `t_release_tree.sh` and `t_directory_copy.sh` cover it.
+
 ## [3.5.6] - 2026-10-19
 
 Clean release, checked against the plugin reference and the directory's pre-submission checklist. 3.5.5 (ship user-only in the directory copy) didn't clear "Update adds credential forward" either. The directory's docs say that once the security scan fails a version, later versions wait until an Anthropic reviewer clears the plugin, so this release stops testing fixes for the hold. It fixes what the review found.
