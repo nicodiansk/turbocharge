@@ -91,6 +91,12 @@ for a in $ASSETS; do
 done
 HITS="$(scan -nEi -e '(curl|wget)[^|]*[|][[:space:]]*(sudo[[:space:]]+)?(ba|z)?sh([^[:alnum:]]|$)' "$TREE")"
 [ -z "$HITS" ] || die "shipped text pipes a download into a shell: $HITS"
+# A segment that starts with a password-store command and an argument reads to the scan as a secret being read: the
+# report named "(pass sometimes," in a debug skill file, paired it with the SessionStart hook as the sender, and held
+# 3.4.1 to 3.5.6 for "Uses a credential from the user's machine".
+PASSWORD_STORE_RE="(^|[({|;\`]|&&|[|][|]|[\$][(])[[:space:]]*[\"']?(pass|gopass|secret-tool|lpass|keepassxc-cli)[\"']?[[:space:]]+[^[:space:]|)}]"
+HITS="$(scan -niE -e "$PASSWORD_STORE_RE" "$TREE")"
+[ -z "$HITS" ] || die "shipped text reads as a password-store command, which the directory scan holds as a credential read: $HITS"
 HITS="$(scan -nF -e 'repo-only -->' -e '<!-- directory-only' "$TREE")"
 [ -z "$HITS" ] || die "a repo-only or directory-only marker reached the release tree: $HITS"
 for f in "${DIRECTORY_DROP[@]}"; do

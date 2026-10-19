@@ -144,6 +144,14 @@ put templates/t.md 'Ships 1 workflow'
 refuse_release 'still says 1 workflow' "text still counting the left-out workflow"
 put templates/t.md t; put skills/ship/SKILL.md 'Ship body, no frontmatter'
 refuse_release 'user-only' "a user-only skill without frontmatter"
+put skills/ship/SKILL.md "$(printf -- '---\nname: ship\ndescription: Ship it\n---\nShip body')"
+put templates/t.md '- Tests are flaky (pass sometimes, fail under load)'
+refuse_release 'password-store' "prose the scan reads as the pass password store"
+put templates/t.md 'Some tests pass sometimes and fail under load; bypass it (passes later)'
+VER=$((VER + 1)); set_version "9.9.$VER"
+git -C "$F" add -A && git -C "$F" commit -q -m "v$VER" && git -C "$F" tag -a "v9.9.$VER" -m "v9.9.$VER"
+OUT="$(run "v9.9.$VER")" || { echo "    release.sh refused 'pass' that starts no segment: $OUT"; exit 1; }
+put templates/t.md t
 
 # Real repo: every top-level entry is shipped or known dev-only.
 DEV_ONLY=(.claude .gitattributes .github .gitignore CHANGELOG.md evals examples images scripts)

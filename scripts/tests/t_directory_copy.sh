@@ -56,6 +56,12 @@ for f in $(git ls-files -- "$@" | grep '\.md$'); do
     printf '%s' "$OUT" | grep -qi 'swarm' && { echo "    directory copy of $f still mentions the swarm"; rc=1; }
 done
 
+# No shipped text starts a shell segment with a password-store command and an argument: the scan read
+# "(pass sometimes," as the pass command reading a secret and held every version from 3.4.1 to 3.5.6 for it.
+HITS="$(cd "$PLUGIN_DIR" && grep -rniE '(^|[({|;`]|&&|[|][|]|[$][(])[[:space:]]*["'"'"']?(pass|gopass|secret-tool|lpass|keepassxc-cli)["'"'"']?[[:space:]]+[^[:space:]|)}]' \
+    agents hooks skills templates workflows README.md NOTICE 2>/dev/null)"
+[ -z "$HITS" ] || { echo "    shipped text reads as a password-store command: $HITS"; rc=1; }
+
 # No other shipped text names a bundled image or font by file name.
 for a in $(git ls-files -- "$@" | sed -n -E 's#^(.*/)?([^/]+\.(png|jpe?g|gif|webp|ico|svg|woff2?|ttf|otf))$#\2#p'); do
     HITS="$(git grep -lF -e "$a" -- "$@" ":(exclude)*$a" ':(exclude)README.md')"
