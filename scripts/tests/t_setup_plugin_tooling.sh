@@ -16,3 +16,5 @@ assert_grep "$F" "disable-model-invocation: true"      || exit 1
 # Step 5 must not run the project's own ./scripts/validate.sh; it checks the installed copy instead
 assert_no_grep "$F" "scripts/validate.sh"              || exit 1
 assert_grep "$F" "All 6 agents"                        || exit 1
+# Enable state comes from `claude plugin list --json`; setup never reads the global settings file, which can hold env values
+assert_no_grep "$F" "~/.claude/settings.json"          || exit 1

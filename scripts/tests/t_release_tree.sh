@@ -37,7 +37,7 @@ put agents/a.md "$(printf 'Agent\n<!-- repo-only -->\nRepo note\n<!-- /repo-only
 put hooks/h.sh h; put hooks/builder-exit-gate.sh g; put hooks/hooks.json "$HOOKS_JSON"
 put skills/s/SKILL.md s; put skills/ship/SKILL.md "$(printf -- '---\nname: ship\ndescription: Ship it\n---\nShip body')"
 put templates/t.md t; put workflows/w.js w; put workflows/review-swarm.js r
-put CHANGELOG.md c; put LICENSE l; put .claude-plugin/icon.png p
+put CHANGELOG.md c; put LICENSE l; put NOTICE n; put .claude-plugin/icon.png p
 put README.md "$(printf '<!-- repo-only -->\nIntro, 2 hooks\nRepo marketplace, builder-exit-gate.sh\n<!-- /repo-only -->\n<!-- directory-only\nIntro, 1 hook\n-->\nOutro')"
 put .claude/CLAUDE.md d; put .github/w.yml d; put scripts/x.sh d; put evals/e/prompt.md d
 mkdir -p "$F/scripts"; cp "$REL" "$F/scripts/release.sh"; cp "$PLUGIN_DIR/scripts/directory-filter.sh" "$F/scripts/"
