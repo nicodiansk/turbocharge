@@ -3,7 +3,7 @@
 # ABOUTME: (filtered markdown, no exit gate or review workflow, user-only ship), chained onto origin's release. --push plain-pushes it.
 set -euo pipefail
 
-SHIPPED=(.claude-plugin agents hooks skills templates workflows LICENSE README.md)
+SHIPPED=(.claude-plugin agents hooks skills templates workflows LICENSE NOTICE README.md)
 # The directory copy leaves out the builder exit gate and the review workflow; repo installs keep both. The directory
 # holds every update that adds hook events over the live version ("Update adds hooks"), and most directory installs run
 # where hooks are ignored. It held 3.5.0 to 3.5.2 for "Update adds credential forward", and the workflow is the only code
@@ -14,8 +14,8 @@ HOOKS_REPO='2 hooks'
 HOOKS_DIRECTORY='1 hook'
 WORKFLOWS_REPO='1 workflow'
 # The directory copy keeps these skills user-only: only the user starts them, Claude can't. Ship pushes and opens PRs with
-# the user's GitHub login. 2.8.1 and 3.3.0 had it user-only and passed the scan; 3.4.0 let Claude start it and was the
-# first version held for "Update adds credential forward".
+# the user's git and GitHub CLI setup; it was user-only in 2.8.1 and 3.3.0 too. 3.5.5 tested it against the directory's
+# credential-forward hold, which stayed.
 DIRECTORY_USER_ONLY=(skills/ship/SKILL.md)
 USER_ONLY_FLAG='disable-model-invocation: true'
 

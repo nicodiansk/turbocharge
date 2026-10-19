@@ -64,13 +64,13 @@ All orchestration goes through the turbocharge plugin...
 
 ### 4. Check for Plugin Conflicts
 
-Run `claude plugin list --json` to enumerate installed plugins and their enable state, then read `~/.claude/settings.json` `enabledPlugins`:
+Run `claude plugin list --json` to enumerate installed plugins and their enable state:
 - Are there disabled plugins cluttering the config? Offer to remove.
 - Scan the installed-plugins list for competing **orchestration plugins** (e.g. superpowers, everything-claude-code) enabled alongside turbocharge — not just duplicate definitions in `~/.claude/agents/`. Warn about conflicts and explain the overlap.
 
 ### 5. Validate Turbocharge Plugin Health
 
-Run `claude plugin details turbocharge` to confirm the plugin is installed, enabled, and to see its standing token cost. Then check the installed copy under `${CLAUDE_PLUGIN_ROOT}`:
+Run `claude plugin details turbocharge` to confirm the plugin is installed, enabled, and to see its standing context cost. Then check the installed copy under `${CLAUDE_PLUGIN_ROOT}`:
 - All 10 skills have SKILL.md files
 - All 6 agents have .md files
 - hooks/hooks.json exists

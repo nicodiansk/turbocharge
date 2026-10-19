@@ -101,7 +101,7 @@ re-review — you fix it yourself, now.
    An empty section (`None found — <why>`) means you checked and found none,
    not that you skipped the check.
 
-Only after all five pass do you remove the in-progress marker.
+Only after all five checks succeed do you remove the in-progress marker.
 
 ## Plan Format
 

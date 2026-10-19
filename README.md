@@ -265,6 +265,24 @@ It starts at most 25 subagents: five lens reviewers (plan compliance as `turboch
 **Not part of the plugin:** this repo's `.github/workflows` run Claude's GitHub Action on pull requests, with a token stored in this repo's GitHub secrets. They're CI for maintaining Turbocharge: they never run on your machine and never load into your sessions. The directory installs a trimmed copy (the `release` branch, built by `scripts/release.sh`) holding only the plugin's own files, so this repo's CI, scripts, evals and project notes never reach it.
 <!-- /repo-only -->
 
+## What the skills run and send
+
+Only `ship` reaches a remote, and only through the git and GitHub CLI already set up on your machine:
+
+| Skill | It runs | When |
+|:------|:--------|:-----|
+| **ship** | `git pull` on the base branch, then a local merge | Option 1, merge locally |
+| **ship** | `git push` of the feature branch to `origin`, then `gh pr create` | Option 2, push and open a pull request |
+
+Ship runs neither until you pick the option. Triaging review comments changes the branch locally and never pushes or posts: you post the drafted replies.
+
+The other skills stay on your machine:
+- **setup** runs `claude plugin list --json` and `claude plugin details turbocharge`, and reads `~/.claude/agents/` and `~/.claude/rules/common/` to find overlaps. It changes those files only after you agree, and shows the diff before it writes your CLAUDE.md.
+- **wrap** writes `.claude/turbocharge-session.json` in the project and adds notes under `~/.claude/projects/<project>/memory/`. With a `.codemap/` index it runs `codemap update`.
+- **atlas** writes `ATLAS.md`. **build** and its builders commit to your local branch.
+
+Nothing else sends or fetches anything: no skill or agent tells Claude to use the web, and the plugin sends no telemetry.
+
 ## Quick Start Examples
 
 ```bash
@@ -329,7 +347,7 @@ turbocharge/
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE). Parts of the debug, ship and plan skills are adapted from another MIT-licensed project; [NOTICE](NOTICE) has its copyright and license.
 
 ---
 

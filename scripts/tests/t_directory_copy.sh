@@ -25,7 +25,8 @@ for p in '<img' '.png' '.svg' 'icon' 'marketplace add' '--plugin-dir' 'scripts/'
 done
 for p in 'claude plugin install turbocharge-nicodiansk@anthropic-plugin-directory' '### What the hooks do' \
     '`codemap stats`' 'never runs in your sessions' '## Measured' '10 skills, 6 agents, 1 hook.' \
-    '| SessionStart hook |' '| **SessionStart** |' '| **review** |' 'one senior reviewer'; do
+    '| SessionStart hook |' '| **SessionStart** |' '| **review** |' 'one senior reviewer' \
+    '## What the skills run and send' '[NOTICE](NOTICE)'; do
     printf '%s' "$D" | grep -qF -- "$p" || { echo "    directory README lost: $p"; rc=1; }
 done
 

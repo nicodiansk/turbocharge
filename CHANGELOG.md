@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.5.6] - 2026-10-19
+
+Clean release, checked against the plugin reference and the directory's pre-submission checklist. 3.5.5 (ship user-only in the directory copy) didn't clear "Update adds credential forward" either. The directory's docs say that once the security scan fails a version, later versions wait until an Anthropic reviewer clears the plugin, so this release stops testing fixes for the hold. It fixes what the review found.
+
+### Added
+- **NOTICE:** parts of the debug, ship and plan skills come from another MIT-licensed project. Its copyright and license now ship with them, in both copies, and the README's License section points to it.
+- **README, "What the skills run and send":** the checklist asks a README to describe everything a plugin runs, sends or fetches. Only ship reaches a remote, through the git and GitHub CLI already set up: `git pull` for Option 1, `git push` and `gh pr create` for Option 2. `t_readme_runs_sends.sh` fails when another shipped file starts reaching a remote.
+
+### Changed
+- **setup:** it takes the plugins' enable state from `claude plugin list --json` and no longer reads `~/.claude/settings.json`, which can hold environment values.
+- Rewording: setup reports the plugin's "standing context cost", the planner removes its marker "after all five checks succeed", and an example path in the debug skill no longer names a real home folder.
+- `t_notice.sh` covers NOTICE. `scripts/tests/t_svg_roster_counts.sh` is mode 644 like the other scripts.
+
 ## [3.5.5] - 2026-10-16
 
 Directory test. Leaving out the review workflow (3.5.3) didn't clear "Update adds credential forward". The hold started between 3.3.0 and 3.4.0. Of what 3.4.0 changed, one thing in the directory copy still touches your GitHub login: Claude could start ship, which runs `git push` and `gh pr create` with it. In 2.8.1 and 3.3.0 only you could start ship (`disable-model-invocation: true`). 3.5.4 was a test on the directory's branch only (the live 2.8.1's files with the version changed); the directory couldn't fetch it, so nothing was scanned.
