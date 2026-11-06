@@ -21,7 +21,7 @@ You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that c
 **Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 6 agents, 2 hooks, 1 workflow. One system to install, nothing to maintain.
 <!-- /repo-only -->
 <!-- directory-only
-**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 6 agents, 1 hook. One system to install, nothing to maintain.
+**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 6 agents. One system to install, nothing to maintain.
 -->
 
 <!-- repo-only -->
@@ -101,10 +101,14 @@ Turbocharge is built for **Claude Code**, where the whole pipeline runs. Each Cl
 |:--|:--:|:--:|:--:|
 | 10 skills | ✓ | ✓ | ✓ |
 | 6 agents (builder, reviewers, verifier, planner, researcher) | ✓ | ✓ | ignored |
-| SessionStart hook | ✓ | ✓ | ignored |
 -->
 
+<!-- repo-only -->
 In Chat, agents and hooks are ignored, so the planning skills (`brainstorm`, `story`, `plan`) are the useful part there. `build`, `review`, `ship` and `debug` need a shell and git, which means Claude Code. A plugin you add on claude.ai also reaches Claude Code at your next session start.
+<!-- /repo-only -->
+<!-- directory-only
+In Chat, agents are ignored, so the planning skills (`brainstorm`, `story`, `plan`) are the useful part there. `build`, `review`, `ship` and `debug` need a shell and git, which means Claude Code. A plugin you add on claude.ai also reaches Claude Code at your next session start.
+-->
 
 <!-- repo-only -->
 The review workflow runs when you type `/turbocharge:review` and dynamic workflows are on (Pro plans turn them on in `/config`). Where they're off, review runs one code-reviewer and says how to turn them on.
@@ -122,12 +126,15 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 
 **`wrap`** stands alone — run it any time to capture session state, decisions, and a resume prompt for your next session.
 
-**`atlas`** stands alone — generates `ATLAS.md` domain map from the actual codebase. Pre-loaded every session for zero-tool-call navigation.
+**`atlas`** stands alone — generates `ATLAS.md` domain map from the actual codebase. The planner, researcher and code-reviewer get it on every dispatch, so they navigate without searching.
+<!-- repo-only -->
+The SessionStart hook also pre-loads its Where to Look table at every session start.
+<!-- /repo-only -->
 
 | Skill | Command | What it does |
 |:------|:--------|:-------------|
 | **setup** | `/turbocharge:setup` | Audits config for conflicting agents/skills/rules. Bootstraps `CLAUDE.md`. |
-| **atlas** | `/turbocharge:atlas` | Generates `ATLAS.md` domain map. Pre-loaded every session. |
+| **atlas** | `/turbocharge:atlas` | Generates `ATLAS.md` domain map for the planner, researcher and code-reviewer. |
 | **brainstorm** | `/turbocharge:brainstorm` | Socratic requirements discovery before implementation |
 | **story** | `/turbocharge:story` | INVEST-compliant story breakdown with acceptance criteria |
 | **plan** | `/turbocharge:plan` | Lean plans — decisions, exact paths and test assertions in 2-5 min tasks, grouped into file-disjoint lanes |
@@ -219,19 +226,15 @@ Dispatched by skills. You never invoke them directly.
 
 All agents except the verifier have `memory: project` for persistent codebase knowledge across sessions; the verifier judges each finding fresh.
 
+<!-- repo-only -->
 ## Hooks
 
-<!-- repo-only -->
 | Hook | When | What |
 |:-----|:-----|:-----|
 | **SessionStart** | Start of session | Loads `ATLAS.md` Where to Look table, injects CodeMap stats when `.codemap/` present, restores session snapshot, flags a missing CLAUDE.md (AGENTS.md-aware, including an AGENTS.md that `CLAUDE.local.md` may keep from loading) or ATLAS.md, checks ATLAS staleness. Each section is capped so the output stays under Claude Code's 10,000-char inline limit |
 | **SubagentStop**, **PreToolUse** on `SubagentHandback` | A `turbocharge:builder` stops, or (auto mode) is about to hand back its report | Builder exit gate: keeps the builder going once while files it edited are uncommitted |
-<!-- /repo-only -->
-<!-- directory-only
-| Hook | When | What |
-|:-----|:-----|:-----|
-| **SessionStart** | Start of session | Loads `ATLAS.md` Where to Look table, injects CodeMap stats when `.codemap/` present, restores session snapshot, flags a missing CLAUDE.md (AGENTS.md-aware, including an AGENTS.md that `CLAUDE.local.md` may keep from loading) or ATLAS.md, checks ATLAS staleness. Each section is capped so the output stays under Claude Code's 10,000-char inline limit |
--->
+
+Installs from this repo's marketplace (`turbocharge@turbocharge`) run both hooks. The directory copy ships none, because the directory accepts command hooks only from verified organizations. There, the planner, researcher and code-reviewer still get `ATLAS.md` on dispatch, and wrap's resume prompt loads your session snapshot.
 
 ### What the hooks do
 
@@ -249,7 +252,6 @@ All agents except the verifier have `memory: project` for persistent codebase kn
 |:--------|:-----|
 | `codemap stats` | Only when the project has a `.codemap/` index and the `codemap` CLI is installed |
 
-<!-- repo-only -->
 `hooks/builder-exit-gate.sh` runs when a `turbocharge:builder` subagent stops (`SubagentStop`), and in auto mode just before such a builder hands back its report (`PreToolUse` on `SubagentHandback`). For any other agent or tool it returns at once. It reads the hook input on stdin and that builder's transcript, lists the files the builder edited with Edit or Write, and runs `git status --porcelain` on those files only. If any are uncommitted, it keeps the builder going with "commit these by pathspec … or say why they must stay uncommitted". It does this once per instruction: it looks for its own earlier denial after the builder's latest prompt, so a builder resumed for a fix round is checked again. Each file is checked in its own repository, so edits in another worktree count too. It writes no files, changes no settings, and sends nothing over the network. It needs `jq`, and does nothing without it. Inline lanes, which run in your main session, aren't covered.
 <!-- /repo-only -->
 

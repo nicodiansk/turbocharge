@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ABOUTME: The directory copy (markdown through directory-filter.sh, no exit gate, no review workflow) holds nothing the scan
+# ABOUTME: The directory copy (markdown through directory-filter.sh, no hooks, no review workflow) holds nothing the scan
 # ABOUTME: holds a version for: image names, repo marketplace, dev scripts, CI, exit gate, swarm; keeps install and disclosures.
 source "$PLUGIN_DIR/scripts/tests/helpers.sh"
 FILTER="$PLUGIN_DIR/scripts/directory-filter.sh"
@@ -20,12 +20,12 @@ done
 D="$(bash "$FILTER" < "$PLUGIN_DIR/README.md")" || { echo "    filter refused README.md"; exit 1; }
 for p in '<img' '.png' '.svg' 'icon' 'marketplace add' '--plugin-dir' 'scripts/' '.github' 'evals/' 'secret' 'token' \
     '](CHANGELOG.md)' 'repo-only' 'directory-only' 'exit gate' 'builder-exit-gate' 'SubagentStop' 'SubagentHandback' \
-    '2 hooks' '--watch' 'swarm' 'workflow' 'lens reviewer'; do
+    '2 hooks' '--watch' 'swarm' 'workflow' 'lens reviewer' 'hook' 'SessionStart' 'pre-load'; do
     printf '%s' "$D" | grep -qiF -- "$p" && { echo "    directory README still has: $p"; rc=1; }
 done
-for p in 'claude plugin install turbocharge-nicodiansk@anthropic-plugin-directory' '### What the hooks do' \
-    '`codemap stats`' 'never runs in your sessions' '## Measured' '10 skills, 6 agents, 1 hook.' \
-    '| SessionStart hook |' '| **SessionStart** |' '| **review** |' 'one senior reviewer' \
+for p in 'claude plugin install turbocharge-nicodiansk@anthropic-plugin-directory' \
+    'never runs in your sessions' '## Measured' '10 skills, 6 agents. One system' \
+    'In Chat, agents are ignored' 'get it on every dispatch' '| **review** |' 'one senior reviewer' \
     '## What the skills run and send' '[NOTICE](NOTICE)'; do
     printf '%s' "$D" | grep -qF -- "$p" || { echo "    directory README lost: $p"; rc=1; }
 done
