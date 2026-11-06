@@ -126,7 +126,7 @@ Write `.claude/turbocharge-session.json` in the project root (the standard Claud
 }
 ```
 
-The SessionStart hook cats this on next session so resume is zero-tool-call.
+The resume prompt's `@.claude/turbocharge-session.json` loads this into the next session.
 
 **Gitignore check (MANDATORY):** Before writing the snapshot, verify `.claude/turbocharge-session.json` is in the project `.gitignore`. If not, add exactly this line:
 ```

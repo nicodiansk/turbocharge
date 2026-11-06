@@ -1,6 +1,6 @@
 You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that contradict each other, and a `planner-actually-good.md` you wrote at 2 AM. Claude picks whichever it finds first. You can't remember which is current. Neither can Claude.
 
-**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 6 agents, 1 hook. One system to install, nothing to maintain.
+**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 6 agents. One system to install, nothing to maintain.
 
 ## Install
 
@@ -36,9 +36,8 @@ Turbocharge is built for **Claude Code**, where the whole pipeline runs. Each Cl
 |:--|:--:|:--:|:--:|
 | 10 skills | ✓ | ✓ | ✓ |
 | 6 agents (builder, reviewers, verifier, planner, researcher) | ✓ | ✓ | ignored |
-| SessionStart hook | ✓ | ✓ | ignored |
 
-In Chat, agents and hooks are ignored, so the planning skills (`brainstorm`, `story`, `plan`) are the useful part there. `build`, `review`, `ship` and `debug` need a shell and git, which means Claude Code. A plugin you add on claude.ai also reaches Claude Code at your next session start.
+In Chat, agents are ignored, so the planning skills (`brainstorm`, `story`, `plan`) are the useful part there. `build`, `review`, `ship` and `debug` need a shell and git, which means Claude Code. A plugin you add on claude.ai also reaches Claude Code at your next session start.
 
 ## The Pipeline
 
@@ -52,12 +51,12 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 
 **`wrap`** stands alone — run it any time to capture session state, decisions, and a resume prompt for your next session.
 
-**`atlas`** stands alone — generates `ATLAS.md` domain map from the actual codebase. Pre-loaded every session for zero-tool-call navigation.
+**`atlas`** stands alone — generates `ATLAS.md` domain map from the actual codebase. The planner, researcher and code-reviewer get it on every dispatch, so they navigate without searching.
 
 | Skill | Command | What it does |
 |:------|:--------|:-------------|
 | **setup** | `/turbocharge:setup` | Audits config for conflicting agents/skills/rules. Bootstraps `CLAUDE.md`. |
-| **atlas** | `/turbocharge:atlas` | Generates `ATLAS.md` domain map. Pre-loaded every session. |
+| **atlas** | `/turbocharge:atlas` | Generates `ATLAS.md` domain map for the planner, researcher and code-reviewer. |
 | **brainstorm** | `/turbocharge:brainstorm` | Socratic requirements discovery before implementation |
 | **story** | `/turbocharge:story` | INVEST-compliant story breakdown with acceptance criteria |
 | **plan** | `/turbocharge:plan` | Lean plans — decisions, exact paths and test assertions in 2-5 min tasks, grouped into file-disjoint lanes |
@@ -109,6 +108,8 @@ What 3.4.0 shows: `brainstorm` now fires on "add CSV export to this tool" (3/3, 
 
 Claude Code 2.1.296 · model `claude-sonnet-5-5`, judge `claude-sonnet-5-5` · 3 runs per arm · 2026-10-14 · $6.59 list-price estimate (run on a Max plan, so it drew plan usage, not billing). Measured on the plugin as released (`e5abd26`); only the eval fixtures changed after.
 
+These numbers are from 3.4.0, whose copy added routing text at every session start. Since 3.5.8 this copy doesn't, and it hasn't been measured without it.
+
 The suite runs on the maintainer's machine before a release, and never runs in your sessions.
 
 ## Agents
@@ -125,28 +126,6 @@ Dispatched by skills. You never invoke them directly.
 | **verifier** | Tries to refute one finding or review comment; read-only | Sonnet |
 
 All agents except the verifier have `memory: project` for persistent codebase knowledge across sessions; the verifier judges each finding fresh.
-
-## Hooks
-
-| Hook | When | What |
-|:-----|:-----|:-----|
-| **SessionStart** | Start of session | Loads `ATLAS.md` Where to Look table, injects CodeMap stats when `.codemap/` present, restores session snapshot, flags a missing CLAUDE.md (AGENTS.md-aware, including an AGENTS.md that `CLAUDE.local.md` may keep from loading) or ATLAS.md, checks ATLAS staleness. Each section is capped so the output stays under Claude Code's 10,000-char inline limit |
-
-### What the hooks do
-
-`hooks/session-start.sh` runs whenever a session starts, resumes, or is cleared or compacted. It is read-only: it prints text to stdout and does nothing else. It writes no files, changes no settings or permissions, and sends nothing over the network itself. What it prints becomes part of the session context, so it reaches the model like any file Claude reads.
-
-| It reads | Why |
-|:---------|:----|
-| The plugin's own `hooks/*.md` | Bootstrap text and setup nudges |
-| `ATLAS.md` | Its Where to Look table and its `atlas-hash` footer |
-| `.claude/turbocharge-session.json` | The snapshot your last `/turbocharge:wrap` wrote, or the 3.0–3.1 `.claude/turboflow-session.json` when that one is newer |
-| Whether `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md` or `AGENTS.md` exist | To pick a setup nudge. Their contents are never read |
-| Top-level file and folder names | Hashed with `md5sum` (or `md5` on macOS) to spot a stale `ATLAS.md` |
-
-| It runs | When |
-|:--------|:-----|
-| `codemap stats` | Only when the project has a `.codemap/` index and the `codemap` CLI is installed |
 
 ## What the skills run and send
 

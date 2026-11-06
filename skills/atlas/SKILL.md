@@ -120,7 +120,7 @@ HASH=$(ls -1 | grep -v -e '^\.codemap$' -e '^node_modules$' -e '^\.git$' -e '^__
 echo "<!-- atlas-hash:$HASH -->" >> ATLAS.md
 ```
 
-This hash is checked by the SessionStart hook to detect structural changes. If the user adds or removes top-level files/directories, the hash will mismatch and the hook will nudge a re-run.
+If the user adds or removes top-level files or directories, the hash stops matching: rerun `/turbocharge:atlas` to refresh the map.
 
 ## What NOT to Include
 
