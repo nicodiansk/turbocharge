@@ -56,6 +56,17 @@ for f in $(git ls-files -- "$@" | grep '\.md$'); do
     printf '%s' "$OUT" | grep -qi 'swarm' && { echo "    directory copy of $f still mentions the swarm"; rc=1; }
 done
 
+# The directory copy ships no hooks (3.5.7 was refused: command hooks only from Verified organizations), so no shipped
+# markdown file, as the directory gets it, says what a hook does. Repo installs keep the hooks and their text.
+for f in $(git ls-files -- "$@" ':(exclude)hooks' | grep '\.md$'); do
+    OUT="$(bash "$FILTER" < "$f")" || { echo "    filter refused $f"; rc=1; continue; }
+    for p in 'SessionStart' 'session-start' 'hooks/' 'hooks.json'; do
+        printf '%s' "$OUT" | grep -qF -- "$p" && { echo "    directory copy of $f still has: $p"; rc=1; }
+    done
+done
+grep -qF 'SessionStart hook also prints it' skills/wrap/SKILL.md || { echo "    repo wrap skill lost the hook line"; rc=1; }
+grep -qF 'hooks/hooks.json exists' skills/setup/SKILL.md || { echo "    repo setup skill lost the hooks.json check"; rc=1; }
+
 # No shipped text starts a shell segment with a password-store command and an argument: the scan read
 # "(pass sometimes," as the pass command reading a secret and held every version from 3.4.1 to 3.5.6 for it.
 HITS="$(cd "$PLUGIN_DIR" && grep -rniE '(^|[({|;`]|&&|[|][|]|[$][(])[[:space:]]*["'"'"']?(pass|gopass|secret-tool|lpass|keepassxc-cli)["'"'"']?[[:space:]]+[^[:space:]|)}]' \
