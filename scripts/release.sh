@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 # ABOUTME: Builds the directory's `release` commit from an annotated vX.Y.Z tag: the plugin's files as the directory copy
-# ABOUTME: (filtered markdown, no exit gate or review workflow, user-only ship), chained onto origin's release. --push plain-pushes it.
+# ABOUTME: (filtered markdown, no hooks or review workflow, user-only ship), chained onto origin's release. --push plain-pushes it.
 set -euo pipefail
 
 SHIPPED=(.claude-plugin agents hooks skills templates workflows LICENSE NOTICE README.md)
-# The directory copy leaves out the builder exit gate and the review workflow; repo installs keep both. The directory
-# holds every update that adds hook events over the live version ("Update adds hooks"), and most directory installs run
-# where hooks are ignored. It held 3.5.0 to 3.5.2 for "Update adds credential forward", and the workflow is the only code
-# those added over the live 2.8.1; without it, review runs one code-reviewer.
+# The directory copy holds no hooks and no review workflow; repo installs keep both. The directory refused 3.5.7 with
+# LOCAL_CODE_HOOK_COMMAND: it accepts command hooks only from Verified organizations, and SessionStart takes only command
+# and mcp_tool hooks, so the bootstrap can't become a prompt hook. The workflow is the one other piece of code the listing
+# held for (3.5.0 to 3.5.2, "Update adds credential forward"); without it, review runs one code-reviewer.
 # An entry drops that path and everything under it.
 DIRECTORY_DROP=(hooks workflows/review-swarm.js)
 HOOKS_REPO='2 hooks'
-HOOKS_DIRECTORY='1 hook'
+HOOK_COUNT_RE='(^|[^[:alnum:]])[0-9]+ hooks?([^[:alnum:]]|$)'
 WORKFLOWS_REPO='1 workflow'
 # The directory copy keeps these skills user-only: only the user starts them, Claude can't. Ship pushes and opens PRs with
 # the user's git and GitHub CLI setup; it was user-only in 2.8.1 and 3.3.0 too. 3.5.5 tested it against the directory's
@@ -75,8 +75,8 @@ for f in "${DIRECTORY_USER_ONLY[@]}"; do
 done
 for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json; do
     [ -n "$(gi ls-files -- "$f")" ] || continue
-    g show "$TAG:$f" | sed -e "s/$HOOKS_REPO/$HOOKS_DIRECTORY/g" -e "s/, $WORKFLOWS_REPO//g" | put "$f" \
-        || die "could not update the hook and workflow counts in $f"
+    g show "$TAG:$f" | sed -e "s/, $HOOKS_REPO//g" -e "s/, $WORKFLOWS_REPO//g" | put "$f" \
+        || die "could not drop the hook and workflow counts in $f"
 done
 TREE="$(gi write-tree)"
 
@@ -110,8 +110,8 @@ for e in "${DIRECTORY_DROP[@]}"; do
     HITS="$(scan -nF -e "$e/" "$TREE")"
     [ -z "$HITS" ] || die "the directory copy leaves out $e/ but still names it: $HITS"
 done
-HITS="$(scan -nF -e "$HOOKS_REPO" "$TREE")"
-[ -z "$HITS" ] || die "the directory copy has $HOOKS_DIRECTORY but still says $HOOKS_REPO: $HITS"
+HITS="$(scan -nE -e "$HOOK_COUNT_RE" "$TREE")"
+[ -z "$HITS" ] || die "the directory copy ships no hooks but still counts them: $HITS"
 HITS="$(scan -nF -e "$WORKFLOWS_REPO" "$TREE")"
 [ -z "$HITS" ] || die "the directory copy leaves out the review workflow but still says $WORKFLOWS_REPO: $HITS"
 
@@ -131,8 +131,7 @@ elif [ "$rc" -ne 2 ]; then
     die "could not reach origin to look for the release branch (git ls-remote exit $rc)"
 fi
 
-LIST="${SHIPPED[*]}"
-LIST="${LIST// /, }"
+LIST="$(g ls-tree --name-only "$TREE" | paste -sd, - | sed 's/,/, /g')"
 if [ -n "$PARENT" ]; then
     COMMIT="$(g commit-tree "$TREE" -p "$PARENT" -m "release $TAG" -m "Trimmed from $TAG_COMMIT: $LIST.")"
 else
