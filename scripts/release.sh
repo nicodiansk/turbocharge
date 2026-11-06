@@ -8,8 +8,8 @@ SHIPPED=(.claude-plugin agents hooks skills templates workflows LICENSE NOTICE R
 # holds every update that adds hook events over the live version ("Update adds hooks"), and most directory installs run
 # where hooks are ignored. It held 3.5.0 to 3.5.2 for "Update adds credential forward", and the workflow is the only code
 # those added over the live 2.8.1; without it, review runs one code-reviewer.
-DIRECTORY_DROP=(hooks/builder-exit-gate.sh workflows/review-swarm.js)
-DIRECTORY_HOOKS_JQ='del(.hooks.SubagentStop, .hooks.PreToolUse)'
+# An entry drops that path and everything under it.
+DIRECTORY_DROP=(hooks workflows/review-swarm.js)
 HOOKS_REPO='2 hooks'
 HOOKS_DIRECTORY='1 hook'
 WORKFLOWS_REPO='1 workflow'
@@ -41,17 +41,15 @@ for entry in "${SHIPPED[@]}"; do
     [ -n "$(g ls-tree --name-only "$TAG_TREE" -- "$entry")" ] || die "$entry is missing from $TAG's tree"
 done
 
-command -v jq >/dev/null 2>&1 || die "jq is required to build the directory's hooks/hooks.json"
-[ -n "$(g ls-tree --name-only "$TAG_TREE" -- hooks/hooks.json)" ] || die "hooks/hooks.json is missing from $TAG's tree"
-
 # Build the directory copy in a scratch index: the tag's SHIPPED files, then the directory's changes on top.
 IDX_DIR="$(mktemp -d)"
 trap 'rm -rf "$IDX_DIR"' EXIT
 gi() { GIT_INDEX_FILE="$IDX_DIR/index" g "$@"; }
 put() { local blob; blob="$(g hash-object -w --stdin)" && gi update-index --add --cacheinfo "100644,$blob,$1"; }
 g ls-tree -r "$TAG_TREE" -- "${SHIPPED[@]}" \
-    | awk -F'\t' -v drop="${DIRECTORY_DROP[*]}" 'BEGIN { n = split(drop, d, " "); for (i = 1; i <= n; i++) left_out[d[i]] = 1 }
-                                              !($2 in left_out)' \
+    | awk -F'\t' -v drop="${DIRECTORY_DROP[*]}" 'BEGIN { n = split(drop, d, " ") }
+                                              { keep = 1; for (i = 1; i <= n; i++) if ($2 == d[i] || index($2, d[i] "/") == 1) keep = 0 }
+                                              keep' \
     | gi update-index --add --index-info
 
 # scan prints git grep's matches (none is fine) and fails only when git grep itself fails.
@@ -75,7 +73,6 @@ user_only() {
 for f in "${DIRECTORY_USER_ONLY[@]}"; do
     gi show ":$f" | user_only | put "$f" || die "could not make $f user-only (it needs a --- frontmatter block)"
 done
-g show "$TAG:hooks/hooks.json" | jq --indent 2 "$DIRECTORY_HOOKS_JQ" | put hooks/hooks.json || die "could not trim hooks/hooks.json"
 for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json; do
     [ -n "$(gi ls-files -- "$f")" ] || continue
     g show "$TAG:$f" | sed -e "s/$HOOKS_REPO/$HOOKS_DIRECTORY/g" -e "s/, $WORKFLOWS_REPO//g" | put "$f" \
@@ -99,10 +96,19 @@ HITS="$(scan -niE -e "$PASSWORD_STORE_RE" "$TREE")"
 [ -z "$HITS" ] || die "shipped text reads as a password-store command, which the directory scan holds as a credential read: $HITS"
 HITS="$(scan -nF -e 'repo-only -->' -e '<!-- directory-only' "$TREE")"
 [ -z "$HITS" ] || die "a repo-only or directory-only marker reached the release tree: $HITS"
-for f in "${DIRECTORY_DROP[@]}"; do
-    name="${f##*/}"
-    HITS="$(scan -nF -e "${name%.*}" "$TREE")"
+# Every file left out is searched by its stem when the stem has a dash (session-start), else by its full name
+# (hooks.json), so the plain word "hooks" is never searched. A left-out directory is searched as "dir/".
+while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    name="${f##*/}"; stem="${name%.*}"
+    case "$stem" in *-*) needle="$stem" ;; *) needle="$name" ;; esac
+    HITS="$(scan -nF -e "$needle" "$TREE")"
     [ -z "$HITS" ] || die "the directory copy leaves out $f but still names it: $HITS"
+done < <(g ls-tree -r --name-only "$TAG_TREE" -- "${DIRECTORY_DROP[@]}")
+for e in "${DIRECTORY_DROP[@]}"; do
+    [ "$(g cat-file -t "$TAG:$e" 2>/dev/null || true)" = "tree" ] || continue
+    HITS="$(scan -nF -e "$e/" "$TREE")"
+    [ -z "$HITS" ] || die "the directory copy leaves out $e/ but still names it: $HITS"
 done
 HITS="$(scan -nF -e "$HOOKS_REPO" "$TREE")"
 [ -z "$HITS" ] || die "the directory copy has $HOOKS_DIRECTORY but still says $HOOKS_REPO: $HITS"

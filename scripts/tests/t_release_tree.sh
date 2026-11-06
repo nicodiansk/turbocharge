@@ -12,7 +12,18 @@ SHIPPED_LIST="$(printf '%s' "$SHIPPED_LINE" | sed 's/^SHIPPED=(//; s/)[[:space:]
 # shellcheck disable=SC2086
 set -- $SHIPPED_LIST
 SHIPPED=("$@")
-SHIPPED_SORTED="$(printf '%s\n' "${SHIPPED[@]}" | LC_ALL=C sort)"
+DROP_LINE="$(grep '^DIRECTORY_DROP=(' "$REL")"
+[ -n "$DROP_LINE" ] || { echo "    release.sh has no one-line DIRECTORY_DROP=(...)"; exit 1; }
+printf '%s' "$DROP_LINE" | grep -qE '[(][[:space:]]*hooks[[:space:]]|[[:space:]]hooks[[:space:])]' \
+    || { echo "    DIRECTORY_DROP doesn't hold the entry hooks: $DROP_LINE"; exit 1; }
+DROP_LIST="$(printf '%s' "$DROP_LINE" | sed 's/^DIRECTORY_DROP=(//; s/)[[:space:]]*$//')"
+# The release tree's top level: SHIPPED minus each drop entry that has no slash.
+EXPECTED_TOP=""
+for e in "${SHIPPED[@]}"; do
+    case " $DROP_LIST " in *" $e "*) continue ;; esac
+    EXPECTED_TOP="$EXPECTED_TOP$e"$'\n'
+done
+SHIPPED_SORTED="$(printf '%s' "$EXPECTED_TOP" | LC_ALL=C sort)"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -28,13 +39,13 @@ git -C "$F" remote add origin "$TMP/origin.git"
 put() { mkdir -p "$F/$(dirname "$1")"; printf '%s\n' "$2" > "$F/$1"; }
 set_version() { put .claude-plugin/plugin.json "{ \"name\": \"x\", \"description\": \"3 skills, 2 hooks, 1 workflow\", \"version\": \"$1\" }"; }
 HOOKS_JSON='{ "hooks": {
-  "SessionStart": [ { "hooks": [ { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/h.sh\"" } ] } ],
+  "SessionStart": [ { "hooks": [ { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh\"" } ] } ],
   "SubagentStop": [ { "hooks": [ { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/builder-exit-gate.sh\"" } ] } ],
   "PreToolUse": [ { "hooks": [ { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/builder-exit-gate.sh\"" } ] } ] } }'
 
 set_version 9.9.9
 put agents/a.md "$(printf 'Agent\n<!-- repo-only -->\nRepo note\n<!-- /repo-only -->')"
-put hooks/h.sh h; put hooks/builder-exit-gate.sh g; put hooks/hooks.json "$HOOKS_JSON"
+put hooks/session-start.sh h; put hooks/builder-exit-gate.sh g; put hooks/late-nudge.md n; put hooks/hooks.json "$HOOKS_JSON"
 put skills/s/SKILL.md s; put skills/ship/SKILL.md "$(printf -- '---\nname: ship\ndescription: Ship it\n---\nShip body')"
 put templates/t.md t; put workflows/w.js w; put workflows/review-swarm.js r
 put CHANGELOG.md c; put LICENSE l; put NOTICE n; put .claude-plugin/icon.png p
@@ -59,12 +70,10 @@ printf '%s' "$OUT" | grep -qF 'git push origin' || { echo "    no push hint prin
     || { echo "    release README isn't the directory copy: $(git -C "$F" show "$SHA:README.md")"; exit 1; }
 [ "$(git -C "$F" show "$SHA:agents/a.md")" = "Agent" ] \
     || { echo "    release agents/a.md isn't filtered: $(git -C "$F" show "$SHA:agents/a.md")"; exit 1; }
-git -C "$F" cat-file -e "$SHA:hooks/builder-exit-gate.sh" 2>/dev/null && { echo "    release still ships the exit gate"; exit 1; }
-git -C "$F" cat-file -e "$SHA:hooks/h.sh" 2>/dev/null || { echo "    release lost hooks/h.sh"; exit 1; }
+[ -z "$(git -C "$F" ls-tree -r --name-only "$SHA" -- hooks)" ] \
+    || { echo "    release still ships files under hooks/: $(git -C "$F" ls-tree -r --name-only "$SHA" -- hooks)"; exit 1; }
 git -C "$F" cat-file -e "$SHA:workflows/review-swarm.js" 2>/dev/null && { echo "    release still ships the review workflow"; exit 1; }
 git -C "$F" cat-file -e "$SHA:workflows/w.js" 2>/dev/null || { echo "    release lost workflows/w.js"; exit 1; }
-[ "$(git -C "$F" show "$SHA:hooks/hooks.json" | jq -c '.hooks | keys')" = '["SessionStart"]' ] \
-    || { echo "    release hooks.json keeps more than SessionStart: $(git -C "$F" show "$SHA:hooks/hooks.json")"; exit 1; }
 git -C "$F" show "$SHA:.claude-plugin/plugin.json" | jq -e '.description == "3 skills, 1 hook"' >/dev/null \
     || { echo "    release plugin.json hook and workflow count: $(git -C "$F" show "$SHA:.claude-plugin/plugin.json")"; exit 1; }
 SHIP_USER_ONLY="$(printf -- '---\nname: ship\ndescription: Ship it\ndisable-model-invocation: true\n---\nShip body')"
@@ -136,6 +145,19 @@ put skills/s/SKILL.md s2; put README.md "$(printf 'Intro\n<!-- repo-only -->\nke
 refuse_release 'never closes' "an unclosed repo-only block"
 put README.md 'The exit gate lives in hooks/builder-exit-gate.sh'
 refuse_release 'still names it' "a README naming the left-out exit gate"
+put README.md 'Startup runs session-start'
+refuse_release 'still names it' "a README naming the left-out session-start script"
+put README.md 'See hooks.json'
+refuse_release 'still names it' "a README naming hooks.json"
+put README.md 'The ${CLAUDE_PLUGIN_ROOT}/hooks/ holds the scripts'
+refuse_release 'still names it' "a README naming the left-out hooks/ directory"
+put README.md 'late-nudge prints a hint'
+refuse_release 'still names it' "a README naming a hook file no list names"
+put README.md r; put skills/s/SKILL.md "If the project's commit hooks stash, run lanes one at a time"
+VER=$((VER + 1)); set_version "9.9.$VER"
+git -C "$F" add -A && git -C "$F" commit -q -m "v$VER" && git -C "$F" tag -a "v9.9.$VER" -m "v9.9.$VER"
+OUT="$(run "v9.9.$VER")" || { echo "    release.sh refused the plain word hooks: $OUT"; exit 1; }
+put skills/s/SKILL.md s
 put README.md 'Review launches turbocharge:review-swarm'
 refuse_release 'still names it' "a README naming the left-out review workflow"
 put README.md r; put templates/t.md 'Ships 2 hooks'
