@@ -200,6 +200,13 @@ Swarm against one reviewer (the same two defects cases, with the prompt `/turboc
 
 Claude Code 2.1.296 · model `claude-sonnet-5-5`, judge `claude-sonnet-5-5` · 3 runs per arm · 2026-10-14 · $6.59 list-price estimate (run on a Max plan, so it drew plan usage, not billing). Measured on the plugin as released (`e5abd26`); only the eval fixtures changed after.
 
+<!-- repo-only -->
+These numbers are from 3.4.0, with both hooks. Since 3.5.8 the directory copy ships no hooks, and it hasn't been measured without them.
+<!-- /repo-only -->
+<!-- directory-only
+These numbers are from 3.4.0, whose copy added routing text at every session start. Since 3.5.8 this copy doesn't, and it hasn't been measured without it.
+-->
+
 The suite runs on the maintainer's machine before a release, and never runs in your sessions.
 <!-- repo-only -->
 It lives in `evals/` and runs through `scripts/eval.sh` (`claude plugin eval`).
