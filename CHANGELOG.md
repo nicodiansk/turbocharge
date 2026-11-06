@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.5.8] - 2026-11-06
+
+Directory fix. 3.5.7 passed the scan on 2026-10-19 and waited for a reviewer. In November the directory refused it, first with LOCAL_CODE_NOT_CHECKED ("The scan of this version didn't confirm that it read the whole plugin") and then with LOCAL_CODE_HOOK_COMMAND: "The directory accepts command hooks only from Verified organizations … Remove every hook of type command, then push a new commit. Hooks of type prompt can stay." The directory copy's only hook was SessionStart, and SessionStart takes only command and mcp_tool hooks, not prompt hooks, so it can't be converted. "Verified organization" isn't documented, and nothing ties it to a Team plan.
+
+### Changed
+- **Directory copy:** no hooks. `release.sh` leaves out all of `hooks/` (`hooks.json`, `session-start.sh`, the bootstrap text, the setup nudges), and the manifests drop `2 hooks`. There, the planner, researcher and code-reviewer still get ATLAS.md on dispatch, and wrap's resume prompt loads the snapshot. Repo installs (`turbocharge@turbocharge`) keep both hooks.
+- **README, atlas, wrap, setup:** text that holds only with the hooks is now repo-only or reworded.
+- `release.sh` refuses a directory copy that holds a `hooks.json` or a hook of type `command`, counts hooks, or names a file it left out. `t_release_tree.sh` and `t_directory_copy.sh` cover it.
+- The evals weren't rerun for this patch, so README **Measured** is still the 3.4.0 run.
+
 ## [3.5.7] - 2026-10-19
 
 Directory fix, found in the portal's scan report. The report names the pair behind "Uses a credential from the user's machine". In `skills/debug/condition-based-waiting.md`, a flaky test was one that would "pass sometimes", written inside parentheses; the scan reads `pass` followed by a word there as the `pass` password-store command reading a secret. It names the SessionStart hook as what could send it. The same rule matched other lines from 2.8.1 on; from 3.4.0 it pairs them strongly and holds the version. The page shows only `plugin.json`; the file, the words and the sender are in the report's `credential_at`, `env` and `sender_at` fields.

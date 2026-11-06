@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ABOUTME: The directory copy (markdown through directory-filter.sh, no exit gate, no review workflow) holds nothing the scan
+# ABOUTME: The directory copy (markdown through directory-filter.sh, no hooks, no review workflow) holds nothing the scan
 # ABOUTME: holds a version for: image names, repo marketplace, dev scripts, CI, exit gate, swarm; keeps install and disclosures.
 source "$PLUGIN_DIR/scripts/tests/helpers.sh"
 FILTER="$PLUGIN_DIR/scripts/directory-filter.sh"
@@ -20,12 +20,12 @@ done
 D="$(bash "$FILTER" < "$PLUGIN_DIR/README.md")" || { echo "    filter refused README.md"; exit 1; }
 for p in '<img' '.png' '.svg' 'icon' 'marketplace add' '--plugin-dir' 'scripts/' '.github' 'evals/' 'secret' 'token' \
     '](CHANGELOG.md)' 'repo-only' 'directory-only' 'exit gate' 'builder-exit-gate' 'SubagentStop' 'SubagentHandback' \
-    '2 hooks' '--watch' 'swarm' 'workflow' 'lens reviewer'; do
+    '2 hooks' '--watch' 'swarm' 'workflow' 'lens reviewer' 'hook' 'SessionStart' 'pre-load'; do
     printf '%s' "$D" | grep -qiF -- "$p" && { echo "    directory README still has: $p"; rc=1; }
 done
-for p in 'claude plugin install turbocharge-nicodiansk@anthropic-plugin-directory' '### What the hooks do' \
-    '`codemap stats`' 'never runs in your sessions' '## Measured' '10 skills, 6 agents, 1 hook.' \
-    '| SessionStart hook |' '| **SessionStart** |' '| **review** |' 'one senior reviewer' \
+for p in 'claude plugin install turbocharge-nicodiansk@anthropic-plugin-directory' \
+    'never runs in your sessions' '## Measured' '10 skills, 6 agents. One system' \
+    'In Chat, agents are ignored' 'get it on every dispatch' '| **review** |' 'one senior reviewer' \
     '## What the skills run and send' '[NOTICE](NOTICE)'; do
     printf '%s' "$D" | grep -qF -- "$p" || { echo "    directory README lost: $p"; rc=1; }
 done
@@ -55,6 +55,17 @@ for f in $(git ls-files -- "$@" | grep '\.md$'); do
     OUT="$(bash "$FILTER" < "$f")" || { echo "    filter refused $f"; rc=1; continue; }
     printf '%s' "$OUT" | grep -qi 'swarm' && { echo "    directory copy of $f still mentions the swarm"; rc=1; }
 done
+
+# The directory copy ships no hooks (3.5.7 was refused: command hooks only from Verified organizations), so no shipped
+# markdown file, as the directory gets it, says what a hook does. Repo installs keep the hooks and their text.
+for f in $(git ls-files -- "$@" ':(exclude)hooks' | grep '\.md$'); do
+    OUT="$(bash "$FILTER" < "$f")" || { echo "    filter refused $f"; rc=1; continue; }
+    for p in 'SessionStart' 'session-start' 'hooks/' 'hooks.json'; do
+        printf '%s' "$OUT" | grep -qF -- "$p" && { echo "    directory copy of $f still has: $p"; rc=1; }
+    done
+done
+grep -qF 'SessionStart hook also prints it' skills/wrap/SKILL.md || { echo "    repo wrap skill lost the hook line"; rc=1; }
+grep -qF 'hooks/hooks.json exists' skills/setup/SKILL.md || { echo "    repo setup skill lost the hooks.json check"; rc=1; }
 
 # No shipped text starts a shell segment with a password-store command and an argument: the scan read
 # "(pass sometimes," as the pass command reading a secret and held every version from 3.4.1 to 3.5.6 for it.

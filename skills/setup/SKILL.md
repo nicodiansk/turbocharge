@@ -73,9 +73,9 @@ Run `claude plugin list --json` to enumerate installed plugins and their enable 
 Run `claude plugin details turbocharge` to confirm the plugin is installed, enabled, and to see its standing context cost. Then check the installed copy under `${CLAUDE_PLUGIN_ROOT}`:
 - All 10 skills have SKILL.md files
 - All 6 agents have .md files
-- hooks/hooks.json exists
 - .claude-plugin/plugin.json exists and its version matches `claude plugin details`
 <!-- repo-only -->
+- hooks/hooks.json exists
 - workflows/review-swarm.js exists
 <!-- /repo-only -->
 
@@ -95,7 +95,7 @@ Scan `~/.claude/rules/common/` for files that duplicate what turbocharge skills 
 
 | Global Rule File | Overlaps With | Recommendation |
 |------------------|---------------|----------------|
-| `agents.md` | turbocharge pipeline (SessionStart bootstrap) | Keep only the "Primary System: Turbocharge Plugin" header + pipeline table. Remove agent dispatch details — turbocharge skills handle dispatch. |
+| `agents.md` | turbocharge pipeline | Keep only the "Primary System: Turbocharge Plugin" header + pipeline table. Remove agent dispatch details — turbocharge skills handle dispatch. |
 | `development-workflow.md` | turbocharge:plan, turbocharge:build | Remove TDD steps and plan-first sections — builder.md and planner.md enforce these. Keep only git workflow and research steps. |
 | `testing.md` | builder.md TDD mandate | Remove TDD workflow section — builder.md is the single source. Keep coverage targets and test types. |
 
@@ -164,7 +164,7 @@ If ATLAS.md does not exist, offer: `/turbocharge:atlas` to generate the navigati
 TURBOCHARGE SETUP AUDIT
 =======================
 
-Plugin Health: ✅ OK (10 skills, 5 agents, hooks configured)
+Plugin Health: ✅ OK (10 skills, 6 agents)
 
 Conflicts Found:
   🔴 ~/.claude/agents/session-wrapper-agent.md → covered by turbocharge:wrap
