@@ -80,6 +80,15 @@ for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json; do
 done
 TREE="$(gi write-tree)"
 
+# The directory accepts command hooks only from Verified organizations (it refused 3.5.7 with LOCAL_CODE_HOOK_COMMAND).
+# hooks/ is left out, so these catch a hook declared anywhere else: a hooks.json in another folder, or a command hook
+# in plugin.json or in a skill's or agent's frontmatter (JSON or YAML form). There is no \b: git grep's ERE can't be trusted with it.
+HOOKS_JSON_PATHS="$(g ls-tree -r --name-only "$TREE" | grep -E '(^|/)hooks[.]json$' || true)"
+[ -z "$HOOKS_JSON_PATHS" ] || die "the directory copy holds a hooks.json, and the directory accepts command hooks only from Verified organizations: $HOOKS_JSON_PATHS"
+HOOK_COMMAND_RE="[\"']?type[\"']?[[:space:]]*:[[:space:]]*[\"']?command([^[:alnum:]_-]|\$)"
+HITS="$(scan -nEi -e "$HOOK_COMMAND_RE" "$TREE")"
+[ -z "$HITS" ] || die "the directory copy holds a hook of type command, which the directory accepts only from Verified organizations: $HITS"
+
 # What the directory scan holds a version for: shipped text naming a bundled image or font, or fetch-and-run.
 ASSETS="$(g ls-tree -r --name-only "$TREE" | sed -n -E 's#^(.*/)?([^/]+\.(png|jpe?g|gif|webp|ico|svg|woff2?|ttf|otf))$#\2#p')"
 for a in $ASSETS; do

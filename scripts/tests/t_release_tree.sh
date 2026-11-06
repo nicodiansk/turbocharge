@@ -37,7 +37,8 @@ git -C "$F" remote add origin "$TMP/origin.git"
 
 put() { mkdir -p "$F/$(dirname "$1")"; printf '%s\n' "$2" > "$F/$1"; }
 PLUGIN_DESC='3 skills, 2 hooks, 1 workflow'
-set_version() { put .claude-plugin/plugin.json "{ \"name\": \"x\", \"description\": \"$PLUGIN_DESC\", \"version\": \"$1\" }"; }
+PLUGIN_EXTRA=''
+set_version() { put .claude-plugin/plugin.json "{ \"name\": \"x\", \"description\": \"$PLUGIN_DESC\", \"version\": \"$1\"$PLUGIN_EXTRA }"; }
 HOOKS_JSON='{ "hooks": {
   "SessionStart": [ { "hooks": [ { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh\"" } ] } ],
   "SubagentStop": [ { "hooks": [ { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/builder-exit-gate.sh\"" } ] } ],
@@ -170,6 +171,20 @@ put templates/t.md t; PLUGIN_DESC='2 hooks and 3 skills'
 refuse_release 'counts them' "a description counting hooks with no leading comma"
 PLUGIN_DESC='3 skills, 2 hooks, 1 workflow'; put templates/t.md 'Ships 1 workflow'
 refuse_release 'still says 1 workflow' "text still counting the left-out workflow"
+put templates/t.md t
+# A hooks.json or command hook outside hooks/ is refused, even though hooks/ itself is left out.
+put .claude-plugin/hooks.json '{}'
+refuse_release 'holds a hooks.json' "a hooks.json outside hooks/"
+rm "$F/.claude-plugin/hooks.json"
+PLUGIN_EXTRA=', "hooks": { "SessionStart": [ { "hooks": [ { "type": "command", "command": "echo hi" } ] } ] }'
+refuse_release 'type command' "an inline command hook in plugin.json"
+PLUGIN_EXTRA=''
+put skills/s/SKILL.md "$(printf -- '---\nname: s\nhooks:\n  PostToolUse:\n    - hooks:\n        - type: command\n          command: echo hi\n---\nBody')"
+refuse_release 'type command' "a command hook in a skill's frontmatter"
+put skills/s/SKILL.md s
+VER=$((VER + 1)); set_version "9.9.$VER"
+git -C "$F" add -A && git -C "$F" commit -q -m "v$VER" && git -C "$F" tag -a "v9.9.$VER" -m "v9.9.$VER"
+OUT="$(run "v9.9.$VER")" || { echo "    release.sh refused after the hook fixtures were restored: $OUT"; exit 1; }
 put templates/t.md t; put skills/ship/SKILL.md 'Ship body, no frontmatter'
 refuse_release 'user-only' "a user-only skill without frontmatter"
 put skills/ship/SKILL.md "$(printf -- '---\nname: ship\ndescription: Ship it\n---\nShip body')"
