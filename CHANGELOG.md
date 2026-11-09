@@ -7,8 +7,8 @@ Directory test release. 3.5.9 cleared LOCAL_CODE_FILE_TYPE, and LOCAL_CODE_FRONT
 ### Changed
 - **Directory copy, agents:** the builder's and planner's `tools` allowlists become `disallowedTools: Agent, NotebookEdit, WebFetch, WebSearch` (`DIRECTORY_TOOLS_DENY`). They still can't spawn an `Agent` or use the web; they gain the other tools the session has. Repo installs keep the allowlists (`t_agent_no_nested_spawn.sh`).
 - **Directory copy, setup:** model-invocable (`DIRECTORY_MODEL_INVOCABLE`). Ship stays user-only.
-- 3.5.10's count says which group it was: 0 means `tools`, and this version passes; 1 means `disable-model-invocation`, which ship keeps; 2 means neither, which leaves plan's `context` and `agent`.
-- `release.sh` refuses a directory copy that keeps a `tools` key on an agent, quoted or not, and an agent with both `tools` and `disallowedTools`. `t_release_tree.sh` covers it.
+- If the scan counts occurrences of keys, as the drop from 10 to 2 suggests, 3.5.10's count says which group it was: 0 means `tools`, and this version passes; 1 means `disable-model-invocation`, which ship keeps; 2 means plan's `context` and `agent`, or something outside the three groups. A rule that counts values too could blur this.
+- `release.sh` refuses a directory copy that keeps a `tools` key on an agent, quoted or not, an agent with both `tools` and `disallowedTools`, an agent whose `tools` are a YAML list, and a skill that is both user-only and model-invocable. `t_release_tree.sh` covers it.
 - Repo installs (`turbocharge@turbocharge`) don't change.
 - The evals weren't rerun for this patch.
 

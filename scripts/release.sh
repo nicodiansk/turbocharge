@@ -139,11 +139,18 @@ while IFS= read -r f; do
     done
     case "$f" in agents/*) ;; *) tools=0 ;; esac
     [ "$tools" = 1 ] && [ "$deny" = 1 ] && die "$f has both tools: and disallowedTools:, so the copy can't swap one for the other"
+    if [ "$tools" = 1 ] && [ -n "$(gi show ":$f" | awk 'NR == 1 { fm = ($0 == "---"); next } fm && $0 == "---" { fm = 0 }
+                                                     fm && /^tools:[[:space:]]*$/ { print }')" ]; then
+        die "$f lists its tools as a YAML list; write tools: on one line, so the copy can swap it for disallowedTools:"
+    fi
     [ "$strip" = 1 ] || [ "$tools" = 1 ] || continue
     gi show ":$f" | strip_keys | { if [ "$tools" = 1 ]; then tools_to_deny; else cat; fi; } | put "$f" \
         || die "could not drop the frontmatter keys from $f"
 done < <(gi ls-files -- "${COMPONENT_DIRS[@]}")
 for f in "${DIRECTORY_MODEL_INVOCABLE[@]}"; do
+    for u in "${DIRECTORY_USER_ONLY[@]}"; do
+        [ "$f" != "$u" ] || die "$f is in both DIRECTORY_USER_ONLY and DIRECTORY_MODEL_INVOCABLE"
+    done
     [ -n "$(gi ls-files -- "$f")" ] || continue
     gi show ":$f" | model_invocable | put "$f" || die "could not make $f model-invocable"
 done

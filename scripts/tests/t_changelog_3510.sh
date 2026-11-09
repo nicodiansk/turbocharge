@@ -9,7 +9,8 @@ SECTION="$(mktemp)"
 awk '/^## \[3\.5\.10\]/{f=1; next} f && /^## \[/{exit} f' "$F" > "$SECTION"
 rc=0
 for p in "LOCAL_CODE_FRONTMATTER_KEY" "count 2" "tools" "disallowedTools" "Agent" "disable-model-invocation" "setup" \
-    "ship" "context" "agent" "release.sh" "t_release_tree.sh" "turbocharge@turbocharge" "evals"; do
+    "ship" "context" "agent" "release.sh" "t_release_tree.sh" "turbocharge@turbocharge" "evals" \
+    "0 means" "1 means" "2 means" "counts occurrences of keys"; do
     grep -qF -- "$p" "$SECTION" || { echo "    [3.5.10] section missing: $p"; rc=1; }
 done
 rm -f "$SECTION"
