@@ -231,7 +231,9 @@ Dispatched by skills. You never invoke them directly.
 | **code-reviewer** | Holistic pre-merge assessment | Sonnet |
 | **verifier** | Tries to refute one finding or review comment; read-only | Sonnet |
 
+<!-- repo-only -->
 All agents except the verifier have `memory: project` for persistent codebase knowledge across sessions; the verifier judges each finding fresh.
+<!-- /repo-only -->
 
 <!-- repo-only -->
 ## Hooks

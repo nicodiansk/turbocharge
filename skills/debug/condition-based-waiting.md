@@ -79,7 +79,9 @@ async function waitFor<T>(
 }
 ```
 
+<!-- repo-only -->
 See `condition-based-waiting-example.ts` in this directory for complete implementation with domain-specific helpers (`waitForEvent`, `waitForEventCount`, `waitForEventMatch`) from actual debugging session.
+<!-- /repo-only -->
 
 ## Common Mistakes
 

@@ -141,7 +141,9 @@ This is per-user session-local state — do NOT exclude all of `.claude/` becaus
 
 **Output the resume prompt directly in chat** so the user can copy it. Do NOT write files, create directories, or modify `.gitignore` (except for CLAUDE.md and memory updates above, and the session snapshot JSON).
 
+<!-- repo-only -->
 Agent memory (via `memory: project`) handles persistence automatically — no manual file saving needed for session state.
+<!-- /repo-only -->
 
 ## Workflow Position
 

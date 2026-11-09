@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ABOUTME: Drives scripts/release.sh against a fixture repo with a bare origin: the release commit is the directory copy
-# ABOUTME: (SHIPPED, filtered markdown, no hooks or review workflow, user-only ship), chains, is idempotent, refuses bad tags and scan-held text.
+# ABOUTME: (SHIPPED, filtered markdown, allowed file types, trimmed frontmatter, NOTICE, no hooks or review workflow, user-only ship),
+# ABOUTME: chains, is idempotent, refuses bad tags, scan-held text and files the directory takes only from Verified organizations.
 source "$PLUGIN_DIR/scripts/tests/helpers.sh"
 REL="$PLUGIN_DIR/scripts/release.sh"
 assert_file "$REL" || exit 1
@@ -48,8 +49,19 @@ set_version 9.9.9
 put agents/a.md "$(printf 'Agent\n<!-- repo-only -->\nRepo note\n<!-- /repo-only -->')"
 put hooks/session-start.sh h; put hooks/builder-exit-gate.sh g; put hooks/late-nudge.md n; put hooks/hooks.json "$HOOKS_JSON"
 put skills/s/SKILL.md s; put skills/ship/SKILL.md "$(printf -- '---\nname: ship\ndescription: Ship it\n---\nShip body')"
-put templates/t.md t; put workflows/w.js w; put workflows/review-swarm.js r
-put CHANGELOG.md c; put LICENSE l; put NOTICE n; put .claude-plugin/icon.png p
+put templates/t.md t; put workflows/w.md w; put workflows/review-swarm.js r
+put CHANGELOG.md c; put LICENSE l; put .claude-plugin/icon.png p
+# The debug skill's script and TypeScript example, which the directory copy leaves out (LOCAL_CODE_FILE_TYPE), and the
+# NOTICE that lists them with a file the copy keeps.
+put skills/debug/find-polluter.sh "$(printf '#!/usr/bin/env bash\necho bisect')"
+put skills/debug/condition-based-waiting-example.ts 'export {}'
+NOTICE_REPO="$(printf 'Copied:\n- skills/s/SKILL.md\n- skills/debug/condition-based-waiting-example.ts\n- skills/debug/find-polluter.sh\n\nMIT License')"
+put NOTICE "$NOTICE_REPO"
+# Frontmatter keys the directory copy drops (LOCAL_CODE_FRONTMATTER_KEY), with an indented value and a body line that stays.
+put agents/k.md "$(printf -- '---\nname: k\ndescription: |\n  Two lines\n  of description\ntools: Read, Grep\nmodel: sonnet\nmemory: project\nmaxTurns: 5\nbackground: true\nexperimental:\n  cacheTtl: 1h\n---\nBody\nmemory: project stays in the body')"
+K_DIRECTORY="$(printf -- '---\nname: k\ndescription: |\n  Two lines\n  of description\ntools: Read, Grep\nmodel: sonnet\n---\nBody\nmemory: project stays in the body')"
+put skills/p/SKILL.md "$(printf -- '---\nname: p\ndescription: Plan it\ncontext: fork\nagent: planner\nbackground: false\nargument-hint: "[file]"\n---\nPlan body')"
+P_DIRECTORY="$(printf -- '---\nname: p\ndescription: Plan it\ncontext: fork\nagent: planner\nargument-hint: "[file]"\n---\nPlan body')"
 put README.md "$(printf '<!-- repo-only -->\nIntro, 2 hooks\nRepo marketplace, builder-exit-gate.sh\n<!-- /repo-only -->\n<!-- directory-only\nIntro\n-->\nOutro')"
 put .claude/CLAUDE.md d; put .github/w.yml d; put scripts/x.sh d; put evals/e/prompt.md d
 mkdir -p "$F/scripts"; cp "$REL" "$F/scripts/release.sh"; cp "$PLUGIN_DIR/scripts/directory-filter.sh" "$F/scripts/"
@@ -74,7 +86,18 @@ printf '%s' "$OUT" | grep -qF 'git push origin' || { echo "    no push hint prin
 [ -z "$(git -C "$F" ls-tree -r --name-only "$SHA" -- hooks)" ] \
     || { echo "    release still ships files under hooks/: $(git -C "$F" ls-tree -r --name-only "$SHA" -- hooks)"; exit 1; }
 git -C "$F" cat-file -e "$SHA:workflows/review-swarm.js" 2>/dev/null && { echo "    release still ships the review workflow"; exit 1; }
-git -C "$F" cat-file -e "$SHA:workflows/w.js" 2>/dev/null || { echo "    release lost workflows/w.js"; exit 1; }
+git -C "$F" cat-file -e "$SHA:workflows/w.md" 2>/dev/null || { echo "    release lost workflows/w.md"; exit 1; }
+for f in skills/debug/find-polluter.sh skills/debug/condition-based-waiting-example.ts; do
+    git -C "$F" cat-file -e "$SHA:$f" 2>/dev/null && { echo "    release still ships $f"; exit 1; }
+done
+[ "$(git -C "$F" show "$SHA:NOTICE")" = "$(printf 'Copied:\n- skills/s/SKILL.md\n\nMIT License')" ] \
+    || { echo "    release NOTICE still lists left-out files: $(git -C "$F" show "$SHA:NOTICE")"; exit 1; }
+[ "$(git -C "$F" show "$SHA:agents/k.md")" = "$K_DIRECTORY" ] \
+    || { echo "    release agents/k.md kept a dropped key: $(git -C "$F" show "$SHA:agents/k.md")"; exit 1; }
+[ "$(git -C "$F" show "$SHA:skills/p/SKILL.md")" = "$P_DIRECTORY" ] \
+    || { echo "    release skills/p/SKILL.md kept a dropped key: $(git -C "$F" show "$SHA:skills/p/SKILL.md")"; exit 1; }
+[ "$(git -C "$F" rev-parse "$SHA:skills/s/SKILL.md")" = "$(git -C "$F" rev-parse v9.9.9:skills/s/SKILL.md)" ] \
+    || { echo "    release changed skills/s/SKILL.md, which has no frontmatter"; exit 1; }
 git -C "$F" show "$SHA:.claude-plugin/plugin.json" | grep -qF '"description": "3 skills"' \
     || { echo "    release plugin.json hook and workflow count: $(git -C "$F" show "$SHA:.claude-plugin/plugin.json")"; exit 1; }
 git -C "$F" log -1 --format=%b "$SHA" | grep -qi 'hooks' \
@@ -195,6 +218,22 @@ VER=$((VER + 1)); set_version "9.9.$VER"
 git -C "$F" add -A && git -C "$F" commit -q -m "v$VER" && git -C "$F" tag -a "v9.9.$VER" -m "v9.9.$VER"
 OUT="$(run "v9.9.$VER")" || { echo "    release.sh refused 'pass' that starts no segment: $OUT"; exit 1; }
 put templates/t.md t
+# Files the directory takes only from Verified organizations (LOCAL_CODE_FILE_TYPE): other types, #!, package manager
+# configuration, NUL bytes, text that isn't UTF-8.
+put skills/s/helper.ts 'export {}'
+refuse_release 'allowed types' "a shipped TypeScript file"
+rm "$F/skills/s/helper.ts"; put skills/s/notes.txt "$(printf '#!/bin/sh\necho hi')"
+refuse_release 'starts with #!' "a text file that starts with #!"
+rm "$F/skills/s/notes.txt"; put templates/package.json '{}'
+refuse_release 'package manager' "a shipped package.json"
+rm "$F/templates/package.json"; printf 'a\000b\n' > "$F/templates/t.md"
+refuse_release 'NUL' "a text file with a NUL byte"
+printf 'caf\351\n' > "$F/templates/t.md"
+refuse_release 'UTF-8' "a text file that isn't UTF-8"
+put templates/t.md t
+VER=$((VER + 1)); set_version "9.9.$VER"
+git -C "$F" add -A && git -C "$F" commit -q -m "v$VER" && git -C "$F" tag -a "v9.9.$VER" -m "v9.9.$VER"
+OUT="$(run "v9.9.$VER")" || { echo "    release.sh refused after the file-type fixtures were removed: $OUT"; exit 1; }
 
 # Real repo: every top-level entry is shipped or known dev-only.
 DEV_ONLY=(.claude .gitattributes .github .gitignore CHANGELOG.md evals examples images scripts)
