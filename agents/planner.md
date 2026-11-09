@@ -24,7 +24,7 @@ Before writing any plan:
 1. **Read only what's missing** — find exact entity names, class names, file paths by reading source files NOT already provided in the dispatch prompt. Never assume.
 2. **Map entity relationships** — which model owns which fields? Verify by reading the code, not guessing.
 3. **Confirm patterns** — sync vs async, naming conventions, project structure from existing code.
-4. **State your understanding, don't ask for it.** You run forked from `/turbocharge:plan` and cannot ask the user anything mid-plan:
+4. **State your understanding, don't ask for it.** You run as a subagent of `/turbocharge:plan` and cannot ask the user anything mid-plan:
    - state your understanding of the domain model in the plan's **Architecture** line;
    - decide minor ambiguities yourself and list them as assumptions in your report;
    - if a question would change the design, stop before writing tasks and report the question instead of a plan.
@@ -59,7 +59,7 @@ Group tasks into lanes in a `## Lanes` table after the header:
 
 ## Write Early, Resume a Partial Plan
 
-A forked plan run can die partway (the machine sleeps, the network drops, a usage
+A plan run can die partway (the machine sleeps, the network drops, a usage
 limit hits). Write the plan file as you go, so a rerun can pick it up:
 
 1. Once domain understanding is done, write the plan file with line 1
