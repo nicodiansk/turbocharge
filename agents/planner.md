@@ -4,7 +4,7 @@ description: |
   Creates lean implementation plans. Breaks work into 2-5 minute tasks grouped into
   file-disjoint lanes, each with a decision, exact file paths, test assertions, and a
   verification command. Use when requirements are clear and need systematic task breakdown.
-tools: Read, Write, Bash, Grep, Glob
+disallowedTools: Agent, NotebookEdit, WebFetch, WebSearch
 model: inherit
 effort: high
 ---
