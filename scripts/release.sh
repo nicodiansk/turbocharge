@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ABOUTME: Builds the directory's `release` commit from an annotated vX.Y.Z tag: the plugin's files as the directory copy
-# ABOUTME: (filtered markdown, no hooks or review workflow, user-only ship), chained onto origin's release. --push plain-pushes it.
+# ABOUTME: (filtered markdown, allowed file types, trimmed frontmatter, no hooks or review workflow, user-only ship), chained onto
+# ABOUTME: origin's release. --push plain-pushes it.
 set -euo pipefail
 
 SHIPPED=(.claude-plugin agents hooks skills templates workflows LICENSE NOTICE README.md)
@@ -8,8 +9,21 @@ SHIPPED=(.claude-plugin agents hooks skills templates workflows LICENSE NOTICE R
 # LOCAL_CODE_HOOK_COMMAND: it accepts command hooks only from Verified organizations, and SessionStart takes only command
 # and mcp_tool hooks, so the bootstrap can't become a prompt hook. The workflow is the one other piece of code the listing
 # held for (3.5.0 to 3.5.2, "Update adds credential forward"); without it, review runs one code-reviewer.
+# From a non-Verified organization the directory takes only Markdown, text, JSON, YAML and images, nothing that starts
+# with #!, and no package manager configuration: it refused 3.5.8 with LOCAL_CODE_FILE_TYPE (count 2) for the debug
+# skill's bisection script and TypeScript example, so the copy leaves both out.
 # An entry drops that path and everything under it.
-DIRECTORY_DROP=(hooks workflows/review-swarm.js)
+DIRECTORY_DROP=(hooks workflows/review-swarm.js skills/debug/find-polluter.sh skills/debug/condition-based-waiting-example.ts)
+ALLOWED_EXT_RE='[.](md|txt|json|yaml|yml|png|jpg|jpeg|gif|webp|ico)$'
+ALLOWED_PLAIN=(LICENSE NOTICE .gitignore)
+IMAGE_EXT_RE='[.](png|jpg|jpeg|gif|webp|ico)$'
+PACKAGE_CONFIG_RE='^(package[.]json|composer[.]json|bower[.]json|deno[.]jsonc?|deno[.]lock|pubspec[.]yaml|pubspec[.]lock|package-lock[.]json|npm-shrinkwrap[.]json|pnpm-workspace[.]yaml|pnpm-lock[.]yaml|yarn[.]lock|[.]npmrc|[.]yarnrc|[.]yarnrc[.]yml|bunfig[.]toml|bun[.]lockb?|uv[.]toml|pyproject[.]toml|requirements[.]txt|Pipfile|Pipfile[.]lock|poetry[.]lock|Gemfile|Gemfile[.]lock|go[.]mod|go[.]sum|Cargo[.]toml|Cargo[.]lock)$'
+# The directory also takes frontmatter keys outside an allowed list only from Verified organizations: it refused 3.5.8
+# with LOCAL_CODE_FRONTMATTER_KEY (count 10). The list isn't public. The copy drops these keys, with their values, from
+# every skill and agent: the plugin works without them (no agent memory, no turn caps, the builder's default cache,
+# a plan that runs in the background).
+DIRECTORY_STRIP_KEYS=(memory maxTurns background experimental)
+COMPONENT_DIRS=(agents skills commands output-styles)
 HOOKS_REPO='2 hooks'
 HOOK_COUNT_RE='(^|[^[:alnum:]])[0-9]+ hooks?([^[:alnum:]]|$)'
 WORKFLOWS_REPO='1 workflow'
@@ -73,12 +87,85 @@ user_only() {
 for f in "${DIRECTORY_USER_ONLY[@]}"; do
     gi show ":$f" | user_only | put "$f" || die "could not make $f user-only (it needs a --- frontmatter block)"
 done
+# fm_keys prints the top-level keys of the frontmatter (stdin). It reads to the end, so the writer never gets SIGPIPE.
+fm_keys() {
+    awk 'NR == 1 { fm = ($0 == "---"); next }
+         fm && $0 == "---" { fm = 0 }
+         fm && /^[A-Za-z_][A-Za-z0-9_-]*:/ { k = $0; sub(/:.*/, "", k); print k }'
+}
+# strip_keys drops DIRECTORY_STRIP_KEYS from the frontmatter (stdin), each with its indented or listed value lines.
+strip_keys() {
+    awk -v keys="${DIRECTORY_STRIP_KEYS[*]}" '
+        BEGIN { n = split(keys, k, " "); for (i = 1; i <= n; i++) drop[k[i]] = 1 }
+        NR == 1 && $0 == "---" { fm = 1; print; next }
+        fm && $0 == "---" { fm = 0; skip = 0; print; next }
+        fm && /^[A-Za-z_][A-Za-z0-9_-]*:/ { key = $0; sub(/:.*/, "", key); skip = (key in drop); if (!skip) print; next }
+        fm && skip && ($0 == "" || /^[[:space:]]/ || /^-/) { next }
+        { skip = 0; print }
+    '
+}
+is_strip_key() { local s; for s in "${DIRECTORY_STRIP_KEYS[@]}"; do [ "$1" = "$s" ] && return 0; done; return 1; }
+while IFS= read -r f; do
+    case "$f" in *.md) ;; *) continue ;; esac
+    hit=0
+    for k in $(gi show ":$f" | fm_keys); do is_strip_key "$k" && hit=1; done
+    [ "$hit" = 1 ] || continue
+    gi show ":$f" | strip_keys | put "$f" || die "could not drop the frontmatter keys from $f"
+done < <(gi ls-files -- "${COMPONENT_DIRS[@]}")
+# NOTICE lists every copied file; the copy's NOTICE leaves out the lines for the files the copy leaves out.
+if [ -n "$(gi ls-files -- NOTICE)" ]; then
+    NOTICE_DROP=()
+    while IFS= read -r f; do
+        [ -n "$f" ] && NOTICE_DROP+=(-e "- $f")
+    done < <(g ls-tree -r --name-only "$TAG_TREE" -- "${DIRECTORY_DROP[@]}")
+    if [ "${#NOTICE_DROP[@]}" -gt 0 ]; then
+        gi show ":NOTICE" | { grep -vxF "${NOTICE_DROP[@]}" || true; } | put NOTICE \
+            || die "could not drop the left-out files from NOTICE"
+    fi
+fi
 for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json; do
     [ -n "$(gi ls-files -- "$f")" ] || continue
     g show "$TAG:$f" | sed -e "s/, $HOOKS_REPO//g" -e "s/, $WORKFLOWS_REPO//g" | put "$f" \
         || die "could not drop the hook and workflow counts in $f"
 done
 TREE="$(gi write-tree)"
+
+# What the directory takes from a non-Verified organization: the allowed file types (LOCAL_CODE_FILE_TYPE) and no
+# frontmatter key the copy drops (LOCAL_CODE_FRONTMATTER_KEY). Text files must be UTF-8 with no NUL bytes.
+while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    base="${f##*/}"
+    [[ "$base" =~ $PACKAGE_CONFIG_RE ]] \
+        && die "the directory copy holds $f, a package manager configuration, which the directory accepts only from Verified organizations"
+    plain=0
+    for p in "${ALLOWED_PLAIN[@]}"; do [ "$base" = "$p" ] && plain=1; done
+    [[ "$f" =~ $ALLOWED_EXT_RE ]] || [ "$plain" = 1 ] \
+        || die "the directory copy holds $f, and the directory accepts files outside the allowed types (Markdown, text, JSON, YAML, images) only from Verified organizations"
+    [ "$(g cat-file -p "$TREE:$f" | awk 'NR == 1 { print substr($0, 1, 2) }')" != '#!' ] \
+        || die "the directory copy holds $f, which starts with #!: the directory accepts scripts only from Verified organizations"
+    [[ "$f" =~ $IMAGE_EXT_RE ]] && continue
+    [ "$(g cat-file -p "$TREE:$f" | LC_ALL=C tr -d '\000' | wc -c | tr -d ' ')" = "$(g cat-file -s "$TREE:$f")" ] \
+        || die "the directory copy holds $f, a text file with a NUL byte, which the directory refuses"
+    g cat-file -p "$TREE:$f" | iconv --from-code=UTF-8 --to-code=UTF-8 >/dev/null 2>&1 \
+        || die "the directory copy holds $f, a text file that isn't UTF-8, which the directory refuses"
+done < <(g ls-tree -r --name-only "$TREE")
+# guard_keys prints each frontmatter line (stdin) that holds a key in DIRECTORY_STRIP_KEYS, quoted, indented or with CRLF
+# line ends too: a key strip_keys can't remove still stops the release.
+guard_keys() {
+    awk -v keys="${DIRECTORY_STRIP_KEYS[*]}" '
+        BEGIN { n = split(keys, k, " ") }
+        { sub(/\r$/, "") }
+        NR == 1 { fm = ($0 == "---"); next }
+        fm && $0 == "---" { fm = 0 }
+        fm { line = $0; gsub(/["\047]/, "", line)
+             for (i = 1; i <= n; i++) if (line ~ ("^[[:space:]]*" k[i] "[[:space:]]*:")) { print; break } }'
+}
+while IFS= read -r f; do
+    case "$f" in *.md) ;; *) continue ;; esac
+    HITS="$(g cat-file -p "$TREE:$f" | guard_keys)"
+    [ -z "$HITS" ] \
+        || die "the directory copy keeps a frontmatter key in $f that the directory accepts only from Verified organizations: $HITS"
+done < <(g ls-tree -r --name-only "$TREE" -- "${COMPONENT_DIRS[@]}")
 
 # The directory accepts command hooks only from Verified organizations (it refused 3.5.7 with LOCAL_CODE_HOOK_COMMAND).
 # hooks/ is left out, so these catch a hook declared anywhere else: a hooks.json in another folder, or a command hook

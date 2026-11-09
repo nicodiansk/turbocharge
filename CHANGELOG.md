@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.5.9] - 2026-11-09
+
+Directory fix. The portal refused 3.5.8 with two rules that apply only to organizations Anthropic hasn't Verified. Both are new between 6 and 9 November: 3.5.7, checked on 6 November with the same files, didn't get them. LOCAL_CODE_FILE_TYPE (count 2): "The directory accepts scripts, programs, and files outside the allowed types only from Verified organizations". LOCAL_CODE_FRONTMATTER_KEY (count 10): "frontmatter keys and values outside the allowed list". The list of allowed keys isn't public, and the report gives only counts. "Verified organization" can't be requested yet.
+
+### Changed
+- **Directory copy, files:** `release.sh` leaves out `skills/debug/find-polluter.sh` (it starts with `#!`) and `skills/debug/condition-based-waiting-example.ts`, the only two files that aren't Markdown, text, JSON, YAML or an image. The debug skill there describes the bisection in prose, and the copy's NOTICE lists only the files it ships.
+- **Directory copy, frontmatter:** `release.sh` drops `memory`, `maxTurns`, `background` and `experimental` from every skill and agent (`DIRECTORY_STRIP_KEYS`). There, agents keep no memory between sessions, the researcher and verifier have no turn cap, the researcher loses `background: true` (Claude Code's default decides), the builder uses the default prompt cache instead of `cacheTtl: 1h`, and plan runs in the background, the default for a forked skill: the plan arrives as a completion notification instead of in the same turn. The agents' "Update your agent memory" lines are repo-only. If the next scan still counts keys, the count says how many remain.
+- **README, wrap:** the lines about `memory: project` are repo-only.
+- `release.sh` refuses a directory copy that holds a file outside the allowed types, a file that starts with `#!`, a package manager configuration, a text file with a NUL byte or not in UTF-8, or a frontmatter key it drops. `t_release_tree.sh` and `t_directory_copy.sh` cover it.
+- Repo installs (`turbocharge@turbocharge`) change only in wording: the bisection prose in the debug skill.
+- The evals weren't rerun for this patch, so README **Measured** is still the 3.4.0 run.
+
 ## [3.5.8] - 2026-11-06
 
 Directory fix. 3.5.7 passed the scan on 2026-10-19 and waited for a reviewer. In November the directory refused it, first with LOCAL_CODE_NOT_CHECKED ("The scan of this version didn't confirm that it read the whole plugin") and then with LOCAL_CODE_HOOK_COMMAND: "The directory accepts command hooks only from Verified organizations … Remove every hook of type command, then push a new commit. Hooks of type prompt can stay." The directory copy's only hook was SessionStart, and SessionStart takes only command and mcp_tool hooks, not prompt hooks, so it can't be converted. "Verified organization" isn't documented, and nothing ties it to a Team plan.

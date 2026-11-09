@@ -14,6 +14,10 @@ grep -qF 'git push origin vX.Y.Z:release' "$C" && { echo "    CLAUDE.md still pu
 for p in 'LOCAL_CODE_HOOK_COMMAND' 'LOCAL_CODE_NOT_CHECKED' 'Verified organization' 'mcp_tool' 'ships no hooks since 3.5.8'; do
     grep -qF -- "$p" "$C" || { echo "    CLAUDE.md missing the hook refusal: $p"; rc=1; }
 done
+# 3.5.8 was refused for two files outside the allowed types and for frontmatter keys (Verified organizations only).
+for p in 'LOCAL_CODE_FILE_TYPE' 'LOCAL_CODE_FRONTMATTER_KEY' 'DIRECTORY_STRIP_KEYS' 'claude plugin validate'; do
+    grep -qF -- "$p" "$C" || { echo "    CLAUDE.md missing the 3.5.8 refusal: $p"; rc=1; }
+done
 for p in 'ships SessionStart only' 'keeps SessionStart only' 'say `1 hook` instead of'; do
     grep -qF -- "$p" "$C" && { echo "    CLAUDE.md still says: $p"; rc=1; }
 done
