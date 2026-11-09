@@ -58,7 +58,7 @@ put skills/debug/condition-based-waiting-example.ts 'export {}'
 NOTICE_REPO="$(printf 'Copied:\n- skills/s/SKILL.md\n- skills/debug/condition-based-waiting-example.ts\n- skills/debug/find-polluter.sh\n\nMIT License')"
 put NOTICE "$NOTICE_REPO"
 # Frontmatter keys the directory copy drops (LOCAL_CODE_FRONTMATTER_KEY), with an indented value and a body line that stays.
-put agents/k.md "$(printf -- '---\nname: k\ndescription: |\n  Two lines\n  of description\ntools: Read, Grep\nmodel: sonnet\nmemory: project\nmaxTurns: 5\nbackground: true\nexperimental:\n  cacheTtl: 1h\n---\nBody\nmemory: project stays in the body')"
+put agents/k.md "$(printf -- '---\nname: k\ndescription: |\n  Two lines\n  of description\ntools: Read, Grep\nmodel: sonnet\nmemory: project\nmaxTurns: 5\nbackground: true\nexperimental:\n  cacheTtl: 1h\n\n  other: x\n---\nBody\nmemory: project stays in the body')"
 K_DIRECTORY="$(printf -- '---\nname: k\ndescription: |\n  Two lines\n  of description\ntools: Read, Grep\nmodel: sonnet\n---\nBody\nmemory: project stays in the body')"
 put skills/p/SKILL.md "$(printf -- '---\nname: p\ndescription: Plan it\ncontext: fork\nagent: planner\nbackground: false\nargument-hint: "[file]"\n---\nPlan body')"
 P_DIRECTORY="$(printf -- '---\nname: p\ndescription: Plan it\ncontext: fork\nagent: planner\nargument-hint: "[file]"\n---\nPlan body')"
@@ -224,13 +224,23 @@ put skills/s/helper.ts 'export {}'
 refuse_release 'allowed types' "a shipped TypeScript file"
 rm "$F/skills/s/helper.ts"; put skills/s/notes.txt "$(printf '#!/bin/sh\necho hi')"
 refuse_release 'starts with #!' "a text file that starts with #!"
-rm "$F/skills/s/notes.txt"; put templates/package.json '{}'
-refuse_release 'package manager' "a shipped package.json"
-rm "$F/templates/package.json"; printf 'a\000b\n' > "$F/templates/t.md"
+rm "$F/skills/s/notes.txt"
+for pm in package.json composer.json pnpm-workspace.yaml deno.json; do
+    put "templates/$pm" '{}'
+    refuse_release 'package manager' "a shipped $pm"
+    rm "$F/templates/$pm"
+done
+printf 'a\000b\n' > "$F/templates/t.md"
 refuse_release 'NUL' "a text file with a NUL byte"
 printf 'caf\351\n' > "$F/templates/t.md"
 refuse_release 'UTF-8' "a text file that isn't UTF-8"
 put templates/t.md t
+# A dropped key the strip can't remove (quoted, or in a CRLF frontmatter) is still refused: the check doesn't rely on it.
+put agents/q.md "$(printf -- '---\nname: q\n"memory": project\n---\nBody')"
+refuse_release 'frontmatter key' "a quoted memory key"
+printf -- '---\r\nname: q\r\nmaxTurns: 5\r\n---\r\nBody\r\n' > "$F/agents/q.md"
+refuse_release 'frontmatter key' "a maxTurns key in a CRLF frontmatter"
+rm "$F/agents/q.md"
 VER=$((VER + 1)); set_version "9.9.$VER"
 git -C "$F" add -A && git -C "$F" commit -q -m "v$VER" && git -C "$F" tag -a "v9.9.$VER" -m "v9.9.$VER"
 OUT="$(run "v9.9.$VER")" || { echo "    release.sh refused after the file-type fixtures were removed: $OUT"; exit 1; }

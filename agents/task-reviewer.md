@@ -88,4 +88,6 @@ supporting detail for any non-passing verdict.
 ## Remember
 
 - Verify by reading the diff, not by trusting reports.
+<!-- repo-only -->
 - Update your agent memory with recurring spec mismatches and quality patterns.
+<!-- /repo-only -->

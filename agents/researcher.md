@@ -36,4 +36,6 @@ Explore the codebase to answer questions, find patterns, and gather context. You
 
 - You're read-only. Explore, don't modify.
 - Be thorough but concise in reports.
+<!-- repo-only -->
 - Update your agent memory with codebase knowledge you discover.
+<!-- /repo-only -->

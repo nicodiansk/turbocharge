@@ -100,8 +100,10 @@ for f in $(git ls-files -- "$@" | grep '\.md$'); do
     OUT="$(bash "$FILTER" < "$f")" || { echo "    filter refused $f"; rc=1; continue; }
     BODY="$(printf '%s\n' "$OUT" | awk 'NR == 1 && $0 == "---" { fm = 1; next } fm && $0 == "---" { fm = 0; next } !fm')"
     printf '%s' "$BODY" | grep -qF 'memory: project' && { echo "    directory copy of $f still says memory: project"; rc=1; }
+    printf '%s' "$BODY" | grep -qi 'agent memory' && { echo "    directory copy of $f still tells Claude to use agent memory"; rc=1; }
 done
 grep -qF 'memory: project' README.md || { echo "    repo README lost the agent memory line"; rc=1; }
+grep -qF 'Update your agent memory' agents/builder.md || { echo "    repo builder lost its agent memory line"; rc=1; }
 # The copy drops the researcher's background key too, so its description can't promise background by default.
 grep -qF 'background by default' agents/researcher.md && { echo "    researcher still says it runs in background by default"; rc=1; }
 # The debug skill, as the directory gets it, keeps the method but names neither left-out file.

@@ -17,7 +17,7 @@ DIRECTORY_DROP=(hooks workflows/review-swarm.js skills/debug/find-polluter.sh sk
 ALLOWED_EXT_RE='[.](md|txt|json|yaml|yml|png|jpg|jpeg|gif|webp|ico)$'
 ALLOWED_PLAIN=(LICENSE NOTICE .gitignore)
 IMAGE_EXT_RE='[.](png|jpg|jpeg|gif|webp|ico)$'
-PACKAGE_CONFIG_RE='^(package[.]json|package-lock[.]json|npm-shrinkwrap[.]json|pnpm-workspace[.]yaml|pnpm-lock[.]yaml|yarn[.]lock|[.]npmrc|[.]yarnrc|[.]yarnrc[.]yml|bunfig[.]toml|bun[.]lockb?|uv[.]toml|pyproject[.]toml|requirements[.]txt|Pipfile|Pipfile[.]lock|poetry[.]lock|Gemfile|Gemfile[.]lock|go[.]mod|go[.]sum|Cargo[.]toml|Cargo[.]lock)$'
+PACKAGE_CONFIG_RE='^(package[.]json|composer[.]json|bower[.]json|deno[.]jsonc?|deno[.]lock|pubspec[.]yaml|pubspec[.]lock|package-lock[.]json|npm-shrinkwrap[.]json|pnpm-workspace[.]yaml|pnpm-lock[.]yaml|yarn[.]lock|[.]npmrc|[.]yarnrc|[.]yarnrc[.]yml|bunfig[.]toml|bun[.]lockb?|uv[.]toml|pyproject[.]toml|requirements[.]txt|Pipfile|Pipfile[.]lock|poetry[.]lock|Gemfile|Gemfile[.]lock|go[.]mod|go[.]sum|Cargo[.]toml|Cargo[.]lock)$'
 # The directory also takes frontmatter keys outside an allowed list only from Verified organizations: it refused 3.5.8
 # with LOCAL_CODE_FRONTMATTER_KEY (count 10). The list isn't public. The copy drops these keys, with their values, from
 # every skill and agent: the plugin works without them (no agent memory, no turn caps, the builder's default cache,
@@ -100,7 +100,7 @@ strip_keys() {
         NR == 1 && $0 == "---" { fm = 1; print; next }
         fm && $0 == "---" { fm = 0; skip = 0; print; next }
         fm && /^[A-Za-z_][A-Za-z0-9_-]*:/ { key = $0; sub(/:.*/, "", key); skip = (key in drop); if (!skip) print; next }
-        fm && skip && /^([[:space:]]|-)/ { next }
+        fm && skip && ($0 == "" || /^[[:space:]]/ || /^-/) { next }
         { skip = 0; print }
     '
 }
@@ -149,12 +149,22 @@ while IFS= read -r f; do
     g cat-file -p "$TREE:$f" | iconv --from-code=UTF-8 --to-code=UTF-8 >/dev/null 2>&1 \
         || die "the directory copy holds $f, a text file that isn't UTF-8, which the directory refuses"
 done < <(g ls-tree -r --name-only "$TREE")
+# guard_keys prints each frontmatter line (stdin) that holds a key in DIRECTORY_STRIP_KEYS, quoted, indented or with CRLF
+# line ends too: a key strip_keys can't remove still stops the release.
+guard_keys() {
+    awk -v keys="${DIRECTORY_STRIP_KEYS[*]}" '
+        BEGIN { n = split(keys, k, " ") }
+        { sub(/\r$/, "") }
+        NR == 1 { fm = ($0 == "---"); next }
+        fm && $0 == "---" { fm = 0 }
+        fm { line = $0; gsub(/["\047]/, "", line)
+             for (i = 1; i <= n; i++) if (line ~ ("^[[:space:]]*" k[i] "[[:space:]]*:")) { print; break } }'
+}
 while IFS= read -r f; do
     case "$f" in *.md) ;; *) continue ;; esac
-    for k in $(g cat-file -p "$TREE:$f" | fm_keys); do
-        is_strip_key "$k" \
-            && die "the directory copy keeps the frontmatter key $k in $f, which the directory accepts only from Verified organizations"
-    done
+    HITS="$(g cat-file -p "$TREE:$f" | guard_keys)"
+    [ -z "$HITS" ] \
+        || die "the directory copy keeps a frontmatter key in $f that the directory accepts only from Verified organizations: $HITS"
 done < <(g ls-tree -r --name-only "$TREE" -- "${COMPONENT_DIRS[@]}")
 
 # The directory accepts command hooks only from Verified organizations (it refused 3.5.7 with LOCAL_CODE_HOOK_COMMAND).

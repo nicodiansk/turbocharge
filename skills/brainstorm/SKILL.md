@@ -19,7 +19,7 @@ NO IMPLEMENTATION WITHOUT UNDERSTANDING REQUIREMENTS FIRST
 
 ### 1. Understand Context
 - Check project state (files, docs, recent commits)
-- Read agent memory for relevant prior context
+- Read memory for relevant prior context
 
 ### 2. Size It
 Name the size in one plain line, with the reason. The user can override it.
@@ -52,7 +52,7 @@ Name the size in one plain line, with the reason. The user can override it.
 - Write design to `docs/plans/YYYY-MM-DD-<topic>-design.md`. When you say you're writing it up, tell the user a builder check reads it first and you may come back once with questions.
 - **Builder check (projects only)** — before committing the doc:
   1. Dispatch `turbocharge:researcher` with `effort: medium` on the Agent call, prefixed with `@ATLAS.md @CLAUDE.md` and the doc path. Omit a reference whose file doesn't exist; if CLAUDE.md is missing but `AGENTS.md` exists, use `@AGENTS.md` in its place; `.claude/CLAUDE.md` counts as a CLAUDE.md (`@.claude/CLAUDE.md`). Prompt: "Read this design as the developer who will build it. You can't talk to its author. Report only the questions where a wrong guess would change the plan, ranked, most consequential first, each with why the answer matters. Skip what the doc leaves to the builder, what you could reasonably decide yourself, and wording. If nothing important is left, say `nothing important left`."
-  2. The researcher runs in the background: wait for its completion notification.
+  2. Wait for the researcher to finish: when it runs in the background, that is its completion notification.
   3. Sort its questions into three piles:
      - **answered already** by the conversation or the codebase → put the answer in the doc;
      - **minor** (a sensible builder could settle it without changing what gets built) → settle it and mark it in the doc as `Ruled in brainstorm: <call>`;

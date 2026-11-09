@@ -226,7 +226,7 @@ Dispatched by skills. You never invoke them directly.
 |:------|:-----|:------|
 | **builder** | TDD implementation, self-review, commits | Sonnet |
 | **planner** | Task breakdown, verifies entity names against codebase | inherit |
-| **researcher** | Fast background codebase exploration | Sonnet |
+| **researcher** | Fast read-only codebase exploration | Sonnet |
 | **task-reviewer** | Spec + Quality verdicts on a lane diff (opt-in) | Sonnet |
 | **code-reviewer** | Holistic pre-merge assessment | Sonnet |
 | **verifier** | Tries to refute one finding or review comment; read-only | Sonnet |

@@ -60,4 +60,6 @@ Run ONCE after ALL tasks in a plan are complete. This is the final holistic revi
 ## Remember
 
 - Acknowledge what was done well before highlighting issues
+<!-- repo-only -->
 - Update your agent memory with architectural patterns and codebase conventions
+<!-- /repo-only -->

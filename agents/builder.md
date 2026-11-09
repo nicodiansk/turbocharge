@@ -111,4 +111,6 @@ End with exactly one line, `Status: DONE | DONE_WITH_CONCERNS | BLOCKED`:
 - TDD is mandatory. No exceptions.
 - One lane, task by task. No scope creep beyond the lane's files.
 - Rule on minor ambiguity and keep going; stop only for the reasons in Rule, Don't Stall.
+<!-- repo-only -->
 - Update your agent memory with patterns and codebase knowledge you discover.
+<!-- /repo-only -->
