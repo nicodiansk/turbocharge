@@ -16,10 +16,11 @@ for p in 'LOCAL_CODE_HOOK_COMMAND' 'LOCAL_CODE_NOT_CHECKED' 'Verified organizati
 done
 # 3.5.8 was refused for two files outside the allowed types and for frontmatter keys (Verified organizations only).
 for p in 'LOCAL_CODE_FILE_TYPE' 'LOCAL_CODE_FRONTMATTER_KEY' 'DIRECTORY_STRIP_KEYS' 'claude plugin validate' \
-    'DIRECTORY_TOOLS_DENY' 'DIRECTORY_MODEL_INVOCABLE' 'differs from the tag in eight ways' 'a `tools` key on an agent'; do
+    'differs from the tag in six ways' 'a `context` or `agent` key' 'plan dispatches the planner'; do
     grep -qF -- "$p" "$C" || { echo "    CLAUDE.md missing the 3.5.8 refusal: $p"; rc=1; }
 done
-for p in 'ships SessionStart only' 'keeps SessionStart only' 'say `1 hook` instead of'; do
+for p in 'ships SessionStart only' 'keeps SessionStart only' 'say `1 hook` instead of' 'DIRECTORY_TOOLS_DENY' \
+    'DIRECTORY_MODEL_INVOCABLE'; do
     grep -qF -- "$p" "$C" && { echo "    CLAUDE.md still says: $p"; rc=1; }
 done
 exit $rc

@@ -59,13 +59,12 @@ NOTICE_REPO="$(printf 'Copied:\n- skills/s/SKILL.md\n- skills/debug/condition-ba
 put NOTICE "$NOTICE_REPO"
 # Frontmatter keys the directory copy drops (LOCAL_CODE_FRONTMATTER_KEY), with an indented value and a body line that stays.
 put agents/k.md "$(printf -- '---\nname: k\ndescription: |\n  Two lines\n  of description\ntools: Read, Grep\nmodel: sonnet\nmemory: project\nmaxTurns: 5\nbackground: true\nexperimental:\n  cacheTtl: 1h\n\n  other: x\n---\nBody\nmemory: project stays in the body')"
-K_DIRECTORY="$(printf -- '---\nname: k\ndescription: |\n  Two lines\n  of description\ndisallowedTools: Agent, NotebookEdit, WebFetch, WebSearch\nmodel: sonnet\n---\nBody\nmemory: project stays in the body')"
-put skills/p/SKILL.md "$(printf -- '---\nname: p\ndescription: Plan it\ncontext: fork\nagent: planner\nbackground: false\nargument-hint: "[file]"\n---\nPlan body')"
-P_DIRECTORY="$(printf -- '---\nname: p\ndescription: Plan it\ncontext: fork\nagent: planner\nargument-hint: "[file]"\n---\nPlan body')"
-# Setup is model-invocable in the directory copy (3.5.10 tests whether disable-model-invocation is one of the two keys
-# 3.5.9 still had refused); ship stays user-only.
+K_DIRECTORY="$(printf -- '---\nname: k\ndescription: |\n  Two lines\n  of description\ntools: Read, Grep\nmodel: sonnet\n---\nBody\nmemory: project stays in the body')"
+put skills/p/SKILL.md "$(printf -- '---\nname: p\ndescription: Plan it\nbackground: false\nargument-hint: "[file]"\n---\nPlan body')"
+P_DIRECTORY="$(printf -- '---\nname: p\ndescription: Plan it\nargument-hint: "[file]"\n---\nPlan body')"
+# Setup keeps disable-model-invocation in the directory copy: 3.5.10 showed the directory accepts it.
 put skills/setup/SKILL.md "$(printf -- '---\nname: setup\ndescription: Set it up\ndisable-model-invocation: true\n---\nSetup body')"
-SETUP_DIRECTORY="$(printf -- '---\nname: setup\ndescription: Set it up\n---\nSetup body')"
+SETUP_DIRECTORY="$(printf -- '---\nname: setup\ndescription: Set it up\ndisable-model-invocation: true\n---\nSetup body')"
 put README.md "$(printf '<!-- repo-only -->\nIntro, 2 hooks\nRepo marketplace, builder-exit-gate.sh\n<!-- /repo-only -->\n<!-- directory-only\nIntro\n-->\nOutro')"
 put .claude/CLAUDE.md d; put .github/w.yml d; put scripts/x.sh d; put evals/e/prompt.md d
 mkdir -p "$F/scripts"; cp "$REL" "$F/scripts/release.sh"; cp "$PLUGIN_DIR/scripts/directory-filter.sh" "$F/scripts/"
@@ -101,7 +100,7 @@ done
 [ "$(git -C "$F" show "$SHA:skills/p/SKILL.md")" = "$P_DIRECTORY" ] \
     || { echo "    release skills/p/SKILL.md kept a dropped key: $(git -C "$F" show "$SHA:skills/p/SKILL.md")"; exit 1; }
 [ "$(git -C "$F" show "$SHA:skills/setup/SKILL.md")" = "$SETUP_DIRECTORY" ] \
-    || { echo "    release setup skill isn't model-invocable: $(git -C "$F" show "$SHA:skills/setup/SKILL.md")"; exit 1; }
+    || { echo "    release setup skill lost its flag: $(git -C "$F" show "$SHA:skills/setup/SKILL.md")"; exit 1; }
 [ "$(git -C "$F" rev-parse "$SHA:skills/s/SKILL.md")" = "$(git -C "$F" rev-parse v9.9.9:skills/s/SKILL.md)" ] \
     || { echo "    release changed skills/s/SKILL.md, which has no frontmatter"; exit 1; }
 git -C "$F" show "$SHA:.claude-plugin/plugin.json" | grep -qF '"description": "3 skills"' \
@@ -246,13 +245,11 @@ put agents/q.md "$(printf -- '---\nname: q\n"memory": project\n---\nBody')"
 refuse_release 'frontmatter key' "a quoted memory key"
 printf -- '---\r\nname: q\r\nmaxTurns: 5\r\n---\r\nBody\r\n' > "$F/agents/q.md"
 refuse_release 'frontmatter key' "a maxTurns key in a CRLF frontmatter"
-put agents/q.md "$(printf -- '---\nname: q\n"tools": Read\n---\nBody')"
-refuse_release 'frontmatter key' "a quoted tools key on an agent"
-put agents/q.md "$(printf -- '---\nname: q\ntools: Read\ndisallowedTools: Agent\n---\nBody')"
-refuse_release 'both tools: and disallowedTools:' "an agent with both tool keys"
-put agents/q.md "$(printf -- '---\nname: q\ntools:\n  - Read\n  - Bash\n---\nBody')"
-refuse_release 'one line' "an agent whose tools are a YAML list"
-rm "$F/agents/q.md"
+rm "$F/agents/q.md"; put skills/f/SKILL.md "$(printf -- '---\nname: f\ndescription: Fork it\ncontext: fork\n---\nBody')"
+refuse_release 'frontmatter key' "a skill that forks"
+put skills/f/SKILL.md "$(printf -- '---\nname: f\ndescription: Fork it\n"agent": planner\n---\nBody')"
+refuse_release 'frontmatter key' "a skill with a quoted agent key"
+rm -r "$F/skills/f"
 VER=$((VER + 1)); set_version "9.9.$VER"
 git -C "$F" add -A && git -C "$F" commit -q -m "v$VER" && git -C "$F" tag -a "v9.9.$VER" -m "v9.9.$VER"
 OUT="$(run "v9.9.$VER")" || { echo "    release.sh refused after the file-type fixtures were removed: $OUT"; exit 1; }

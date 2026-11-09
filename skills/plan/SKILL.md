@@ -1,15 +1,20 @@
 ---
 name: plan
 description: Use when you have stories or clear requirements that need to become an implementation plan — lean tasks grouped into lanes, with decisions, exact file paths, test assertions, and verification commands.
-context: fork
-agent: planner
-background: false
 argument-hint: "[stories-or-requirements-file]"
 ---
 
 # Create Implementation Plan
 
-Read the requirements at $ARGUMENTS and create a lean implementation plan.
+Turn the requirements at $ARGUMENTS into a lean implementation plan. The planner agent writes it in its own context, from its own instructions; this file is the contract its plan must meet, and the one you check it against.
+
+## Dispatch
+
+Dispatch `turbocharge:planner` through the Agent tool. Its prompt holds the context prefix (Context Gathering, below), the requirements path, and the plan path when the request names one. Wait for its result before you report: if it runs in the background, that is its completion notification. Never write the plan in this session while the planner can be dispatched.
+
+Check the saved plan against this contract before you relay it: a Lanes table with full paths and no file in two lanes, Review Focus lines pinned to a task, and a Decision, Test and Verify in every task. Name any gap in your report, then relay the planner's report (Save, below). If the planner fails or stops partway, say so: a rerun resumes from the partial file.
+
+**No agent here:** if the Agent tool is missing, or `turbocharge:planner` is not registered (some surfaces load skills without agents), write the plan in this session to the contract below. Follow the Save section yourself, and run the Spec Self-Review (spec coverage, completeness, lane disjointness, type consistency, Review Focus) before you remove the in-progress marker. Say so in one line.
 
 ## Plan Document Header
 
@@ -93,4 +98,4 @@ Report: plan location, number of tasks, any assumptions made. End with exactly:
 
 If the planner stopped on a question that would change the design, there is no plan: report the question and end with it instead.
 
-This skill runs forked and cannot ask for approval; the user reviews the saved plan, and running build is the approval.
+The planner runs as a subagent and cannot ask for approval; the user reviews the saved plan, and running build is the approval.
