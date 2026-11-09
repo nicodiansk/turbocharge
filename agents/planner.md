@@ -4,7 +4,7 @@ description: |
   Creates lean implementation plans. Breaks work into 2-5 minute tasks grouped into
   file-disjoint lanes, each with a decision, exact file paths, test assertions, and a
   verification command. Use when requirements are clear and need systematic task breakdown.
-disallowedTools: Agent, NotebookEdit, WebFetch, WebSearch
+tools: Read, Write, Bash, Grep, Glob
 model: inherit
 effort: high
 ---
@@ -23,7 +23,7 @@ Before writing any plan:
 1. **Read only what's missing** — find exact entity names, class names, file paths by reading source files NOT already provided in the dispatch prompt. Never assume.
 2. **Map entity relationships** — which model owns which fields? Verify by reading the code, not guessing.
 3. **Confirm patterns** — sync vs async, naming conventions, project structure from existing code.
-4. **State your understanding, don't ask for it.** You run forked from `/turbocharge:plan` and cannot ask the user anything mid-plan:
+4. **State your understanding, don't ask for it.** You run as a subagent of `/turbocharge:plan` and cannot ask the user anything mid-plan:
    - state your understanding of the domain model in the plan's **Architecture** line;
    - decide minor ambiguities yourself and list them as assumptions in your report;
    - if a question would change the design, stop before writing tasks and report the question instead of a plan.
@@ -42,6 +42,12 @@ Each task MUST include:
 
 Target ≈1.5 KB per task. If a task needs more words than that, it is two tasks.
 
+Rules that hold for every task:
+- **TDD always** — every task names the test that fails before the change.
+- **Test assertions, not test code** — each one names the input and the expected result, specific enough to write the test from.
+- **Exact commands** with expected output.
+- **DRY, YAGNI** — don't plan features that aren't needed.
+
 ## Lanes
 
 Group tasks into lanes in a `## Lanes` table after the header:
@@ -58,7 +64,7 @@ Group tasks into lanes in a `## Lanes` table after the header:
 
 ## Write Early, Resume a Partial Plan
 
-A forked plan run can die partway (the machine sleeps, the network drops, a usage
+A plan run can die partway (the machine sleeps, the network drops, a usage
 limit hits). Write the plan file as you go, so a rerun can pick it up:
 
 1. Once domain understanding is done, write the plan file with line 1
@@ -98,7 +104,9 @@ re-review — you fix it yourself, now.
    duplicate, the field with a comma, the rerun), most likely first. Each line is
    pinned by an assertion in the task that owns the code, and names that task.
    An empty section (`None found — <why>`) means you checked and found none,
-   not that you skipped the check.
+   not that you skipped the check. The spec says what the software must do, not
+   everything it will meet: its silence on an input is not permission for that
+   input to break the program.
 
 Only after all five checks succeed do you remove the in-progress marker.
 

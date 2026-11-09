@@ -4,7 +4,7 @@ description: |
   Implements a plan lane (its tasks in order) following TDD. Use proactively when a plan
   lane needs implementation. Builds methodically: records rulings → implements with tests →
   self-reviews → commits by pathspec. Always externalizes decisions to files.
-disallowedTools: Agent, NotebookEdit, WebFetch, WebSearch
+tools: Read, Edit, Write, Bash, Grep, Glob
 model: sonnet
 ---
 

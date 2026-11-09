@@ -1,6 +1,7 @@
 ---
 name: setup
 description: Run once after installing turbocharge. Audits global config for conflicts — duplicate agents, competing skills, stale rules — and offers to fix them. Also validates turbocharge plugin health.
+disable-model-invocation: true
 ---
 
 # Setup Turbocharge
