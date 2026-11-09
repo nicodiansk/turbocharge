@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ABOUTME: Asserts the planner writes its plan file early and a rerun resumes a partial one (3.4.0, dogfood D9).
-# ABOUTME: A forked planner that wrote once, at the end, lost everything when the Mac slept mid-run.
+# ABOUTME: A planner that wrote once, at the end, lost everything when the Mac slept mid-run.
 source "$PLUGIN_DIR/scripts/tests/helpers.sh"
 S="$PLUGIN_DIR/skills/plan/SKILL.md"
 P="$PLUGIN_DIR/agents/planner.md"

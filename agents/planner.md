@@ -43,6 +43,12 @@ Each task MUST include:
 
 Target ≈1.5 KB per task. If a task needs more words than that, it is two tasks.
 
+Rules that hold for every task:
+- **TDD always** — every task names the test that fails before the change.
+- **Test assertions, not test code** — each one names the input and the expected result, specific enough to write the test from.
+- **Exact commands** with expected output.
+- **DRY, YAGNI** — don't plan features that aren't needed.
+
 ## Lanes
 
 Group tasks into lanes in a `## Lanes` table after the header:
@@ -99,7 +105,9 @@ re-review — you fix it yourself, now.
    duplicate, the field with a comma, the rerun), most likely first. Each line is
    pinned by an assertion in the task that owns the code, and names that task.
    An empty section (`None found — <why>`) means you checked and found none,
-   not that you skipped the check.
+   not that you skipped the check. The spec says what the software must do, not
+   everything it will meet: its silence on an input is not permission for that
+   input to break the program.
 
 Only after all five checks succeed do you remove the in-progress marker.
 
