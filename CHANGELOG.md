@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.5.11] - 2026-11-09
+
+Directory fix. 3.5.10's LOCAL_CODE_FRONTMATTER_KEY count stayed 2: with the builder's and planner's `tools` allowlists swapped for a denylist and setup's `disable-model-invocation` gone, a refused `tools` would have dropped it to 0 and a refused `disable-model-invocation` to 1. So the directory accepts both, and what is left is plan's `context: fork` and `agent: planner`, two keys in one file. Claude.ai's skills don't take them either.
+
+### Changed
+- **plan:** no longer forks, in both copies. Its frontmatter drops `context: fork`, `agent: planner` and `background: false`; the skill dispatches `turbocharge:planner` through the Agent tool from the main session and waits for the plan, as brainstorm dispatches the researcher and review the code-reviewer. The planner still writes in its own context and can't ask mid-plan. **No agent here:** on a surface without agents, the session writes the plan to the skill's contract.
+- **Directory copy:** back to the builder's and planner's `tools` allowlists and setup's `disable-model-invocation`; 3.5.10's denylist and model-invocable setup are gone. `release.sh` refuses a skill or agent that keeps a `context` or `agent` key, quoted or not.
+- `t_forked_skills_block.sh` now asserts that no skill forks and that plan dispatches the planner. `t_release_tree.sh` covers the refusal.
+- Repo installs (`turbocharge@turbocharge`) get the plan change too.
+- The evals weren't rerun for this patch.
+
 ## [3.5.10] - 2026-11-09
 
 Directory test release. 3.5.9 cleared LOCAL_CODE_FILE_TYPE, and LOCAL_CODE_FRONTMATTER_KEY went from count 10 to count 2: 8 of the 10 occurrences it dropped were refused, and 2 occurrences of the keys it kept still are. The report names no key. Three groups of the kept keys make exactly 2: the `tools` allowlists of the builder and planner, which grant Bash, Edit and Write; `disable-model-invocation` on setup and ship; and plan's `context` and `agent`. `model`, `effort`, `argument-hint` and `disallowedTools` occur 4 to 6 times each, so they pass.
