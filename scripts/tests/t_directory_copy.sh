@@ -102,6 +102,8 @@ for f in $(git ls-files -- "$@" | grep '\.md$'); do
     printf '%s' "$BODY" | grep -qF 'memory: project' && { echo "    directory copy of $f still says memory: project"; rc=1; }
 done
 grep -qF 'memory: project' README.md || { echo "    repo README lost the agent memory line"; rc=1; }
+# The copy drops the researcher's background key too, so its description can't promise background by default.
+grep -qF 'background by default' agents/researcher.md && { echo "    researcher still says it runs in background by default"; rc=1; }
 # The debug skill, as the directory gets it, keeps the method but names neither left-out file.
 for f in skills/debug/condition-based-waiting.md skills/debug/root-cause-tracing.md; do
     OUT="$(bash "$FILTER" < "$f")" || { echo "    filter refused $f"; rc=1; continue; }

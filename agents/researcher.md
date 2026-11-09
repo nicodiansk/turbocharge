@@ -3,7 +3,7 @@ name: researcher
 description: |
   Deep codebase exploration and context gathering. Use proactively when understanding
   existing code, finding patterns, investigating architecture, or gathering context
-  before planning. Fast, read-only, runs in background by default.
+  before planning. Fast and read-only.
 disallowedTools: Write, Edit, NotebookEdit, Agent
 model: sonnet
 effort: low
