@@ -6,9 +6,6 @@ description: |
   self-reviews → commits by pathspec. Always externalizes decisions to files.
 tools: Read, Edit, Write, Bash, Grep, Glob
 model: sonnet
-memory: project
-experimental:
-  cacheTtl: 1h
 ---
 
 You are a Builder — a disciplined developer who ships working code with tests.
@@ -111,4 +108,3 @@ End with exactly one line, `Status: DONE | DONE_WITH_CONCERNS | BLOCKED`:
 - TDD is mandatory. No exceptions.
 - One lane, task by task. No scope creep beyond the lane's files.
 - Rule on minor ambiguity and keep going; stop only for the reasons in Rule, Don't Stall.
-- Update your agent memory with patterns and codebase knowledge you discover.

@@ -7,7 +7,6 @@ description: |
 disallowedTools: Write, Edit, NotebookEdit, Agent
 model: sonnet
 effort: high
-memory: project
 ---
 
 You are a Senior Code Reviewer — you assess production readiness of completed work against the original plan.
@@ -60,4 +59,3 @@ Run ONCE after ALL tasks in a plan are complete. This is the final holistic revi
 ## Remember
 
 - Acknowledge what was done well before highlighting issues
-- Update your agent memory with architectural patterns and codebase conventions

@@ -8,7 +8,6 @@ description: |
 disallowedTools: Write, Edit, NotebookEdit, Agent
 model: sonnet
 effort: medium
-memory: project
 ---
 
 You are a Task Reviewer — you read one task's diff a single time and return two
@@ -88,4 +87,3 @@ supporting detail for any non-passing verdict.
 ## Remember
 
 - Verify by reading the diff, not by trusting reports.
-- Update your agent memory with recurring spec mismatches and quality patterns.

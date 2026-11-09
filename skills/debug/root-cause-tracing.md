@@ -96,15 +96,7 @@ npm test 2>&1 | grep 'DEBUG git init'
 
 ## Finding Which Test Causes Pollution
 
-If something appears during tests but you don't know which test:
-
-Use the bisection script `find-polluter.sh` in this directory:
-
-```bash
-./find-polluter.sh '.git' 'src/**/*.test.ts'
-```
-
-Runs tests one-by-one, stops at first polluter. See script for usage.
+If something appears during tests but you don't know which test, bisect: with the stray file or directory removed, run the test files one at a time and check for it after each one. The first test after which it exists is the polluter.
 
 ## Real Example: Empty projectDir
 

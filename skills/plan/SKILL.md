@@ -3,7 +3,6 @@ name: plan
 description: Use when you have stories or clear requirements that need to become an implementation plan — lean tasks grouped into lanes, with decisions, exact file paths, test assertions, and verification commands.
 context: fork
 agent: planner
-background: false
 argument-hint: "[stories-or-requirements-file]"
 ---
 

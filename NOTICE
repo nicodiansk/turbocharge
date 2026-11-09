@@ -5,8 +5,6 @@ Copied (some with small edits):
 - skills/debug/root-cause-tracing.md
 - skills/debug/defense-in-depth.md
 - skills/debug/condition-based-waiting.md
-- skills/debug/condition-based-waiting-example.ts
-- skills/debug/find-polluter.sh
 
 Adapted in part:
 - skills/debug/SKILL.md (most of the systematic debugging process)
