@@ -24,6 +24,14 @@ PACKAGE_CONFIG_RE='^(package[.]json|composer[.]json|bower[.]json|deno[.]jsonc?|d
 # a plan that runs in the background).
 DIRECTORY_STRIP_KEYS=(memory maxTurns background experimental)
 COMPONENT_DIRS=(agents skills commands output-styles)
+# 3.5.9 dropped those four and still got LOCAL_CODE_FRONTMATTER_KEY with count 2. Three groups make exactly 2: the
+# tools: allowlists of builder and planner (they grant Bash, Edit and Write), disable-model-invocation on setup and ship,
+# and plan's context and agent. In the copy, an agent's tools: allowlist becomes this denylist (no Agent, so no nested
+# spawn), and setup is model-invocable while ship stays user-only. 3.5.10's count says which group it was: 0 is tools,
+# 1 is disable-model-invocation (ship keeps it), 2 is neither.
+DIRECTORY_TOOLS_DENY='Agent, NotebookEdit, WebFetch, WebSearch'
+DIRECTORY_MODEL_INVOCABLE=(skills/setup/SKILL.md)
+GUARD_KEYS=("${DIRECTORY_STRIP_KEYS[@]}" tools)
 HOOKS_REPO='2 hooks'
 HOOK_COUNT_RE='(^|[^[:alnum:]])[0-9]+ hooks?([^[:alnum:]]|$)'
 WORKFLOWS_REPO='1 workflow'
@@ -104,14 +112,48 @@ strip_keys() {
         { skip = 0; print }
     '
 }
+# tools_to_deny swaps an agent's tools: allowlist (stdin frontmatter) for disallowedTools: DIRECTORY_TOOLS_DENY.
+tools_to_deny() {
+    awk -v deny="$DIRECTORY_TOOLS_DENY" '
+        NR == 1 && $0 == "---" { fm = 1; print; next }
+        fm && $0 == "---" { fm = 0; print; next }
+        fm && /^tools:/ { print "disallowedTools: " deny; next }
+        { print }
+    '
+}
+# model_invocable drops disable-model-invocation from the frontmatter (stdin).
+model_invocable() {
+    awk 'NR == 1 && $0 == "---" { fm = 1; print; next }
+         fm && $0 == "---" { fm = 0 }
+         fm && /^disable-model-invocation:/ { next }
+         { print }'
+}
 is_strip_key() { local s; for s in "${DIRECTORY_STRIP_KEYS[@]}"; do [ "$1" = "$s" ] && return 0; done; return 1; }
 while IFS= read -r f; do
     case "$f" in *.md) ;; *) continue ;; esac
-    hit=0
-    for k in $(gi show ":$f" | fm_keys); do is_strip_key "$k" && hit=1; done
-    [ "$hit" = 1 ] || continue
-    gi show ":$f" | strip_keys | put "$f" || die "could not drop the frontmatter keys from $f"
+    strip=0; tools=0; deny=0
+    for k in $(gi show ":$f" | fm_keys); do
+        is_strip_key "$k" && strip=1
+        [ "$k" = tools ] && tools=1
+        [ "$k" = disallowedTools ] && deny=1
+    done
+    case "$f" in agents/*) ;; *) tools=0 ;; esac
+    [ "$tools" = 1 ] && [ "$deny" = 1 ] && die "$f has both tools: and disallowedTools:, so the copy can't swap one for the other"
+    if [ "$tools" = 1 ] && [ -n "$(gi show ":$f" | awk 'NR == 1 { fm = ($0 == "---"); next } fm && $0 == "---" { fm = 0 }
+                                                     fm && /^tools:[[:space:]]*$/ { print }')" ]; then
+        die "$f lists its tools as a YAML list; write tools: on one line, so the copy can swap it for disallowedTools:"
+    fi
+    [ "$strip" = 1 ] || [ "$tools" = 1 ] || continue
+    gi show ":$f" | strip_keys | { if [ "$tools" = 1 ]; then tools_to_deny; else cat; fi; } | put "$f" \
+        || die "could not drop the frontmatter keys from $f"
 done < <(gi ls-files -- "${COMPONENT_DIRS[@]}")
+for f in "${DIRECTORY_MODEL_INVOCABLE[@]}"; do
+    for u in "${DIRECTORY_USER_ONLY[@]}"; do
+        [ "$f" != "$u" ] || die "$f is in both DIRECTORY_USER_ONLY and DIRECTORY_MODEL_INVOCABLE"
+    done
+    [ -n "$(gi ls-files -- "$f")" ] || continue
+    gi show ":$f" | model_invocable | put "$f" || die "could not make $f model-invocable"
+done
 # NOTICE lists every copied file; the copy's NOTICE leaves out the lines for the files the copy leaves out.
 if [ -n "$(gi ls-files -- NOTICE)" ]; then
     NOTICE_DROP=()
@@ -149,10 +191,10 @@ while IFS= read -r f; do
     g cat-file -p "$TREE:$f" | iconv --from-code=UTF-8 --to-code=UTF-8 >/dev/null 2>&1 \
         || die "the directory copy holds $f, a text file that isn't UTF-8, which the directory refuses"
 done < <(g ls-tree -r --name-only "$TREE")
-# guard_keys prints each frontmatter line (stdin) that holds a key in DIRECTORY_STRIP_KEYS, quoted, indented or with CRLF
-# line ends too: a key strip_keys can't remove still stops the release.
+# guard_keys prints each frontmatter line (stdin) that holds a key in GUARD_KEYS, quoted, indented or with CRLF line
+# ends too: a key the copy can't drop or swap still stops the release.
 guard_keys() {
-    awk -v keys="${DIRECTORY_STRIP_KEYS[*]}" '
+    awk -v keys="${GUARD_KEYS[*]}" '
         BEGIN { n = split(keys, k, " ") }
         { sub(/\r$/, "") }
         NR == 1 { fm = ($0 == "---"); next }

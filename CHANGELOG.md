@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.5.10] - 2026-11-09
+
+Directory test release. 3.5.9 cleared LOCAL_CODE_FILE_TYPE, and LOCAL_CODE_FRONTMATTER_KEY went from count 10 to count 2: 8 of the 10 occurrences it dropped were refused, and 2 occurrences of the keys it kept still are. The report names no key. Three groups of the kept keys make exactly 2: the `tools` allowlists of the builder and planner, which grant Bash, Edit and Write; `disable-model-invocation` on setup and ship; and plan's `context` and `agent`. `model`, `effort`, `argument-hint` and `disallowedTools` occur 4 to 6 times each, so they pass.
+
+### Changed
+- **Directory copy, agents:** the builder's and planner's `tools` allowlists become `disallowedTools: Agent, NotebookEdit, WebFetch, WebSearch` (`DIRECTORY_TOOLS_DENY`). They still can't spawn an `Agent` or use the web; they gain the other tools the session has. Repo installs keep the allowlists (`t_agent_no_nested_spawn.sh`).
+- **Directory copy, setup:** model-invocable (`DIRECTORY_MODEL_INVOCABLE`). Ship stays user-only.
+- If the scan counts occurrences of keys, as the drop from 10 to 2 suggests, 3.5.10's count says which group it was: 0 means `tools`, and this version passes; 1 means `disable-model-invocation`, which ship keeps; 2 means plan's `context` and `agent`, or something outside the three groups. A rule that counts values too could blur this.
+- `release.sh` refuses a directory copy that keeps a `tools` key on an agent, quoted or not, an agent with both `tools` and `disallowedTools`, an agent whose `tools` are a YAML list, and a skill that is both user-only and model-invocable. `t_release_tree.sh` covers it.
+- Repo installs (`turbocharge@turbocharge`) don't change.
+- The evals weren't rerun for this patch.
+
 ## [3.5.9] - 2026-11-09
 
 Directory fix. The portal refused 3.5.8 with two rules that apply only to organizations Anthropic hasn't Verified. Both are new between 6 and 9 November: 3.5.7, checked on 6 November with the same files, didn't get them. LOCAL_CODE_FILE_TYPE (count 2): "The directory accepts scripts, programs, and files outside the allowed types only from Verified organizations". LOCAL_CODE_FRONTMATTER_KEY (count 10): "frontmatter keys and values outside the allowed list". The list of allowed keys isn't public, and the report gives only counts. "Verified organization" can't be requested yet.
