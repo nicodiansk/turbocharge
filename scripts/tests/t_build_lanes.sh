@@ -50,8 +50,13 @@ for p in \
     'when Agent Teams are enabled'; do
     grep -qF -- "$p" "$F" || { echo "    build missing: $p"; rc=1; }
 done
-N=$(grep -oF 'record the lane'"'"'s `BEFORE_SHA` first' "$F" | wc -l)
-[ "$N" -ge 2 ] || { echo "    Steps 3 and 4 must both say to record the lane's BEFORE_SHA first ($N)"; rc=1; }
+sec() { awk -v h="$2" -v e="$3" '{ sub(/\r$/, "") } index($0, h) == 1 { s=1; next } s && index($0, e) == 1 { s=0 } s' "$1"; }
+# Every builder lane records LANE_SHA (Step 3); an inline lane records BEFORE_SHA first (Step 4); Step 6 maps one to the other.
+for pair in '## Step 3|LANE_SHA=$(git rev-parse HEAD)' '## Step 3|first builder' '## Step 4|record the lane'"'"'s `BEFORE_SHA` first' '## Step 5|keeps the lane'"'"'s `LANE_SHA`' '## Step 5|the same `Mutation:` line' '## Step 6|a builder lane'"'"'s `BEFORE_SHA` is its `LANE_SHA`'; do
+    h="${pair%%|*}"; p="${pair#*|}"
+    sec "$F" "$h" '## ' | grep -qF -- "$p" || { echo "    build $h missing: $p"; rc=1; }
+done
+grep -qF 'With `--reviewed`, record the lane'"'"'s `BEFORE_SHA` first (Step 6), before spawning its builder' "$F" && { echo "    build still ties the builder lane's BEFORE_SHA to --reviewed"; rc=1; }
 TR="$PLUGIN_DIR/agents/task-reviewer.md"
 grep -qF 'completes a task' "$TR" && { echo "    task-reviewer still triggers per task"; rc=1; }
 grep -qF 'lane' "$TR"            || { echo "    task-reviewer must review a lane diff"; rc=1; }

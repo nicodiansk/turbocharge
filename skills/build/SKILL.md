@@ -76,7 +76,7 @@ For each builder lane that is ready (its `After` lanes are done), spawn one buil
 
 Dispatch each builder **without** a `name` parameter. A named Agent spawn joins the session's implicit team as a teammate when Agent Teams are enabled; lane builders must stay plain subagents. Note each builder's agent ID against its lane — with no `name`, `SendMessage` fix rounds (Steps 5c and 6) address it by agent ID.
 
-With `--reviewed`, record the lane's `BEFORE_SHA` first (Step 6), before spawning its builder.
+Before a lane's first builder spawns, record `LANE_SHA=$(git rev-parse HEAD)` for that lane, with or without `--reviewed`. The join checks (Step 5) and Step 6 diff from it.
 
 Builders run in the background (Claude Code 2.1.198+): the Agent call returns as soon as the builder starts. Do not wait here — go to Step 4.
 
@@ -113,7 +113,7 @@ Inline lanes run no mutation: they are exact-text edits, and the main session sa
 - **`DONE` with a `Not done:` other than `none`** → DONE_WITH_CONCERNS, the line carried to Step 7.
 - **BLOCKED on destructive, security, outside or design** → take the question to the user. Don't decide it for them.
 - **BLOCKED on context** → dispatch the researcher (Step 3), then resume the same builder with `SendMessage`, carrying its findings. Adding context is a change, so the same model is fine, and the builder's context is warm.
-- **BLOCKED on stuck**, or `Status: BLOCKED` again after a context resume → retry the lane once with a new Agent call: `subagent_type: turbocharge:builder`, `model: opus`, the same lane, naming the tasks already committed and quoting the BLOCKED report. `SendMessage` can't change the model. Never retry the same model with nothing changed. A BLOCKED Opus retry goes to the user.
+- **BLOCKED on stuck**, or `Status: BLOCKED` again after a context resume → retry the lane once with a new Agent call: `subagent_type: turbocharge:builder`, `model: opus`, the same lane, naming the tasks already committed and quoting the BLOCKED report. The retry keeps the lane's `LANE_SHA` and carries the same `Mutation:` line: a new `LANE_SHA` would leave the first builder's commits out of check 2's count. `SendMessage` can't change the model. Never retry the same model with nothing changed. A BLOCKED Opus retry goes to the user.
 - **No Status line** → treat it as DONE_WITH_CONCERNS and check the lane's commits yourself (`git log`, `git status --porcelain -- <lane paths>`).
 
 **After every lane finishes** — an inline lane's last commit, or a builder lane's DONE / DONE_WITH_CONCERNS:
@@ -147,7 +147,7 @@ Then rerun the full gate. **Max 2 rounds per lane** — then stop and escalate, 
 
 For security-sensitive code, unfamiliar codebases, or complex integrations. Reviews run **per lane**, not per task:
 
-1. **Before the lane starts** — before spawning its builder or starting its first inline task — record `BEFORE_SHA=$(git rev-parse HEAD)` for that lane.
+1. **Before the lane starts:** a builder lane's `BEFORE_SHA` is its `LANE_SHA` (Step 3); an inline lane records `BEFORE_SHA=$(git rev-parse HEAD)` before its first task.
 2. **After the lane finishes** and its builder's completion notification has arrived, dispatch one task-reviewer (Sonnet) with:
    - Plan file path + the lane's task line ranges (the reviewer reads the plan directly — do NOT paste requirements)
    - The lane's diff: `git diff $BEFORE_SHA..HEAD -- <lane paths>`. Lanes own disjoint files, so the pathspec isolates this lane even though other lanes' commits interleave in the range.
