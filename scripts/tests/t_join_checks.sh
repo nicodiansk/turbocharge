@@ -22,20 +22,45 @@ if [ "$RE_LINES" -eq 1 ] && [ "$PIPE_LINES" -eq 1 ]; then
         printf '%s\n' "$RE_LINE"
         printf 'cat "$1" | %s\n' "${PIPE#"$PREFIX"}"
     } > "$T/grep.sh"
-    cat > "$T/fixture.diff" <<'DIFF'
-+++ b/tests/test_x.py
+    # One added line per alternative, each hit by that alternative only: dropping any alternative changes the output.
+    cat > "$T/hits.txt" <<'HITS'
 +  it.skip('new', () => {})
++@unittest.skipIf(sys.platform == "win32", "x")
++@unittest.skipUnless(HAS_GPU, "x")
 +@pytest.mark.skip
++@pytest.mark.xfail(reason="x")
++    @unittest.expectedFailure
++describe.only('x', () => {})
++  xit('x', () => {})
++xdescribe('x', () => {})
++fdescribe('x', () => {})
 +    t.Skip("x")
-+    sys.exit(0)
++    t.Skipf("x %d", 1)
++#[ignore]
 +@Disabled
++@Ignore
++    sys.exit(0)
++  process.exit(0)
++    os.Exit(0)
+HITS
+    # Never hits: a shell test's exit 0, a removed line, diff headers (one naming xfail), model.fit( (why fit( is out),
+    # and an ordinary exit(1): a bare xit\( would match the "xit(" inside every exit(.
+    cat > "$T/misses.txt" <<'MISSES'
 +exit 0
 -  it.skip('old', () => {})
 +++ b/tests/test_xfail.py
-DIFF
++    model.fit(x, y)
++    sys.exit(1)
+MISSES
+    { echo '+++ b/tests/test_x.py'; cat "$T/hits.txt" "$T/misses.txt"; } > "$T/fixture.diff"
     bash "$T/grep.sh" "$T/fixture.diff" > "$T/out.txt"
-    EXPECTED=$(printf '%s\n' "+  it.skip('new', () => {})" '+@pytest.mark.skip' '+    t.Skip("x")' '+    sys.exit(0)' '+@Disabled')
-    [ "$(cat "$T/out.txt")" = "$EXPECTED" ] || { echo "    the extracted shortcut grep must print exactly the 5 shortcut lines; got:"; sed 's/^/      /' "$T/out.txt"; rc=1; }
+    cmp -s "$T/out.txt" "$T/hits.txt" || { echo "    the extracted shortcut grep must print exactly the $(wc -l < "$T/hits.txt" | tr -d ' ') hit lines; got:"; sed 's/^/      /' "$T/out.txt"; rc=1; }
+    # Every alternative in SHORTCUT_RE has a fixture line, so a new alternative can't land without one.
+    RE_BODY=${RE_LINE#SHORTCUT_RE=\'}; RE_BODY=${RE_BODY%\'}
+    IFS='|' read -r -a ALTS <<< "$RE_BODY"
+    for alt in "${ALTS[@]}"; do
+        grep -qE -- "$alt" "$T/hits.txt" || { echo "    SHORTCUT_RE alternative with no fixture line: $alt"; rc=1; }
+    done
 fi
 for p in 'git diff --diff-filter=D --name-only $LANE_SHA..HEAD -- <lane paths>' 'left to the reviewers' 'a skip when a tool is missing' 'a deletion the plan names' "shortcut check: <line> — <why it's legitimate>"; do
     printf '%s\n' "$STEP5" | grep -qF -- "$p" || { echo "    build Step 5 missing: $p"; rc=1; }

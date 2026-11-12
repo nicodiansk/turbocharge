@@ -133,11 +133,11 @@ Inline lanes run no mutation and no join checks: they are exact-text edits, and 
 
 **Check 3: no test shortcuts.** Grep the lane's added lines, and list any file it deleted:
 ```bash
-SHORTCUT_RE='skip\(|mark\.skip|xfail|\.only\(|xit\(|xdescribe\(|\.Skip\(|#\[ignore\]|@Disabled|@Ignore|sys\.exit\(0\)|process\.exit\(0\)|os\.Exit\(0\)'
+SHORTCUT_RE='skip\(|skipIf|skipUnless|mark\.skip|xfail|expectedFailure|\.only\(|[^[:alnum:]_]xit\(|xdescribe\(|fdescribe\(|\.Skipf?\(|#\[ignore\]|@Disabled|@Ignore|sys\.exit\(0\)|process\.exit\(0\)|os\.Exit\(0\)'
 git diff $LANE_SHA..HEAD -- <lane paths> | grep -E '^[+]' | grep -vE '^[+]{3} ' | grep -E "$SHORTCUT_RE"
 git diff --diff-filter=D --name-only $LANE_SHA..HEAD -- <lane paths>
 ```
-Three stages, not one pattern: added lines, minus the `+++ ` file headers, then the keywords, so a keyword right after the `+` still hits. A shell test's `exit 0` ends every shell test, so it is left to the reviewers. Read each hit. A real shortcut, or a deleted file the plan doesn't name, gets a fix round. A legitimate line (a skip when a tool is missing, a deletion the plan names) gets a Step 7 note: `shortcut check: <line> — <why it's legitimate>`.
+Three stages, not one pattern: added lines, minus the `+++ ` file headers, then the keywords, so a keyword right after the `+` still hits. A shell test's `exit 0` ends every shell test, and a focused `fit(` would hit every `model.fit(`, so both are left to the reviewers. Read each hit. A real shortcut, or a deleted file the plan doesn't name, gets a fix round. A legitimate line (a skip when a tool is missing, a deletion the plan names) gets a Step 7 note: `shortcut check: <line> — <why it's legitimate>`.
 
 **After every lane finishes** — an inline lane's last commit, or a builder lane whose join checks pass:
 1. Report one line: `lane <name> ✓ · tasks a–b · commits N · files checked` for a builder lane, and `lane <name> ✓ · tasks a–b · commits N` for an inline lane, where no checks ran.
