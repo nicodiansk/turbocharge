@@ -61,7 +61,7 @@ After the last task's commit, run the Lane-End Mutation when the prompt asks for
 
 The prompt carries one line: `Mutation: Task N — <Review Focus line>`, `Mutation: lane` (pick the lane's main behavior) or `Mutation: no`. A prompt with no `Mutation:` line means `no`. A lane that ends BLOCKED skips it. Otherwise, after the last task's commit:
 1. Change one line of the code the named test covers: a condition, a boundary, a returned value, never a comment, a log line or an import.
-2. Run only that test. Expect RED.
+2. Run only that test. Expect RED on an assertion, not an error: a change that breaks an import or the syntax proves nothing, so restore it and pick another line.
 3. Restore the file with `git checkout -- <file>` in every case (the file is committed and belongs to the lane, so this is inside the Lane Rules), then confirm `git status --porcelain -- <file>` prints nothing.
 4. Rerun the test. Expect GREEN.
 

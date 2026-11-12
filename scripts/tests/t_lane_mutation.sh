@@ -16,7 +16,7 @@ LR=$(grep -n '^## Lane Rules' "$B" | cut -d: -f1)
 if [ -z "$PR" ] || [ -z "$LM" ] || [ -z "$LR" ] || ! [ "$PR" -lt "$LM" ] || ! [ "$LM" -lt "$LR" ]; then
     echo "    builder.md needs '## Lane-End Mutation' between '## Your Process' and '## Lane Rules'"; rc=1
 fi
-for p in 'Mutation: lane' 'Mutation: no' 'with no `Mutation:` line means `no`' "after the last task's commit" 'a condition, a boundary, a returned value' 'never a comment, a log line or an import' 'git checkout -- <file>' 'in every case' 'Lane Rules' 'git status --porcelain -- <file>' '`test: …`' 'DONE_WITH_CONCERNS'; do
+for p in 'Mutation: lane' 'Mutation: no' 'with no `Mutation:` line means `no`' "after the last task's commit" 'a condition, a boundary, a returned value' 'never a comment, a log line or an import' 'git checkout -- <file>' 'in every case' 'Lane Rules' 'git status --porcelain -- <file>' '`test: …`' 'DONE_WITH_CONCERNS' 'Expect RED on an assertion, not an error' 'proves nothing'; do
     printf '%s\n' "$MUT" | grep -qF -- "$p" || { echo "    builder.md Lane-End Mutation missing: $p"; rc=1; }
 done
 printf '%s\n' "$REPORT" | grep -qF 'Mutation: <file:line> → <test> RED | strengthened: <how> | no' || { echo "    builder.md Report Format missing the Mutation line"; rc=1; }
