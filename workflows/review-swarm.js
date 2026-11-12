@@ -52,7 +52,7 @@ const LENSES = [
   {
     id: 'test-gaps',
     opts: SONNET,
-    focus: 'Test gaps and inputs nobody specified: the plan\'s Review Focus pins, and what a reasonable user would expect for an empty input, a duplicate, a comma or odd character, a rerun of the same operation. Tests that pass while checking the wrong thing.',
+    focus: 'Test gaps and inputs nobody specified: the plan\'s Review Focus pins, and what a reasonable user would expect for an empty input, a duplicate, a comma or odd character, a rerun of the same operation. Tests that pass while checking the wrong thing. Tests that cannot fail: assertions too broad to fail (is not None, len > 0, truthiness only), a mock that returns the very value the test expects, no assertion on the output, snapshots regenerated in the same change as the code. Test shortcuts: a test skipped, marked xfail, deleted or weakened; the expected value written into the code; the test\'s input special-cased; a test changed to match the code. Not a shortcut: a test change the plan\'s Decision calls for, a skip when a tool is missing, a deletion the plan names. A shortcut is critical. A toothless test is important when it is the only test for a Review Focus pin or for the task\'s main behavior, otherwise minor.',
   },
   {
     id: 'security',

@@ -41,4 +41,17 @@ tr -d '\r' < "$T" | grep -qxF -- '- **Test rigor** — tests verify behavior (no
     && { echo "    task-reviewer.md still has the old Test rigor line"; rc=1; }
 tr -d '\r' < "$C" | grep -qxF -- '   - Test coverage and test quality' \
     && { echo "    code-reviewer.md still has the old test quality line"; rc=1; }
+
+# The review workflow's test-gaps lens reads for the same things, in the lens's lowercase severities.
+W="$PLUGIN_DIR/workflows/review-swarm.js"
+assert_file "$W" || exit 1
+LENS=$(awk '{ sub(/\r$/, "") } /id: .test-gaps./ { s=1 } s { print } s && /},/ { exit }' "$W")
+[ -n "$LENS" ] || { echo "    review-swarm.js has no test-gaps lens"; exit 1; }
+for p in 'is not None' 'len > 0' 'truthiness only' 'a mock that returns the very value the test expects' \
+    'no assertion on the output' 'snapshots regenerated in the same change as the code' 'a test changed to match the code' \
+    'a test change the plan' 'A shortcut is critical' 'the only test for a Review Focus pin' 'otherwise minor'; do
+    printf '%s\n' "$LENS" | grep -qF -- "$p" || { echo "    test-gaps lens missing: $p"; rc=1; }
+done
+# The directory scan reads these words as a credential being handled (t_directory_copy.sh).
+printf '%s\n' "$LENS" | grep -qiE 'secret|credential|password|token| key' && { echo "    test-gaps lens holds a credential word"; rc=1; }
 exit $rc
