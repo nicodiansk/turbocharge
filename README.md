@@ -82,6 +82,8 @@ A plan groups its tasks into **lanes** — sets of tasks that own disjoint files
 
 Independent lanes **overlap**: builders work in the background while your session runs the inline lanes, and every commit is scoped to its lane's files. When all lanes finish, build runs the full suite **once** — the full-suite gate. A failure goes back to the lane that owns the file; a builder lane's fix round **resumes** the same builder, context and prompt cache intact, instead of paying for a fresh spawn.
 
+**Tests with teeth.** A task's test must first fail on an assertion about the result, not on an import error, and no lane gets to green by skipping, weakening or hard-coding a test. When the plan's Review Focus pins one of a builder lane's tests, or with `--reviewed`, the builder ends the lane with a mutation: it breaks one line that test covers, checks that the test fails on an assertion, and restores the line. A builder's report is a claim, so before marking its lane done, build checks the lane's files itself: nothing uncommitted, at least one commit per task, no test shortcuts in the added lines, and the lane's tests rerun green.
+
 `--inline` runs every lane in your session; `--delegate` gives every lane a builder. For security-sensitive or unfamiliar code, `--reviewed` adds one Sonnet `task-reviewer` per lane that reads the lane's diff once and returns Spec + Quality verdicts, looping fixes for up to two cycles. `--checkpoint` pauses for your feedback after each lane. After the gate, chain to `/turbocharge:review` for the final holistic assessment.
 
 Plans written before 3.1 have no Lanes table; build runs them as one lane.

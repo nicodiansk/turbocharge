@@ -32,7 +32,10 @@ Run ONCE after ALL tasks in a plan are complete. This is the final holistic revi
 3. **Code Quality**
    - Proper error handling, type safety, defensive programming
    - Code organization, naming, maintainability
-   - Test coverage and test quality
+   - Test coverage and test quality, including tests that can't fail:
+     - Toothless tests: assertions too broad to fail (`is not None`, `len > 0`, truthiness only); a mock that returns the very value the test expects; no assertion on the output; snapshots regenerated in the same change as the code
+     - Test shortcuts: a test skipped, marked xfail, deleted or weakened (a looser assertion, fewer cases); the expected value written into the code; the test's input special-cased; a test changed to match the code. Not a shortcut: a test change the plan's Decision calls for, a skip when a tool is missing, a deletion the plan names
+     - Severity: A shortcut hides a failure: 🔴 Critical. A toothless test is 🟡 Important when it is the only test for a Review Focus pin or for the task's main behavior, because a toothless pin is a missing pin (step 1); otherwise 🟢 Suggestions
 
 4. **Architecture & Design**
    - SOLID principles, established patterns

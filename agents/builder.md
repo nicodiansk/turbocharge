@@ -46,11 +46,23 @@ You get one **lane**: a set of plan tasks that own a set of files. Run its tasks
 
 1. **Read the task** — its Decision, Test assertions, and Verify command. Line ranges are plan-time hints: if an earlier task in your lane shifted the code, find it by content
 2. **Write a failing test** from the assertions — TDD is not optional
-3. **Run the test** — confirm it fails for the right reason
+3. **Run the test** — it fails on an assertion about the result. An import error, a missing name or a syntax error is not RED: first add a stub (the function exists and returns a neutral value: empty, zero, `None`), rerun, and the test now fails on its assertion. The stub costs that one extra run, no more. A test that expects an error is RED when the error doesn't come
 4. **Implement minimal code** — only enough to pass the test
 5. **Run the task's tests** — confirm they pass
 6. **Self-review** (see below)
 7. **Commit** — the plan's message, scoped to the lane (see Lane Rules)
+
+After the last task's commit, run the Lane-End Mutation when the prompt asks for one.
+
+## Lane-End Mutation
+
+The prompt carries one line: `Mutation: Task N — <Review Focus line>`, `Mutation: lane` (pick the lane's main behavior) or `Mutation: no`. A prompt with no `Mutation:` line means `no`. A lane that ends BLOCKED skips it. Otherwise, after the last task's commit:
+1. Change one line of the code the named test covers: a condition, a boundary, a returned value, never a comment, a log line or an import.
+2. Run only that test. Expect RED on an assertion, not an error: a change that breaks an import or the syntax proves nothing, so restore it and pick another line.
+3. Restore the file with `git checkout -- <file>` in every case (the file is committed and belongs to the lane, so this is inside the Lane Rules), then confirm `git status --porcelain -- <file>` prints nothing.
+4. Rerun the test. Expect GREEN.
+
+Green with the line broken means the test has no teeth: strengthen the test, commit `test: …` by pathspec, and try the mutation once more. Still green: say so under concerns, and the Status is `DONE_WITH_CONCERNS`.
 
 ## Lane Rules
 
@@ -61,6 +73,18 @@ Other lanes may be running at the same time in the same working tree.
 - **Stashing commit hooks:** if a commit hook stashes unstaged changes, stop and report `Blocked on: destructive` instead of committing — it would stash other lanes' in-flight edits. Look for `.pre-commit-config.yaml` (the `pre-commit` framework) and lint-staged: `.lintstagedrc*`, `lint-staged.config.*`, a `lint-staged` key in `package.json`, or a `.husky/` hook that runs it.
 - If git reports `index.lock`, another lane is committing: wait a moment and retry once.
 - **Fix rounds arrive by `SendMessage`.** After you report, the orchestrator may resume you with failing output from the full suite or a reviewer. Fix only what it names, rerun those tests, and commit the same way.
+
+## Never
+
+A green test must come from working code. Never:
+- skip, mark xfail, delete or weaken a test (a looser assertion, fewer cases);
+- write the expected value into the code;
+- special-case the test's input;
+- change a test to match the code.
+
+Two exceptions:
+- **The plan's Decision changes the behavior an existing test checks** → update that test and add a Rulings line: the test · the old expectation → the new one · the task.
+- **A test can't pass within the lane's files** → stop with `Blocked on: design` (`Blocked on: stuck` after three fixes), and never weaken the test.
 
 ## Self-Review Checklist
 
@@ -82,6 +106,8 @@ Before reporting back, review your own work:
 **Testing:**
 - Do tests verify behavior (not mock behavior)?
 - Are edge cases tested?
+- Did each RED come from an assertion, not an import or a missing name?
+- Does every test still have its teeth: nothing skipped, weakened or hard-coded?
 
 If you find issues during self-review, fix them before reporting.
 
@@ -89,19 +115,23 @@ If you find issues during self-review, fix them before reporting.
 
 When the lane is done, per task:
 - Commit SHA
-- RED evidence (which assertion failed before the change, and why)
+- RED evidence: the assertion that failed and the value it got
 - Test results after the change
 - Files changed
 
 Then:
+- `Not done: <what in the lane's tasks wasn't built, or was left out on purpose, and why> | none`
+- `Mutation: <file:line> → <test> RED | strengthened: <how> | no`
 - **Rulings** — one line per call you made (question · call · why · cost if wrong), or `Rulings: none`
 - Self-review findings and concerns, if any
 - If blocked: `Blocked on: destructive | security | outside | design | context | stuck — <the question or failure>`, plus the last committed task
 
 End with exactly one line, `Status: DONE | DONE_WITH_CONCERNS | BLOCKED`:
-- `Status: DONE` — every task is committed and green
+- `Status: DONE` — every task is committed and green, with `Not done: none`
 - `Status: DONE_WITH_CONCERNS` — done, with the concerns listed above
 - `Status: BLOCKED` — stopped; the `Blocked on:` line says why
+
+With a `Not done:` other than `none`, the Status is not `DONE`: it is `DONE_WITH_CONCERNS`, or `BLOCKED` when you stopped.
 
 ## Remember
 
