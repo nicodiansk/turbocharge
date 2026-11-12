@@ -109,7 +109,7 @@ Inline lanes run no mutation and no join checks: they are exact-text edits, and 
 **When a builder's completion notification arrives,** read the last line of its report, `Status: DONE | DONE_WITH_CONCERNS | BLOCKED`, and its `Blocked on:` kind:
 - **DONE** → run the join checks (below); the lane is finished when they pass.
 - **DONE_WITH_CONCERNS** → run the join checks; the lane is finished when they pass, and it still carries its concerns to Step 7.
-- **No `Not done:` line** → DONE_WITH_CONCERNS, with `Not done: not reported`.
+- **DONE or DONE_WITH_CONCERNS with no `Not done:` line** → DONE_WITH_CONCERNS, with `Not done: not reported`. A BLOCKED report follows its `Blocked on:` kind below, with or without the line.
 - **`DONE` with a `Not done:` other than `none`** → DONE_WITH_CONCERNS, the line carried to Step 7.
 - **BLOCKED on destructive, security, outside or design** → take the question to the user. Don't decide it for them.
 - **BLOCKED on context** → dispatch the researcher (Step 3), then resume the same builder with `SendMessage`, carrying its findings. Adding context is a change, so the same model is fine, and the builder's context is warm.

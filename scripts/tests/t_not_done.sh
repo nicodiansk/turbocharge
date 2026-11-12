@@ -23,9 +23,12 @@ STEP5=$(sec "$S" '## Step 5' '## Step 6')
 STEP7=$(sec "$S" '## Step 7' '## ')
 printf '%s\n' "$STEP3" | grep -qF 'then `Not done:` and `Mutation:`; then Rulings' || { echo "    build Step 3 missing the Not done report rule"; rc=1; }
 grep -qF 'test result; then Rulings' "$S" && { echo "    build still says: test result; then Rulings"; rc=1; }
-for p in 'Not done: not reported' '`DONE` with a `Not done:` other than `none`'; do
+for p in 'Not done: not reported' '`DONE` with a `Not done:` other than `none`' \
+    'DONE or DONE_WITH_CONCERNS with no `Not done:` line' 'A BLOCKED report follows its `Blocked on:` kind'; do
     printf '%s\n' "$STEP5" | grep -qF -- "$p" || { echo "    build Step 5 missing: $p"; rc=1; }
 done
+# Review 🟡 2: unscoped, the rule turned a BLOCKED report (the one most likely to lack the line) into a finished lane.
+printf '%s\n' "$STEP5" | grep -qF -- '- **No `Not done:` line** →' && { echo "    build Step 5 still has the unscoped No Not done line rule"; rc=1; }
 for p in '`Not done:`' 'states its own'; do
     printf '%s\n' "$STEP7" | grep -qF -- "$p" || { echo "    build Step 7 missing: $p"; rc=1; }
 done
