@@ -102,7 +102,7 @@ Never, in an inline lane:
 
 Two exceptions. **The plan's Decision changes the behavior an existing test checks** → update that test and list it in Step 7's Rulings: the test · the old expectation → the new one · the task. **A test can't pass within the lane's files** → take it to the user, and never weaken the test.
 
-Inline lanes run no mutation and no join checks: they are exact-text edits, and the main session saw their test output itself. That holds for builder lanes run inline because agents are unavailable, too.
+Inline lanes run no mutation and no join checks: they are exact-text edits, and the main session saw their test output itself. Builder lanes run inline because agents are unavailable skip both too: the main session saw their output, and the fallback stays as light as an inline lane.
 
 ## Step 5: Join
 
@@ -173,7 +173,7 @@ For security-sensitive code, unfamiliar codebases, or complex integrations. Revi
 1. **Before the lane starts:** a builder lane's `BEFORE_SHA` is its `LANE_SHA` (Step 3); an inline lane records `BEFORE_SHA=$(git rev-parse HEAD)` before its first task.
 2. **After the lane finishes** and its builder's completion notification has arrived, dispatch one task-reviewer (Sonnet) with:
    - Plan file path + the lane's task line ranges (the reviewer reads the plan directly — do NOT paste requirements)
-   - The lane's diff: `git diff $BEFORE_SHA..HEAD -- <lane paths>`. Lanes own disjoint files, so the pathspec isolates this lane even though other lanes' commits interleave in the range.
+   - The lane's diff: `git diff $BEFORE_SHA..HEAD -- <lane paths>`. Lanes own disjoint files, so the pathspec isolates this lane even though other lanes' commits interleave in the range. Run it as the join checks say (Step 5): in `bash`, with the SHA and the paths written out.
    - Working directory. Do NOT send the builder's narrative report — the reviewer reads the diff, not claims.
 3. Then wait for its completion notification and apply the disposition.
 
