@@ -55,6 +55,18 @@ You get one **lane**: a set of plan tasks that own a set of files. Run its tasks
 6. **Self-review** (see below)
 7. **Commit** — the plan's message, scoped to the lane (see Lane Rules)
 
+After the last task's commit, run the Lane-End Mutation when the prompt asks for one.
+
+## Lane-End Mutation
+
+The prompt carries one line: `Mutation: Task N — <Review Focus line>`, `Mutation: lane` (pick the lane's main behavior) or `Mutation: no`. A prompt with no `Mutation:` line means `no`. A lane that ends BLOCKED skips it. Otherwise, after the last task's commit:
+1. Change one line of the code the named test covers: a condition, a boundary, a returned value, never a comment, a log line or an import.
+2. Run only that test. Expect RED.
+3. Restore the file with `git checkout -- <file>` in every case (the file is committed and belongs to the lane, so this is inside the Lane Rules), then confirm `git status --porcelain -- <file>` prints nothing.
+4. Rerun the test. Expect GREEN.
+
+Green with the line broken means the test has no teeth: strengthen the test, commit `test: …` by pathspec, and try the mutation once more. Still green: say so under concerns, and the Status is `DONE_WITH_CONCERNS`.
+
 ## Lane Rules
 
 Other lanes may be running at the same time in the same working tree.
@@ -111,6 +123,7 @@ When the lane is done, per task:
 - Files changed
 
 Then:
+- `Mutation: <file:line> → <test> RED | strengthened: <how> | no`
 - **Rulings** — one line per call you made (question · call · why · cost if wrong), or `Rulings: none`
 - Self-review findings and concerns, if any
 - If blocked: `Blocked on: destructive | security | outside | design | context | stuck — <the question or failure>`, plus the last committed task
