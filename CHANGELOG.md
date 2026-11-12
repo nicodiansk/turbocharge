@@ -1,5 +1,31 @@
 # Changelog
 
+## [3.6.0] - 2026-11-12
+
+Tests with teeth and checked returns. A green test has to prove something: its RED comes from an assertion on the result, no lane gets to green through a test shortcut, and a builder lane whose plan marks a risk ends with one mutation. A builder's report is a claim until build checks the lane's files, so build now does that before it marks a lane done.
+
+### Added
+- **builder, Lane-End Mutation:** when the prompt carries a `Mutation:` line other than `no`, the builder, after the last task's commit, changes one line the named test covers (a condition, a boundary, a returned value), expects RED on an assertion, restores the file with `git checkout`, and reruns it green. A test that stays green is strengthened once; still green is DONE_WITH_CONCERNS. The report gains a `Mutation:` line.
+- **builder, `Not done:`:** the report says what in the lane's tasks wasn't built, or was left out on purpose, and why (`| none`). With anything but `none`, the Status can't be DONE.
+- **build, join checks:** before `lane ✓`, four checks on a builder lane's files: nothing left uncommitted, at least one commit per task, a grep of the lane's added lines for test shortcuts (`skip(`, `skipIf`, `xfail`, `expectedFailure`, `.only(`, `xit(`, `t.Skip(`, `#[ignore]`, `@Disabled`, `sys.exit(0)` and more) plus any deleted file, and every task's `Verify` rerun. A red `Verify`, a real shortcut or uncommitted files get a fix round, counted in Step 5c's two; a short commit count is a concern for Step 7. Lanes that wait on this one start only when the checks pass. Inline lanes get neither checks nor a mutation.
+- New tests: `t_right_red.sh`, `t_no_test_shortcuts.sh`, `t_lane_mutation.sh`, `t_not_done.sh`, `t_reviewer_teeth.sh` and `t_join_checks.sh`. The last runs the grep it extracts from the build skill on a fixture with one line per pattern alternative, so dropping any alternative fails it.
+
+### Changed
+- **builder:** RED comes from an assertion on the result. An import error, a missing name or a syntax error isn't RED: the builder adds a stub that returns a neutral value and reruns. A test that expects an error is RED when the error doesn't come. RED evidence names the assertion and the value it got.
+- **builder, test shortcuts:** a new **Never** section. No skipping, xfail, deleting or weakening a test, no expected value written into the code, no special-casing the test's input, no test changed to match the code. A plan Decision that changes what an existing test checks updates it under Rulings; a test that can't pass within the lane's files stops the lane BLOCKED, never weaker. Inline lanes follow the same rule and list.
+- **build, Step 3:** every builder lane records `LANE_SHA`, with or without `--reviewed` (Step 6's `BEFORE_SHA` is that value), and the SHA is written into later commands because shell variables don't survive between Bash calls. Each builder gets one `Mutation:` line: the first Review Focus pin the lane owns, `lane` with `--reviewed` and no pin, or `no`. The Opus retry of a stuck lane keeps both.
+- **build, Step 5:** the join checks run in bash with the SHA and the lane paths written out. zsh doesn't split an unquoted variable, and a lost `LANE_SHA` gives an empty range, so either way the checks would pass on nothing; a commit count of 0 flags both. A DONE report with no `Not done:` line, or with one other than `none`, is DONE_WITH_CONCERNS. Step 7 lists every lane's `Not done:` and each `shortcut check:` note.
+- **task-reviewer, code-reviewer:** read for toothless tests (assertions too broad to fail, a mock that returns the expected value, no assertion on the output, snapshots regenerated with the code) and test shortcuts. A shortcut is 🔴 Critical. A toothless test is 🟡 Important when it is the only test for a Review Focus pin or for the task's main behavior, otherwise 🟢.
+- **Review workflow:** the `test-gaps` lens reads for the same list.
+- **Directory copy:** gets every change above except the lens, since it has no review workflow. No hook or script changed: the join checks are text the session follows, so they hold there too.
+- **README:** the hero banner, the pipeline and the build image are redrawn in the Zine style. The new images sit in repo-only blocks, and the directory copy keeps the ASCII pipeline. How Build Works gains a "Tests with teeth" paragraph. `images/hero-banner-v2.svg`, no longer used, is gone.
+- `.claude/CLAUDE.md`'s Lane term names the join checks.
+- Repo installs (`turbocharge@turbocharge`) get all of it.
+- The evals weren't rerun for this release, so README **Measured** is still the 3.4.0 run.
+
+### Upgrading
+After updating, run `/reload-plugins` or restart Claude Code: a running session keeps the old builder and build. Plans written before this release still build: a plan with no Review Focus runs no mutation unless you pass `--reviewed`.
+
 ## [3.5.11] - 2026-11-09
 
 Directory fix. 3.5.10's LOCAL_CODE_FRONTMATTER_KEY count stayed 2: with the builder's and planner's `tools` allowlists swapped for a denylist and setup's `disable-model-invocation` gone, a refused `tools` would have dropped it to 0 and a refused `disable-model-invocation` to 1. So the directory accepts both, and what is left is plan's `context: fork` and `agent: planner`, two keys in one file. Claude.ai's skills don't take them either.
