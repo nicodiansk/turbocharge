@@ -118,7 +118,7 @@ The review workflow runs when you type `/turbocharge:review` and dynamic workflo
 
 <!-- repo-only -->
 <p align="center">
-  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/pipeline-zine.svg" alt="The pipeline: you at both ends, Claude and the checks in the middle. Before: brainstorm and story. In the middle: plan, build with tests first, code checks, review by an agent that didn't write the code; a red check goes back one step. After: ship and wrap." width="100%">
+  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/pipeline-zine.svg" alt="The pipeline: you at both ends, Claude and the checks in the middle. Before: brainstorm and story. In the middle: plan, build with tests with teeth (each task's test fails on the result first), code checks, review by an agent that didn't write the code; a red check goes back one step. After: ship and wrap." width="100%">
 </p>
 <!-- /repo-only -->
 <!-- directory-only
