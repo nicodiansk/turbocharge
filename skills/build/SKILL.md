@@ -76,7 +76,7 @@ For each builder lane that is ready (its `After` lanes are done), spawn one buil
 
 Dispatch each builder **without** a `name` parameter. A named Agent spawn joins the session's implicit team as a teammate when Agent Teams are enabled; lane builders must stay plain subagents. Note each builder's agent ID against its lane — with no `name`, `SendMessage` fix rounds (Steps 5c and 6) address it by agent ID.
 
-Before a lane's first builder spawns, record `LANE_SHA=$(git rev-parse HEAD)` for that lane, with or without `--reviewed`. The join checks (Step 5) and Step 6 diff from it.
+Before a lane's first builder spawns, record `LANE_SHA=$(git rev-parse HEAD)` for that lane, with or without `--reviewed`. The join checks (Step 5) and Step 6 diff from it. Shell variables don't survive between Bash calls, so note the SHA in your reply and write the SHA itself into each later command (`LANE_SHA=<sha>` at its top).
 
 Builders run in the background (Claude Code 2.1.198+): the Agent call returns as soon as the builder starts. Do not wait here — go to Step 4.
 
@@ -127,7 +127,7 @@ Inline lanes run no mutation and no join checks: they are exact-text edits, and 
 
 - With no Lanes table (a legacy plan), the lane paths are every path the plan's tasks name, and check 2 counts all its tasks.
 - Check 2 counts at least, not equal: the mutation's `test: …` commit or a task split in two is extra; a missing commit is the hole.
-- Run the checks in `bash`, with the lane paths written out or in a bash array (`"${P[@]}"`). zsh doesn't split an unquoted variable: a `$P` holding several paths reaches git as one path that doesn't exist, and checks 1 and 3 then pass on nothing. A check 2 count of 0 for a lane that reported commits means the paths are wrong: fix them before trusting checks 1 and 3.
+- Run the checks in `bash`, with the lane paths written out or in a bash array (`"${P[@]}"`). zsh doesn't split an unquoted variable: a `$P` holding several paths reaches git as one path that doesn't exist, and checks 1 and 3 then pass on nothing. A check 2 count of 0 for a lane that reported commits means the paths are wrong or `$LANE_SHA` is empty (`..HEAD` is an empty range, so check 3 finds nothing too): fix them before trusting checks 1 and 3.
 - Fix rounds count toward Step 5c's max 2 per lane. After a round, rerun all four checks. Lanes that name this one in `After` wait until the checks pass.
 - Cost: three git commands and one `Verify` per task, touching only the lane's tests, so it is safe during overlap.
 

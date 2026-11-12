@@ -56,6 +56,13 @@ for p in 'Run the checks in `bash`' '"${P[@]}"' "zsh doesn't split an unquoted v
     'A check 2 count of 0' 'fix them before trusting checks 1 and 3'; do
     printf '%s\n' "$STEP5" | grep -qF -- "$p" || { echo "    build Step 5 missing: $p"; rc=1; }
 done
+# Review 🟡 1: shell variables don't survive between Bash calls. An empty $LANE_SHA makes `..HEAD`, an empty range, and
+# checks 2 and 3 then pass on nothing too, so Step 3 keeps the value and Step 5's zero-count clue names both causes.
+sec "$S" '## Step 3' '## ' | grep -qF "Shell variables don't survive between Bash calls" \
+    || { echo "    build Step 3 missing: Shell variables don't survive between Bash calls"; rc=1; }
+sec "$S" '## Step 3' '## ' | grep -qF 'write the SHA itself into each later command' \
+    || { echo "    build Step 3 missing: write the SHA itself into each later command"; rc=1; }
+printf '%s\n' "$STEP5" | grep -qF -- '`$LANE_SHA` is empty' || { echo "    build Step 5 missing: \`\$LANE_SHA\` is empty"; rc=1; }
 ROWS=$(printf '%s\n' "$STEP5" | grep -c '^| [1-4] |')
 [ "$ROWS" -eq 4 ] || { echo "    build Step 5 needs exactly 4 check rows ($ROWS)"; rc=1; }
 sec "$S" '## Step 4' '## ' | grep -qF 'Inline lanes run no mutation and no join checks' || { echo "    build Step 4 missing: Inline lanes run no mutation and no join checks"; rc=1; }
