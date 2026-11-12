@@ -116,6 +116,14 @@ Inline lanes run no mutation: they are exact-text edits, and the main session sa
 - **BLOCKED on stuck**, or `Status: BLOCKED` again after a context resume → retry the lane once with a new Agent call: `subagent_type: turbocharge:builder`, `model: opus`, the same lane, naming the tasks already committed and quoting the BLOCKED report. The retry keeps the lane's `LANE_SHA` and carries the same `Mutation:` line: a new `LANE_SHA` would leave the first builder's commits out of check 2's count. `SendMessage` can't change the model. Never retry the same model with nothing changed. A BLOCKED Opus retry goes to the user.
 - **No Status line** → treat it as DONE_WITH_CONCERNS and check the lane's commits yourself (`git log`, `git status --porcelain -- <lane paths>`).
 
+**Check 3: no test shortcuts.** Grep the lane's added lines, and list any file it deleted:
+```bash
+SHORTCUT_RE='skip\(|mark\.skip|xfail|\.only\(|xit\(|xdescribe\(|\.Skip\(|#\[ignore\]|@Disabled|@Ignore|sys\.exit\(0\)|process\.exit\(0\)|os\.Exit\(0\)'
+git diff $LANE_SHA..HEAD -- <lane paths> | grep -E '^[+]' | grep -vE '^[+]{3} ' | grep -E "$SHORTCUT_RE"
+git diff --diff-filter=D --name-only $LANE_SHA..HEAD -- <lane paths>
+```
+Three stages, not one pattern: added lines, minus the `+++ ` file headers, then the keywords, so a keyword right after the `+` still hits. A shell test's `exit 0` ends every shell test, so it is left to the reviewers. Read each hit. A real shortcut, or a deleted file the plan doesn't name, gets a fix round. A legitimate line (a skip when a tool is missing, a deletion the plan names) gets a Step 7 note: `shortcut check: <line> — <why it's legitimate>`.
+
 **After every lane finishes** — an inline lane's last commit, or a builder lane's DONE / DONE_WITH_CONCERNS:
 1. Report one line: `lane <name> ✓ · tasks a–b · commits N`.
 2. With `--checkpoint`, stop and wait for human approval before starting anything new.
