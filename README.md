@@ -26,7 +26,7 @@ You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that c
 
 <!-- repo-only -->
 <p align="center">
-  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/before-after.svg" alt="Before: scattered, contradictory config. After: one ordered pipeline." width="100%">
+  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/before-after.svg" alt="Before: agents in ~/.claude/agents/ with planner.md next to planner-actually-good.md, commands in .claude/commands/, rule files that contradict each other and a session snapshot saved months ago; you can't remember which is current, and neither can Claude. After: one pipeline, brainstorm, story, plan, build, review, ship, with debug looping under build; 10 skills, 6 agents, 2 hooks, 1 workflow, installed with claude plugin install turbocharge@turbocharge. One source of truth." width="100%">
 </p>
 <!-- /repo-only -->
 
@@ -66,7 +66,7 @@ Every skill announces itself, does one job well, and hands you the next step.
 
 <!-- repo-only -->
 <p align="center">
-  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/brainstorm-session.svg" alt="A brainstorm session: Socratic dialogue, a captured design doc, and a chain-forward to /turbocharge:story" width="92%">
+  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/brainstorm-session.svg" alt="A /turbocharge:brainstorm session in six steps: it sizes the request (quick gets done now, small agrees the approach in chat, project goes on to a design doc); asks one question per message, multiple choice when it can; offers 2–3 approaches, the recommended one first; presents the design in 200–300 word sections, asking 'Does this look right?' after each; runs a builder check, where a researcher reads the doc as the developer who will build it and its questions become answers in the doc, calls marked 'Ruled in brainstorm:' or one message for you; then commits the design to docs/plans/ and offers /turbocharge:story or /turbocharge:plan" width="92%">
 </p>
 
 <details>
@@ -227,7 +227,7 @@ Dispatched by skills. You never invoke them directly.
 
 <!-- repo-only -->
 <p align="center">
-  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/model-tiering.svg" alt="Smart model routing — right model for each role" width="100%">
+  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/model-tiering.svg" alt="The right model for each role: your session orchestrates on the model you pick, and the planner inherits it (Opus if you orchestrate on Opus, never below Sonnet); builder, researcher, task-reviewer, code-reviewer, verifier and the review swarm's five lenses are fixed on Sonnet; Opus comes in one place only, when build retries a stuck builder lane once, and if it is still stuck you decide; design or destructive questions go to you, never to Opus; never Haiku, because turn count beats token price" width="100%">
 </p>
 <!-- /repo-only -->
 
