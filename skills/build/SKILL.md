@@ -67,6 +67,12 @@ For each builder lane that is ready (its `After` lanes are done), spawn one buil
   - Commit per task, scoped to the task: `git add <new files>` (a pathspec commit can't take untracked files), then `git commit -m "<message>" -- <this task's files>` — the paths the task created, changed, deleted, or renamed. Don't pass the whole lane: a lane path that doesn't exist yet makes the commit fail. Never `git commit -a` or `git add -A`.
   - If git reports `index.lock`, wait a moment and retry once.
   - Report per task: commit SHA and test result; then Rulings; then the Status line (builder.md's Report Format).
+- **One `Mutation:` line**, from the plan's Review Focus:
+  - `Mutation: Task N — <Review Focus line>` when the lane owns a task a Review Focus line pins `(pinned: Task N)`. With several, the first: Review Focus lists the most likely input first.
+  - `Mutation: lane` with `--reviewed` and no pin in the lane: the builder picks the lane's main behavior.
+  - `Mutation: no` otherwise, a legacy plan with no Review Focus included.
+
+  The builder reads only this line, never build's flags.
 
 Dispatch each builder **without** a `name` parameter. A named Agent spawn joins the session's implicit team as a teammate when Agent Teams are enabled; lane builders must stay plain subagents. Note each builder's agent ID against its lane — with no `name`, `SendMessage` fix rounds (Steps 5c and 6) address it by agent ID.
 
@@ -95,6 +101,8 @@ Never, in an inline lane:
 - change a test to match the code.
 
 Two exceptions. **The plan's Decision changes the behavior an existing test checks** → update that test and list it in Step 7's Rulings: the test · the old expectation → the new one · the task. **A test can't pass within the lane's files** → take it to the user, and never weaken the test.
+
+Inline lanes run no mutation: they are exact-text edits, and the main session saw their test output itself. That holds for builder lanes run inline because agents are unavailable, too.
 
 ## Step 5: Join
 
