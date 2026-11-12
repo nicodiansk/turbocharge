@@ -50,6 +50,12 @@ RE=$(printf '%s\n' "$STEP5" | grep -n '^SHORTCUT_RE=' | head -1 | cut -d: -f1)
 if [ -z "$HDR" ] || [ -z "$RE" ] || ! [ "$HDR" -lt "$RE" ]; then
     echo "    the check table header must sit above the SHORTCUT_RE= line ($HDR $RE)"; rc=1
 fi
+# zsh doesn't split an unquoted variable: a $P of several paths reaches git as one missing path, and checks 1 and 3
+# print nothing, so they pass on nothing (seen on the first run of these checks, 2026-11-12). Check 2's 0 gives it away.
+for p in 'Run the checks in `bash`' '"${P[@]}"' "zsh doesn't split an unquoted variable" 'checks 1 and 3 then pass on nothing' \
+    'A check 2 count of 0' 'fix them before trusting checks 1 and 3'; do
+    printf '%s\n' "$STEP5" | grep -qF -- "$p" || { echo "    build Step 5 missing: $p"; rc=1; }
+done
 ROWS=$(printf '%s\n' "$STEP5" | grep -c '^| [1-4] |')
 [ "$ROWS" -eq 4 ] || { echo "    build Step 5 needs exactly 4 check rows ($ROWS)"; rc=1; }
 sec "$S" '## Step 4' '## ' | grep -qF 'Inline lanes run no mutation and no join checks' || { echo "    build Step 4 missing: Inline lanes run no mutation and no join checks"; rc=1; }
