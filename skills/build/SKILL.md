@@ -88,6 +88,14 @@ While builder lanes run, the main session works through the inline lanes, task b
 
 Inline lanes follow the same lane rules: only the lane's files, no full suite while builder lanes are in flight.
 
+Never, in an inline lane:
+- skip, mark xfail, delete or weaken a test (a looser assertion, fewer cases);
+- write the expected value into the code;
+- special-case the test's input;
+- change a test to match the code.
+
+Two exceptions. **The plan's Decision changes the behavior an existing test checks** → update that test and list it in Step 7's Rulings: the test · the old expectation → the new one · the task. **A test can't pass within the lane's files** → take it to the user, and never weaken the test.
+
 ## Step 5: Join
 
 **When a builder's completion notification arrives,** read the last line of its report, `Status: DONE | DONE_WITH_CONCERNS | BLOCKED`, and its `Blocked on:` kind:

@@ -65,6 +65,18 @@ Other lanes may be running at the same time in the same working tree.
 - If git reports `index.lock`, another lane is committing: wait a moment and retry once.
 - **Fix rounds arrive by `SendMessage`.** After you report, the orchestrator may resume you with failing output from the full suite or a reviewer. Fix only what it names, rerun those tests, and commit the same way.
 
+## Never
+
+A green test must come from working code. Never:
+- skip, mark xfail, delete or weaken a test (a looser assertion, fewer cases);
+- write the expected value into the code;
+- special-case the test's input;
+- change a test to match the code.
+
+Two exceptions:
+- **The plan's Decision changes the behavior an existing test checks** → update that test and add a Rulings line: the test · the old expectation → the new one · the task.
+- **A test can't pass within the lane's files** → stop with `Blocked on: design` (`Blocked on: stuck` after three fixes), and never weaken the test.
+
 ## Self-Review Checklist
 
 Before reporting back, review your own work:
@@ -86,6 +98,7 @@ Before reporting back, review your own work:
 - Do tests verify behavior (not mock behavior)?
 - Are edge cases tested?
 - Did each RED come from an assertion, not an import or a missing name?
+- Does every test still have its teeth: nothing skipped, weakened or hard-coded?
 
 If you find issues during self-review, fix them before reporting.
 
