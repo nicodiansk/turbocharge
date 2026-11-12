@@ -64,7 +64,7 @@ start a new directory submission. Never rename the plugin `name`: it sets every 
 | **Agent** | A markdown file in `agents/` — dispatched by skills via the Agent tool |
 | **Hook** | Shell command executed at lifecycle events: SessionStart (bootstrap), and SubagentStop plus PreToolUse on `SubagentHandback` (builder exit gate, one script on two events). Repo installs only: the directory copy ships no hooks since 3.5.8 |
 | **Marketplace** | GitHub repo with `.claude-plugin/marketplace.json` that indexes plugins — lives at the root of this repo (`nicodiansk/turbocharge`) as of v2.3.0; previously a sibling `turbocharge-marketplace` repo (deleted 2026-04-13) |
-| **Lane** | A group of plan tasks that owns a disjoint set of files (plan's `## Lanes` table). `/turbocharge:build` runs each lane inline in the main session or with one Sonnet builder, overlaps lanes with no `After` dependency, commits by pathspec, and runs the full suite once at the join |
+| **Lane** | A group of plan tasks that owns a disjoint set of files (plan's `## Lanes` table). `/turbocharge:build` runs each lane inline in the main session or with one Sonnet builder, overlaps lanes with no `After` dependency, commits by pathspec, checks each builder lane's files before marking it done, and runs the full suite once at the join |
 | **Iron Law** | An enforced constraint (not a suggestion) baked into skill definitions |
 | **Red Flag** | Anti-rationalization table that catches Claude skipping process steps |
 | **Review Focus** | A plan section listing up to 5 inputs or failure modes the spec implies but never names, each pinned by a test in the task that owns the code (`(pinned: Task N)`). Reviewers check the pins |
