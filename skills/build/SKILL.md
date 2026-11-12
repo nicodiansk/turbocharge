@@ -102,7 +102,7 @@ Never, in an inline lane:
 
 Two exceptions. **The plan's Decision changes the behavior an existing test checks** → update that test and list it in Step 7's Rulings: the test · the old expectation → the new one · the task. **A test can't pass within the lane's files** → take it to the user, and never weaken the test.
 
-Inline lanes run no mutation: they are exact-text edits, and the main session saw their test output itself. That holds for builder lanes run inline because agents are unavailable, too.
+Inline lanes run no mutation and no join checks: they are exact-text edits, and the main session saw their test output itself. That holds for builder lanes run inline because agents are unavailable, too.
 
 ## Step 5: Join
 
@@ -115,6 +115,20 @@ Inline lanes run no mutation: they are exact-text edits, and the main session sa
 - **BLOCKED on context** → dispatch the researcher (Step 3), then resume the same builder with `SendMessage`, carrying its findings. Adding context is a change, so the same model is fine, and the builder's context is warm.
 - **BLOCKED on stuck**, or `Status: BLOCKED` again after a context resume → retry the lane once with a new Agent call: `subagent_type: turbocharge:builder`, `model: opus`, the same lane, naming the tasks already committed and quoting the BLOCKED report. The retry keeps the lane's `LANE_SHA` and carries the same `Mutation:` line: a new `LANE_SHA` would leave the first builder's commits out of check 2's count. `SendMessage` can't change the model. Never retry the same model with nothing changed. A BLOCKED Opus retry goes to the user.
 - **No Status line** → treat it as DONE_WITH_CONCERNS and check the lane's commits yourself (`git log`, `git status --porcelain -- <lane paths>`).
+
+**Join checks, builder lanes only.** On a builder lane's DONE or DONE_WITH_CONCERNS, before `lane ✓`, run four checks on the lane's paths (its Owns files):
+
+| # | Check | Command | When it fails |
+|---|-------|---------|---------------|
+| 1 | Nothing left uncommitted | `git status --porcelain -- <lane paths>` prints nothing | Fix round: "commit these, or say why" |
+| 2 | At least one commit per task | `git rev-list --count $LANE_SHA..HEAD -- <lane paths>` ≥ the lane's task count | A concern, carried to Step 7 |
+| 3 | No test shortcuts | Check 3's grep, below | Build rules on each hit (below) |
+| 4 | The lane's tests are green | Rerun every task's `Verify`, each distinct command once | Fix round with the failing output |
+
+- With no Lanes table (a legacy plan), the lane paths are every path the plan's tasks name, and check 2 counts all its tasks.
+- Check 2 counts at least, not equal: the mutation's `test: …` commit or a task split in two is extra; a missing commit is the hole.
+- Fix rounds count toward Step 5c's max 2 per lane. After a round, rerun all four checks. Lanes that name this one in `After` wait until the checks pass.
+- Cost: three git commands and one `Verify` per task, touching only the lane's tests, so it is safe during overlap.
 
 **Check 3: no test shortcuts.** Grep the lane's added lines, and list any file it deleted:
 ```bash

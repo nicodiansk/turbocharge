@@ -40,4 +40,17 @@ fi
 for p in 'git diff --diff-filter=D --name-only $LANE_SHA..HEAD -- <lane paths>' 'left to the reviewers' 'a skip when a tool is missing' 'a deletion the plan names' "shortcut check: <line> — <why it's legitimate>"; do
     printf '%s\n' "$STEP5" | grep -qF -- "$p" || { echo "    build Step 5 missing: $p"; rc=1; }
 done
+
+# Task 8: four join checks on a builder lane's files, above the shortcut grep.
+for p in 'git status --porcelain -- <lane paths>' 'git rev-list --count $LANE_SHA..HEAD -- <lane paths>' 'commit these, or say why' 'each distinct command once' 'at least, not equal' 'max 2 per lane' 'rerun all four checks' 'wait until the checks pass' 'With no Lanes table'; do
+    printf '%s\n' "$STEP5" | grep -qF -- "$p" || { echo "    build Step 5 missing: $p"; rc=1; }
+done
+HDR=$(printf '%s\n' "$STEP5" | grep -nF '| # | Check | Command | When it fails |' | head -1 | cut -d: -f1)
+RE=$(printf '%s\n' "$STEP5" | grep -n '^SHORTCUT_RE=' | head -1 | cut -d: -f1)
+if [ -z "$HDR" ] || [ -z "$RE" ] || ! [ "$HDR" -lt "$RE" ]; then
+    echo "    the check table header must sit above the SHORTCUT_RE= line ($HDR $RE)"; rc=1
+fi
+ROWS=$(printf '%s\n' "$STEP5" | grep -c '^| [1-4] |')
+[ "$ROWS" -eq 4 ] || { echo "    build Step 5 needs exactly 4 check rows ($ROWS)"; rc=1; }
+sec "$S" '## Step 4' '## ' | grep -qF 'Inline lanes run no mutation and no join checks' || { echo "    build Step 4 missing: Inline lanes run no mutation and no join checks"; rc=1; }
 exit $rc
