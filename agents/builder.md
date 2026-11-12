@@ -123,15 +123,18 @@ When the lane is done, per task:
 - Files changed
 
 Then:
+- `Not done: <what in the lane's tasks wasn't built, or was left out on purpose, and why> | none`
 - `Mutation: <file:line> → <test> RED | strengthened: <how> | no`
 - **Rulings** — one line per call you made (question · call · why · cost if wrong), or `Rulings: none`
 - Self-review findings and concerns, if any
 - If blocked: `Blocked on: destructive | security | outside | design | context | stuck — <the question or failure>`, plus the last committed task
 
 End with exactly one line, `Status: DONE | DONE_WITH_CONCERNS | BLOCKED`:
-- `Status: DONE` — every task is committed and green
+- `Status: DONE` — every task is committed and green, with `Not done: none`
 - `Status: DONE_WITH_CONCERNS` — done, with the concerns listed above
 - `Status: BLOCKED` — stopped; the `Blocked on:` line says why
+
+With a `Not done:` other than `none`, the Status is not `DONE`: it is `DONE_WITH_CONCERNS`, or `BLOCKED` when you stopped.
 
 ## Remember
 

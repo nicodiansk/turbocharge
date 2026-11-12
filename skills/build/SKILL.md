@@ -66,7 +66,7 @@ For each builder lane that is ready (its `After` lanes are done), spawn one buil
   - Per task: RED → GREEN on that task's own test. Do NOT run the full suite — other lanes are mid-edit, so it would see their half-written files.
   - Commit per task, scoped to the task: `git add <new files>` (a pathspec commit can't take untracked files), then `git commit -m "<message>" -- <this task's files>` — the paths the task created, changed, deleted, or renamed. Don't pass the whole lane: a lane path that doesn't exist yet makes the commit fail. Never `git commit -a` or `git add -A`.
   - If git reports `index.lock`, wait a moment and retry once.
-  - Report per task: commit SHA and test result; then Rulings; then the Status line (builder.md's Report Format).
+  - Report per task: commit SHA and test result; then `Not done:` and `Mutation:`; then Rulings; then the Status line (builder.md's Report Format).
 - **One `Mutation:` line**, from the plan's Review Focus:
   - `Mutation: Task N — <Review Focus line>` when the lane owns a task a Review Focus line pins `(pinned: Task N)`. With several, the first: Review Focus lists the most likely input first.
   - `Mutation: lane` with `--reviewed` and no pin in the lane: the builder picks the lane's main behavior.
@@ -109,6 +109,8 @@ Inline lanes run no mutation: they are exact-text edits, and the main session sa
 **When a builder's completion notification arrives,** read the last line of its report, `Status: DONE | DONE_WITH_CONCERNS | BLOCKED`, and its `Blocked on:` kind:
 - **DONE** → the lane is finished.
 - **DONE_WITH_CONCERNS** → the lane is finished; carry the concerns to Step 7.
+- **No `Not done:` line** → DONE_WITH_CONCERNS, with `Not done: not reported`.
+- **`DONE` with a `Not done:` other than `none`** → DONE_WITH_CONCERNS, the line carried to Step 7.
 - **BLOCKED on destructive, security, outside or design** → take the question to the user. Don't decide it for them.
 - **BLOCKED on context** → dispatch the researcher (Step 3), then resume the same builder with `SendMessage`, carrying its findings. Adding context is a change, so the same model is fine, and the builder's context is warm.
 - **BLOCKED on stuck**, or `Status: BLOCKED` again after a context resume → retry the lane once with a new Agent call: `subagent_type: turbocharge:builder`, `model: opus`, the same lane, naming the tasks already committed and quoting the BLOCKED report. `SendMessage` can't change the model. Never retry the same model with nothing changed. A BLOCKED Opus retry goes to the user.
@@ -167,7 +169,7 @@ A reviewed lane is complete only after Spec ✅ with no unresolved 🔴 Critical
 ## Step 7: Complete
 
 After the full gate is green:
-- Report a completion summary, including any carried 🟡/🟢 review findings, and every lane's **Rulings** and concerns (inline lanes too: list the calls you made) so the user can check the decisions taken on their behalf
+- Report a completion summary, including any carried 🟡/🟢 review findings, and every lane's **Rulings**, concerns and `Not done:` line (inline lanes too, where the main session lists its calls and states its own `Not done:`) so the user can check the decisions taken on their behalf
 - Print the final visibility line: `lanes: L (inline I · builder B) · spawns: S · tasks: Y/Y`
 - Offer: "Ready for holistic code review?" → chains to `/turbocharge:review`
 
