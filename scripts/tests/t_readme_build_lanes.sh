@@ -14,5 +14,9 @@ for p in 'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS' 'complete code' 'on a task diff'
 done
 grep -qF 'each lane' "$SVG" || { echo "    build diagram title must say 'each lane'"; rc=1; }
 grep -qF '/ task' "$SVG"    && { echo "    build diagram still counts spawns per task"; rc=1; }
-grep -qF '| **Lane** |' "$C" || { echo "    CLAUDE.md Domain Terms missing a Lane row"; rc=1; }
+LANE=$(tr -d '\r' < "$C" | grep -F '| **Lane** |')
+[ -n "$LANE" ] || { echo "    CLAUDE.md Domain Terms missing a Lane row"; rc=1; }
+for p in "checks each builder lane's files before marking it done" 'runs the full suite once at the join'; do
+    printf '%s\n' "$LANE" | grep -qF -- "$p" || { echo "    CLAUDE.md Lane row missing: $p"; rc=1; }
+done
 exit $rc
