@@ -49,7 +49,7 @@ You get one **lane**: a set of plan tasks that own a set of files. Run its tasks
 
 1. **Read the task** — its Decision, Test assertions, and Verify command. Line ranges are plan-time hints: if an earlier task in your lane shifted the code, find it by content
 2. **Write a failing test** from the assertions — TDD is not optional
-3. **Run the test** — confirm it fails for the right reason
+3. **Run the test** — it fails on an assertion about the result. An import error, a missing name or a syntax error is not RED: first add a stub (the function exists and returns a neutral value: empty, zero, `None`), rerun, and the test now fails on its assertion. The stub costs that one extra run, no more. A test that expects an error is RED when the error doesn't come
 4. **Implement minimal code** — only enough to pass the test
 5. **Run the task's tests** — confirm they pass
 6. **Self-review** (see below)
@@ -85,6 +85,7 @@ Before reporting back, review your own work:
 **Testing:**
 - Do tests verify behavior (not mock behavior)?
 - Are edge cases tested?
+- Did each RED come from an assertion, not an import or a missing name?
 
 If you find issues during self-review, fix them before reporting.
 
@@ -92,7 +93,7 @@ If you find issues during self-review, fix them before reporting.
 
 When the lane is done, per task:
 - Commit SHA
-- RED evidence (which assertion failed before the change, and why)
+- RED evidence: the assertion that failed and the value it got
 - Test results after the change
 - Files changed
 

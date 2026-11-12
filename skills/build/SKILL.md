@@ -82,7 +82,7 @@ If a builder reports `Blocked on: context` (Step 5), dispatch the researcher wit
 
 While builder lanes run, the main session works through the inline lanes, task by task. With `--reviewed`, record the lane's `BEFORE_SHA` first (Step 6), before its first task.
 1. Read the task's Decision and Test assertions from the plan. Its line ranges are plan-time hints: if an earlier task in the lane shifted the code, find it by content.
-2. Write the test from the assertions and run it — it must fail for the reason the task names (RED).
+2. Write the test from the assertions and run it — it must fail on an assertion about the result, for the reason the task names (RED). An import error, a missing name or a syntax error is not RED: add a stub that returns a neutral value (empty, zero, `None`), rerun, and the test now fails on its assertion. A test that expects an error is RED when the error doesn't come.
 3. Implement the Decision. Run the test — GREEN.
 4. Commit by pathspec: `git add <new files>`, then `git commit -m "<message>" -- <this task's files>`.
 
