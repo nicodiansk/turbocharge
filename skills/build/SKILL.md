@@ -107,14 +107,14 @@ Inline lanes run no mutation and no join checks: they are exact-text edits, and 
 ## Step 5: Join
 
 **When a builder's completion notification arrives,** read the last line of its report, `Status: DONE | DONE_WITH_CONCERNS | BLOCKED`, and its `Blocked on:` kind:
-- **DONE** → the lane is finished.
-- **DONE_WITH_CONCERNS** → the lane is finished; carry the concerns to Step 7.
+- **DONE** → run the join checks (below); the lane is finished when they pass.
+- **DONE_WITH_CONCERNS** → run the join checks; the lane is finished when they pass, and it still carries its concerns to Step 7.
 - **No `Not done:` line** → DONE_WITH_CONCERNS, with `Not done: not reported`.
 - **`DONE` with a `Not done:` other than `none`** → DONE_WITH_CONCERNS, the line carried to Step 7.
 - **BLOCKED on destructive, security, outside or design** → take the question to the user. Don't decide it for them.
 - **BLOCKED on context** → dispatch the researcher (Step 3), then resume the same builder with `SendMessage`, carrying its findings. Adding context is a change, so the same model is fine, and the builder's context is warm.
 - **BLOCKED on stuck**, or `Status: BLOCKED` again after a context resume → retry the lane once with a new Agent call: `subagent_type: turbocharge:builder`, `model: opus`, the same lane, naming the tasks already committed and quoting the BLOCKED report. The retry keeps the lane's `LANE_SHA` and carries the same `Mutation:` line: a new `LANE_SHA` would leave the first builder's commits out of check 2's count. `SendMessage` can't change the model. Never retry the same model with nothing changed. A BLOCKED Opus retry goes to the user.
-- **No Status line** → treat it as DONE_WITH_CONCERNS and check the lane's commits yourself (`git log`, `git status --porcelain -- <lane paths>`).
+- **No Status line** → treat it as DONE_WITH_CONCERNS and run the join checks. They replace any look through `git log` of your own.
 
 **Join checks, builder lanes only.** On a builder lane's DONE or DONE_WITH_CONCERNS, before `lane ✓`, run four checks on the lane's paths (its Owns files):
 
@@ -138,8 +138,8 @@ git diff --diff-filter=D --name-only $LANE_SHA..HEAD -- <lane paths>
 ```
 Three stages, not one pattern: added lines, minus the `+++ ` file headers, then the keywords, so a keyword right after the `+` still hits. A shell test's `exit 0` ends every shell test, so it is left to the reviewers. Read each hit. A real shortcut, or a deleted file the plan doesn't name, gets a fix round. A legitimate line (a skip when a tool is missing, a deletion the plan names) gets a Step 7 note: `shortcut check: <line> — <why it's legitimate>`.
 
-**After every lane finishes** — an inline lane's last commit, or a builder lane's DONE / DONE_WITH_CONCERNS:
-1. Report one line: `lane <name> ✓ · tasks a–b · commits N`.
+**After every lane finishes** — an inline lane's last commit, or a builder lane whose join checks pass:
+1. Report one line: `lane <name> ✓ · tasks a–b · commits N · files checked` for a builder lane, and `lane <name> ✓ · tasks a–b · commits N` for an inline lane, where no checks ran.
 2. With `--checkpoint`, stop and wait for human approval before starting anything new.
 3. Start every lane whose `After` lanes have all finished — Step 3 for a builder lane, Step 4 for an inline lane.
 
@@ -191,7 +191,7 @@ A reviewed lane is complete only after Spec ✅ with no unresolved 🔴 Critical
 ## Step 7: Complete
 
 After the full gate is green:
-- Report a completion summary, including any carried 🟡/🟢 review findings, and every lane's **Rulings**, concerns and `Not done:` line (inline lanes too, where the main session lists its calls and states its own `Not done:`) so the user can check the decisions taken on their behalf
+- Report a completion summary, including any carried 🟡/🟢 review findings, and every lane's **Rulings**, concerns and `Not done:` line, each `shortcut check:` note and each check 2 concern (inline lanes too, where the main session lists its calls and states its own `Not done:`) so the user can check the decisions taken on their behalf
 - Print the final visibility line: `lanes: L (inline I · builder B) · spawns: S · tasks: Y/Y`
 - Offer: "Ready for holistic code review?" → chains to `/turbocharge:review`
 
@@ -215,6 +215,7 @@ After the full gate is green:
 | Retrying a BLOCKED lane twice, or sending a design question to Opus | One Opus retry for a stuck lane; design and destructive questions go to the user |
 | With `--checkpoint`, continuing past a lane without approval | The user asked to steer between lanes |
 | Fix or review loop >2 cycles | Escalate to user, don't keep retrying |
+| Marking a builder lane ✓ from its report | A return is a claim: run the four checks on its files first |
 | Full gate, dependent lane, or reviewer started before a builder's completion notification | Subagents run in the background — the Agent call returning is not the lane finishing. The gate tests a half-written tree; the reviewer diffs a half-written lane |
 
 ### Rationalizations That Mean You're Wrong

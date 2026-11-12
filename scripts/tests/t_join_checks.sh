@@ -53,4 +53,19 @@ fi
 ROWS=$(printf '%s\n' "$STEP5" | grep -c '^| [1-4] |')
 [ "$ROWS" -eq 4 ] || { echo "    build Step 5 needs exactly 4 check rows ($ROWS)"; rc=1; }
 sec "$S" '## Step 4' '## ' | grep -qF 'Inline lanes run no mutation and no join checks' || { echo "    build Step 4 missing: Inline lanes run no mutation and no join checks"; rc=1; }
+
+# Task 9: a builder lane is done only after its checks.
+printf '%s\n' "$STEP5" | grep -qF '· files checked' || { echo "    build Step 5 missing: · files checked"; rc=1; }
+for lead in '- **DONE**' '- **No Status line**'; do
+    printf '%s\n' "$STEP5" | grep -F -- "$lead" | grep -qF 'join checks' || { echo "    build Step 5 bullet '$lead' must mention join checks"; rc=1; }
+done
+grep -qF "check the lane's commits yourself" "$S" && { echo "    build still says: check the lane's commits yourself"; rc=1; }
+STEP7=$(sec "$S" '## Step 7' '## ')
+for p in 'shortcut check:' 'check 2'; do
+    printf '%s\n' "$STEP7" | grep -qF -- "$p" || { echo "    build Step 7 missing: $p"; rc=1; }
+done
+FLAGS=$(sec "$S" '## Red Flags' '## ')
+for p in 'Marking a builder lane ✓ from its report' 'A return is a claim: run the four checks on its files first'; do
+    printf '%s\n' "$FLAGS" | grep -qF -- "$p" || { echo "    build Red Flags missing: $p"; rc=1; }
+done
 exit $rc
