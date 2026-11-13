@@ -42,7 +42,7 @@ Start from the plan's Executor hint, then override:
 
 **No agents here:** if the Agent tool is missing, or a dispatch fails because `turbocharge:builder` is not registered (some surfaces load skills without agents), run every builder lane inline (Step 4), one lane at a time, and say once: `agents unavailable — running lanes inline`.
 
-**Overlap:** lanes with no `After` path between them run at the same time — builder lanes in the background while the main session works the inline lanes. A lane with `After` starts only when every lane it names has finished (Step 5).
+**Overlap:** lanes with no `After` path between them run at the same time — builder lanes in the background while the main session works the inline lanes. A lane with `After` starts only when every lane it names has finished (Step 5). At most 3 builder lanes run at once: a fourth that is ready waits for a slot (Step 5). The cap covers plans written before 3.7.0 or by hand, and `--delegate`, which makes every lane a builder lane. Inline lanes don't count.
 
 **No overlap with stashing commit hooks:** if the project's commit hooks stash unstaged changes, run lanes one at a time. Check for the `pre-commit` framework (`.pre-commit-config.yaml`) and lint-staged — `.lintstagedrc*`, `lint-staged.config.*`, a `lint-staged` key in `package.json`, or a `.husky/` hook that runs it. A pathspec commit leaves every other lane's in-flight edits unstaged, and the hook would stash them out from under that lane.
 
@@ -56,7 +56,7 @@ lanes: 4 (inline 3 · builder 1)
 
 ## Step 3: Spawn Builder Lanes
 
-For each builder lane that is ready (its `After` lanes are done), spawn one builder — subagent type `turbocharge:builder` — with:
+For each builder lane that is ready (its `After` lanes are done) and has a slot (Step 2), spawn one builder — subagent type `turbocharge:builder` — with:
 - **`effort`** set on the Agent call from the lane's Effort column (default `medium`). The per-spawn value overrides the agent definition.
 - Plan file path, lane name, and its task line ranges — do NOT paste plan content; the builder reads the file directly
 - Working directory
@@ -142,7 +142,7 @@ Three stages, not one pattern: added lines, minus the `+++ ` file headers, then 
 **After every lane finishes** — an inline lane's last commit, or a builder lane whose join checks pass:
 1. Report one line: `lane <name> ✓ · tasks a–b · commits N · files checked` for a builder lane, and `lane <name> ✓ · tasks a–b · commits N` for an inline lane, where no checks ran.
 2. With `--checkpoint`, stop and wait for human approval before starting anything new.
-3. Start every lane whose `After` lanes have all finished — Step 3 for a builder lane, Step 4 for an inline lane.
+3. Start every lane whose `After` lanes have all finished: an inline lane at once (Step 4), a builder lane while fewer than 3 builder lanes are running (Step 3). The rest wait, in plan order, for the next builder lane whose join checks pass. A builder lane holds its slot from its spawn until its join checks pass. One that stops BLOCKED with its question at the user frees its slot, and takes the next free slot once the user answers; a context resume and the Opus retry keep theirs.
 
 ### 5a. Wait for the Completion Notifications
 

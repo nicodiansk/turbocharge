@@ -39,4 +39,15 @@ for p in 'no builder→builder chain link' 'at most 3 overlapping builder lanes'
     has "plan No agent here line" "$(grep -F '**No agent here:**' "$S" | head -1)" "$p"
 done
 
+# Task 8: build Steps 2, 3, 5
+BS="$PLUGIN_DIR/skills/build/SKILL.md"
+assert_file "$BS" || exit 1
+for p in 'At most 3 builder lanes run at once' 'waits for a slot' '`--delegate`' 'by hand'; do
+    has "build Step 2" "$(sec "$BS" '## Step 2' '## ')" "$p"
+done
+has "build Step 3" "$(sec "$BS" '## Step 3' '## ')" 'has a slot'
+for p in 'while fewer than 3 builder lanes are running' 'in plan order' 'whose join checks pass' 'frees its slot' 'takes the next free slot'; do
+    has "build Step 5" "$(sec "$BS" '## Step 5' '## ')" "$p"
+done
+
 exit $rc
