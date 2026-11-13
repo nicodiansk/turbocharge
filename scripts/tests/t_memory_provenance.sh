@@ -41,4 +41,6 @@ grep -qF -- "### 7. Write Memory in Auto Memory's Shape" "$W" || { echo "    wra
 check "### 7." "$S7" '- [Title](file.md) — one-line hook' 'No `MEMORY.md` yet' \
     '# Memory Index' '`name`, `description` and `metadata.type`' '`user`, `feedback`, `project` or `reference`' \
     'Never write what the code or CLAUDE.md already says' 'tagged bullets from an older wrap' 'delete none'
+check "### 7. tag" "$S7" 'user: "<words>"' 'src/x.py:42' 'testrun: <command>' 'websearch: <url>' \
+    'supersedes YYYY-MM-DD "<old, short>"' 'never written next to it'
 exit $rc

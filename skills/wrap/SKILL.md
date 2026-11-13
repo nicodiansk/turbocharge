@@ -126,12 +126,14 @@ Lines in a topic file use this bullet format:
 - Summary sentence _(source, YYYY-MM-DD, conf: 0.8)_
 ```
 
-- `source` — where the claim came from (`websearch`, `user`, `codebase`, `testrun`)
+- `source` — the pointer to where the claim came from: `user: "<words>"`, `src/x.py:42`, `testrun: <command>`, `websearch: <url>`
 - `YYYY-MM-DD` — date written
 - `conf` — 0.1 to 1.0; 0.9+ only for verified facts, 0.5–0.8 for reasoned claims, <0.5 for speculation
 
 Example:
-- Tailwind v4 drops the JS config _(websearch, 2026-04-14, conf: 0.9)_
+- Tailwind v4 drops the JS config _(websearch: https://tailwindcss.com/blog/tailwindcss-v4, 2026-04-14, conf: 0.9)_
+
+An entry that contradicts an older one rewrites it, adding `supersedes YYYY-MM-DD "<old, short>"` to its tag, and is never written next to it.
 
 ### 8. 200-Line Cap on MEMORY.md — prune-before-build
 

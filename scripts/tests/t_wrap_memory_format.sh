@@ -10,3 +10,6 @@ assert_grep "$F" "turbocharge-session.json" || exit 1
 assert_grep "$F" "\.claude/turbocharge-session" || exit 1
 # Specific bullet format shown
 grep -qE -- "- .* _\(.*, [0-9]{4}-[0-9]{2}-[0-9]{2}, conf: 0\.[0-9]\)_" "$F" || { echo "    canonical bullet format example missing"; exit 1; }
+# The source is a pointer that resolves, not a category word.
+grep -qF -- '(`websearch`, `user`, `codebase`, `testrun`)' "$F" && { echo "    wrap still lists sources as category words"; exit 1; }
+exit 0
