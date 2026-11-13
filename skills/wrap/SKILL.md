@@ -135,14 +135,11 @@ Example:
 
 An entry that contradicts an older one rewrites it, adding `supersedes YYYY-MM-DD "<old, short>"` to its tag, and is never written next to it.
 
-### 8. 200-Line Cap on MEMORY.md — prune-before-build
+### 8. 200-Line Cap on MEMORY.md — merge topic files, never orphan one
 
-Before appending new entries, if `~/.claude/projects/<project>/memory/MEMORY.md` is at or over 200 lines:
-1. Sort existing entries by (confidence asc, date asc) — lowest confidence and oldest first
-2. Drop entries until under 180 lines
-3. Then append new entries
-
-Dropped entries are not archived separately — file-based memory is lossy by design; high-value entries survive by being re-surfaced each session.
+Claude Code loads only the first 200 lines or 25 KB of `MEMORY.md`. When the index nears 200 lines, merge related topic files or drop stale ones before you append:
+- Touch only topic files whose lines carry wrap's tag, never one Claude Code or the user wrote.
+- Remove a topic file only together with its index line, and an index line only together with its file.
 
 ### 9. Session Snapshot JSON
 
