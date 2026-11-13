@@ -26,12 +26,18 @@ RULES=(
 HDR=$(sec "$S" '## Plan Document Header' '## Context Gathering')
 for p in "${RULES[@]}"; do has "plan Plan Document Header" "$HDR" "$p"; done
 grep -qF 'A small plan can be a single lane' "$S" && { echo "    plan still says: A small plan can be a single lane"; rc=1; }
+# Merging costs no time but shares one mutation and one fix budget (review of 3.7.0, finding 4).
+MERGE=('Merging costs no time' 'one lane-end mutation and one budget of 2 fix rounds' "whose \`After\` named B now names A")
+for p in "${MERGE[@]}"; do has "plan Plan Document Header" "$HDR" "$p"; done
+grep -qF 'Merging loses nothing' "$S" && { echo "    plan still says: Merging loses nothing"; rc=1; }
 
 # Task 7: planner and plan check
 P="$PLUGIN_DIR/agents/planner.md"
 assert_file "$P" || exit 1
 PLANES=$(sec "$P" '## Lanes' '## ')
-for p in "${RULES[@]}"; do has "planner Lanes" "$PLANES" "$p"; done
+for p in "${RULES[@]}" "${MERGE[@]}"; do has "planner Lanes" "$PLANES" "$p"; done
+grep -qF 'Merging loses nothing' "$P" && { echo "    planner still says: Merging loses nothing"; rc=1; }
+has "planner Quality Checklist" "$(sec "$P" '## Quality Checklist' '## ')" '- [ ] No builder→builder chain link; at most 3 builder lanes overlap'
 SSR=$(sec "$P" '## Spec Self-Review' '## ')
 for p in 'no builder→builder chain link' 'at most 3 overlapping builder lanes'; do
     has "planner Spec Self-Review" "$SSR" "$p"
@@ -46,7 +52,8 @@ for p in 'At most 3 builder lanes run at once' 'waits for a slot' '`--delegate`'
     has "build Step 2" "$(sec "$BS" '## Step 2' '## ')" "$p"
 done
 has "build Step 3" "$(sec "$BS" '## Step 3' '## ')" 'has a slot'
-for p in 'while fewer than 3 builder lanes are running' 'in plan order' 'whose join checks pass' 'frees its slot' 'takes the next free slot'; do
+for p in 'while fewer than 3 builder lanes are running' 'in plan order' 'whose join checks pass' 'frees its slot' 'takes the next free slot' \
+    'start the next waiting builder lane' 'before lanes still waiting'; do
     has "build Step 5" "$(sec "$BS" '## Step 5' '## ')" "$p"
 done
 

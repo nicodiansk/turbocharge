@@ -45,7 +45,7 @@ Every plan MUST start with:
 
 **Lane shape:** the task shape decides the lanes.
 1. **One lane is the default.** Split only independent work: disjoint files, and no need for another lane's result.
-2. **Chain → one lane.** Builder lane B merges into builder lane A when B's only `After` is A and no other lane names A in `After`. Merging loses nothing: B's tasks start after A's either way, and a spawn and a hand-off go away. Repeat until no such pair is left, so A→B→C becomes one lane. The merged lane keeps A's name, owns both file sets, runs A's tasks then B's, and takes the higher Effort.
+2. **Chain → one lane.** Builder lane B merges into builder lane A when B's only `After` is A and no other lane names A in `After`. Merging costs no time: B's tasks start after A's either way, and a spawn and a hand-off go away. The merged lane gets one lane-end mutation and one budget of 2 fix rounds, and a lane whose `After` named B now names A. Repeat until no such pair is left, so A→B→C becomes one lane. The merged lane keeps A's name, owns both file sets, runs A's tasks then B's, and takes the higher Effort.
 3. **Inline lanes stay separate**, before or after a builder lane: they cost no spawn. A chain through an inline lane doesn't merge: the builder lane after it names the inline lane in `After`, not a builder lane.
 4. **At most 3 builder lanes overlap** (no `After` path between any two). With more independent pieces, merge the smallest into one lane, which owns the union of their files. Inline lanes don't count.
 
