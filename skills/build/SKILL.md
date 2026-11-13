@@ -111,7 +111,7 @@ Inline lanes run no mutation and no join checks: they are exact-text edits, and 
 - **DONE_WITH_CONCERNS** → run the join checks; the lane is finished when they pass, and it still carries its concerns to Step 7.
 - **DONE or DONE_WITH_CONCERNS with no `Not done:` line** → DONE_WITH_CONCERNS, with `Not done: not reported`. A BLOCKED report follows its `Blocked on:` kind below, with or without the line.
 - **`DONE` with a `Not done:` other than `none`** → DONE_WITH_CONCERNS, the line carried to Step 7.
-- **BLOCKED on destructive, security, outside or design** → take the question to the user. Don't decide it for them.
+- **BLOCKED on destructive, security, outside or design** → take the question to the user. Don't decide it for them. The lane frees its slot, so start the next waiting builder lane (point 3, below).
 - **BLOCKED on context** → dispatch the researcher (Step 3), then resume the same builder with `SendMessage`, carrying its findings. Adding context is a change, so the same model is fine, and the builder's context is warm.
 - **BLOCKED on stuck**, or `Status: BLOCKED` again after a context resume → retry the lane once with a new Agent call: `subagent_type: turbocharge:builder`, `model: opus`, the same lane, naming the tasks already committed and quoting the BLOCKED report. The retry keeps the lane's `LANE_SHA` and carries the same `Mutation:` line: a new `LANE_SHA` would leave the first builder's commits out of check 2's count. `SendMessage` can't change the model. Never retry the same model with nothing changed. A BLOCKED Opus retry goes to the user.
 - **No Status line** → treat it as DONE_WITH_CONCERNS and run the join checks. They replace any look through `git log` of your own.
@@ -142,7 +142,7 @@ Three stages, not one pattern: added lines, minus the `+++ ` file headers, then 
 **After every lane finishes** — an inline lane's last commit, or a builder lane whose join checks pass:
 1. Report one line: `lane <name> ✓ · tasks a–b · commits N · files checked` for a builder lane, and `lane <name> ✓ · tasks a–b · commits N` for an inline lane, where no checks ran.
 2. With `--checkpoint`, stop and wait for human approval before starting anything new.
-3. Start every lane whose `After` lanes have all finished: an inline lane at once (Step 4), a builder lane while fewer than 3 builder lanes are running (Step 3). The rest wait, in plan order, for the next builder lane whose join checks pass. A builder lane holds its slot from its spawn until its join checks pass. One that stops BLOCKED with its question at the user frees its slot, and takes the next free slot once the user answers; a context resume and the Opus retry keep theirs.
+3. Start every lane whose `After` lanes have all finished: an inline lane at once (Step 4), a builder lane while fewer than 3 builder lanes are running (Step 3). The rest wait, in plan order, for the next builder lane whose join checks pass. A builder lane holds its slot from its spawn until its join checks pass. One that stops BLOCKED with its question at the user frees its slot, and takes the next free slot once the user answers, before lanes still waiting; a context resume and the Opus retry keep theirs.
 
 ### 5a. Wait for the Completion Notifications
 
