@@ -65,4 +65,10 @@ if [ -z "$BR_N" ] || [ -z "$BD_N" ] || ! [ "$BR_N" -lt "$BD_N" ]; then
     echo "    builder Report Format: the first differs: line must come after the first Rulings line (rulings=$BR_N differs=$BD_N)"; rc=1
 fi
 
+# Task 5: build Step 4
+BS=$(sec "$PLUGIN_DIR/skills/build/SKILL.md" '## Step 4' '## ')
+for p in '`Like:`' 'names, error handling, test layout' 'Like <target> · differs: <how> · <why>' "Step 7's Rulings" 'not found · built from the Decision'; do
+    has "build Step 4" "$BS" "$p"
+done
+
 exit $rc
