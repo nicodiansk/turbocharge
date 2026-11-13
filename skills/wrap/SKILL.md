@@ -93,14 +93,17 @@ Every line steps 6–9 write to CLAUDE.md, memory or the snapshot, and every pro
 
 ### 6. Encode Session Learnings
 Before generating the resume prompt, check: did the user correct any misunderstandings or wrong approaches during this session? If so:
-- **Update memory files** with corrections that apply to future sessions (domain concepts, preferences, conventions)
+- **Update memory files** with corrections that apply to future sessions (domain concepts, preferences, conventions), the way step 7 says
 - **Update CLAUDE.md** (`./CLAUDE.md`, or `./.claude/CLAUDE.md` if the project keeps it there — never create a second) if the correction reveals a missing rule or domain term that would prevent the same mistake
+  - The lines wrap writes or rewrites carry `(ruled YYYY-MM-DD by user)`.
+  - A correction that changes an existing rule rewrites that line with `supersedes` (Provenance), and never adds one next to it.
+  - Lines wrap doesn't touch stay as they are: CLAUDE.md is team-shared.
 - Don't save ephemeral task details — only save what future sessions need to know
 
 Examples of things worth encoding:
 - "autotuning is proactive, not reactive" → domain term in CLAUDE.md
 - "always use asyncpg, never psycopg2" → infrastructure note in CLAUDE.md or memory
-- "don't ask permission to run tests" → rule in CLAUDE.md
+- "don't ask permission to run tests" → rule in CLAUDE.md: `Run tests without asking (ruled 2026-04-14 by user)`
 
 ### 7. Write Memory With Confidence Metadata
 

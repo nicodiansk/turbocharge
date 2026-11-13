@@ -25,4 +25,7 @@ check Provenance "$PROV" '`<rule> (ruled YYYY-MM-DD by user)`' \
     '`[proposal · <agent> · YYYY-MM-DD · not yet ruled] <text>`' \
     'the old line is deleted' '**No pointer, no line.**' "sed -n '<line>p' <file>" \
     'credential, token, key or cookie value' '**Never two lines for the same rule' '**Short tags' '200 lines or 25 KB'
+S6=$(sec "$W" '### 6. ')
+check "### 6." "$S6" '(ruled YYYY-MM-DD by user)' 'rewrites that line' 'never adds one next to it' \
+    'stay as they are' 'team-shared' 'step 7' '(ruled 2026-04-14 by user)'
 exit $rc
