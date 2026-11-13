@@ -51,4 +51,18 @@ has "plan Check the saved plan line" "$CHECK" 'every `Like:` target resolves'
 NOAGENT=$(grep -F '**No agent here:**' "$S" | head -1)
 has "plan No agent here line" "$NOAGENT" '`Like:` targets resolve'
 
+# Task 4: builder
+B="$PLUGIN_DIR/agents/builder.md"
+assert_file "$B" || exit 1
+BVDU=$(sec "$B" '### Verify Domain Understanding' '## ')
+for p in '5. **Read the task'"'"'s `Like:` target**' 'names, error handling, test layout' 'Like <target> · differs: <how> · <why>' 'read-only' 'found by content' 'Like <target> · not found · built from the Decision'; do
+    has "builder Verify Domain Understanding" "$BVDU" "$p"
+done
+BREP=$(sec "$B" '## Report Format' '## ')
+BR_N=$(printf '%s\n' "$BREP" | grep -nF -- '**Rulings**' | head -1 | cut -d: -f1)
+BD_N=$(printf '%s\n' "$BREP" | grep -nF -- 'differs:' | head -1 | cut -d: -f1)
+if [ -z "$BR_N" ] || [ -z "$BD_N" ] || ! [ "$BR_N" -lt "$BD_N" ]; then
+    echo "    builder Report Format: the first differs: line must come after the first Rulings line (rulings=$BR_N differs=$BD_N)"; rc=1
+fi
+
 exit $rc

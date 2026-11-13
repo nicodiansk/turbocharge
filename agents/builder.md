@@ -29,6 +29,7 @@ Before writing any code:
 2. **Confirm relationships** — which entity owns which fields? Don't assume from naming alone
 3. **Confirm sync vs async** — read existing code patterns, don't guess
 4. **Confirm naming conventions** — use existing codebase names, not your own invention
+5. **Read the task's `Like:` target** — when a task has a `Like:` line, read the target and its tests before writing. Follow its shape: names, error handling, test layout. Where the new code has to differ, add one Rulings line: `Like <target> · differs: <how> · <why>`. A target outside your lane's files stays read-only (Lane Rules). A target that no longer resolves (renamed or moved since the plan) is found by content, like a line range. If it's gone, build from the Decision and add `Like <target> · not found · built from the Decision` under Rulings.
 
 ### Rule, Don't Stall
 You usually run in the background, where nobody can answer a question mid-lane. So:
@@ -126,6 +127,7 @@ Then:
 - `Not done: <what in the lane's tasks wasn't built, or was left out on purpose, and why> | none`
 - `Mutation: <file:line> → <test> RED | strengthened: <how> | no`
 - **Rulings** — one line per call you made (question · call · why · cost if wrong), or `Rulings: none`
+- A task with `Like:` whose code differs from the target adds `Like <target> · differs: <how> · <why>` to Rulings
 - Self-review findings and concerns, if any
 - If blocked: `Blocked on: destructive | security | outside | design | context | stuck — <the question or failure>`, plus the last committed task
 
