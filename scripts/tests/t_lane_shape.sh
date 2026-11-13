@@ -27,4 +27,16 @@ HDR=$(sec "$S" '## Plan Document Header' '## Context Gathering')
 for p in "${RULES[@]}"; do has "plan Plan Document Header" "$HDR" "$p"; done
 grep -qF 'A small plan can be a single lane' "$S" && { echo "    plan still says: A small plan can be a single lane"; rc=1; }
 
+# Task 7: planner and plan check
+P="$PLUGIN_DIR/agents/planner.md"
+assert_file "$P" || exit 1
+PLANES=$(sec "$P" '## Lanes' '## ')
+for p in "${RULES[@]}"; do has "planner Lanes" "$PLANES" "$p"; done
+SSR=$(sec "$P" '## Spec Self-Review' '## ')
+for p in 'no builder→builder chain link' 'at most 3 overlapping builder lanes'; do
+    has "planner Spec Self-Review" "$SSR" "$p"
+    has "plan Check the saved plan line" "$(grep -F 'Check the saved plan' "$S" | head -1)" "$p"
+    has "plan No agent here line" "$(grep -F '**No agent here:**' "$S" | head -1)" "$p"
+done
+
 exit $rc

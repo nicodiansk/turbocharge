@@ -62,6 +62,12 @@ Group tasks into lanes in a `## Lanes` table after the header:
 - `After` lists lanes that must finish first. Lanes with no `After` path between them may overlap.
 - Executor `inline` for mechanical lanes (content edits, exact text given, ≤3 tasks); `builder` for real logic or judgment calls. Effort `low`/`medium`/`high` for builder lanes.
 
+**Lane shape:** the task shape decides the lanes.
+1. **One lane is the default.** Split only independent work: disjoint files, and no need for another lane's result.
+2. **Chain → one lane.** Builder lane B merges into builder lane A when B's only `After` is A and no other lane names A in `After`. Merging loses nothing: B's tasks start after A's either way, and a spawn and a hand-off go away. Repeat until no such pair is left, so A→B→C becomes one lane. The merged lane keeps A's name, owns both file sets, runs A's tasks then B's, and takes the higher Effort.
+3. **Inline lanes stay separate**, before or after a builder lane: they cost no spawn. A chain through an inline lane doesn't merge: the builder lane after it names the inline lane in `After`, not a builder lane.
+4. **At most 3 builder lanes overlap** (no `After` path between any two). With more independent pieces, merge the smallest into one lane, which owns the union of their files. Inline lanes don't count.
+
 ## Task Sizing
 
 - Each task: **2-5 minutes** to implement
@@ -100,8 +106,9 @@ re-review — you fix it yourself, now.
    command. Search for `TODO`, `TBD`, `implement later`, `add appropriate error
    handling`, `similar to Task N`, and vague decisions ("handle errors", "update
    as needed"). Replace each with a concrete decision.
-3. **Lane disjointness** — no file appears in two lanes, and the `After` graph
-   has no cycles.
+3. **Lane disjointness** — no file appears in two lanes, the `After` graph
+   has no cycles, no builder→builder chain link (Lanes, rule 2), and
+   at most 3 overlapping builder lanes (rule 4).
 4. **Type consistency** — every function/method signature and property name
    introduced in an early task matches its usage in later tasks
    (e.g. `clearLayers()` vs `clearFullLayers()`). Reconcile mismatches.
