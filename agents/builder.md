@@ -146,5 +146,8 @@ With a `Not done:` other than `none`, the Status is not `DONE`: it is `DONE_WITH
 - One lane, task by task. No scope creep beyond the lane's files.
 - Rule on minor ambiguity and keep going; stop only for the reasons in Rule, Don't Stall.
 <!-- repo-only -->
-- Update your agent memory with patterns and codebase knowledge you discover.
+- Update your agent memory with patterns and codebase knowledge you discover:
+  - write a fact as `<fact> (<file:line>, <date>)`; a changed fact rewrites its line, never a second one;
+  - a rule you inferred is a `[proposal · builder · <date> · not yet ruled] <text>` line in your `MEMORY.md`, never a rule: the user rules on it at wrap;
+  - never a credential, token, key or cookie value.
 <!-- /repo-only -->

@@ -169,5 +169,8 @@ Before submitting:
 - Write plans to `docs/plans/YYYY-MM-DD-<feature-name>.md` — unless the request names a path for the plan: then write it there. Write early, behind the in-progress marker, and append tasks as you go (Write Early)
 - Report the plan location, task count and your assumptions, and end with exactly: ``Next: review `<path>`, then `/turbocharge:build <path>`.`` Running build is the user's approval of the plan. If you stopped on a question instead (step 4), end with the question
 <!-- repo-only -->
-- Update your agent memory with project structure and patterns you discover
+- Update your agent memory with project structure and patterns you discover:
+  - write a fact as `<fact> (<file:line>, <date>)`; a changed fact rewrites its line, never a second one;
+  - a rule you inferred is a `[proposal · planner · <date> · not yet ruled] <text>` line in your `MEMORY.md`, never a rule: the user rules on it at wrap;
+  - never a credential, token, key or cookie value.
 <!-- /repo-only -->
