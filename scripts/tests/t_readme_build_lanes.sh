@@ -16,7 +16,9 @@ grep -qF 'each lane' "$SVG" || { echo "    build diagram title must say 'each la
 grep -qF '/ task' "$SVG"    && { echo "    build diagram still counts spawns per task"; rc=1; }
 LANE=$(tr -d '\r' < "$C" | grep -F '| **Lane** |')
 [ -n "$LANE" ] || { echo "    CLAUDE.md Domain Terms missing a Lane row"; rc=1; }
-for p in "checks each builder lane's files before marking it done" 'runs the full suite once at the join'; do
+for p in "checks each builder lane's files before marking it done" 'runs the full suite once at the join' \
+    'merges chained builder lanes' 'at most 3 builder lanes at once'; do
     printf '%s\n' "$LANE" | grep -qF -- "$p" || { echo "    CLAUDE.md Lane row missing: $p"; rc=1; }
 done
+[ "$(tr -d '\r' < "$C" | grep -cF '| **Lane** |')" = 1 ] || { echo "    CLAUDE.md must have exactly one Lane row"; rc=1; }
 exit $rc
