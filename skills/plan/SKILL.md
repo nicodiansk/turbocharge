@@ -42,7 +42,12 @@ Every plan MUST start with:
 - Tasks inside a lane run in order. `After` names lanes that must finish first; lanes with no `After` path between them may overlap.
 - **Executor** is a hint: `inline` for mechanical lanes (content edits, exact text given, ≤3 tasks) that the main session applies directly; `builder` for real logic or lanes with judgment calls, run by one builder for the whole lane.
 - **Effort** (`low`/`medium`/`high`) applies to builder lanes; use `—` for inline.
-- A small plan can be a single lane.
+
+**Lane shape:** the task shape decides the lanes.
+1. **One lane is the default.** Split only independent work: disjoint files, and no need for another lane's result.
+2. **Chain → one lane.** Builder lane B merges into builder lane A when B's only `After` is A and no other lane names A in `After`. Merging loses nothing: B's tasks start after A's either way, and a spawn and a hand-off go away. Repeat until no such pair is left, so A→B→C becomes one lane. The merged lane keeps A's name, owns both file sets, runs A's tasks then B's, and takes the higher Effort.
+3. **Inline lanes stay separate**, before or after a builder lane: they cost no spawn. A chain through an inline lane doesn't merge: the builder lane after it names the inline lane in `After`, not a builder lane.
+4. **At most 3 builder lanes overlap** (no `After` path between any two). With more independent pieces, merge the smallest into one lane, which owns the union of their files. Inline lanes don't count.
 
 **Review Focus** names up to 5 input classes or failure modes the spec implies but never names, and that no task's test would otherwise exercise: the empty list, the duplicate, the field with a comma, the rerun. One line each, most likely first: the input, then what a reasonable user expects. The spec says what the software must do, not everything it will meet; its silence on an input is not permission for that input to break the program. The task that owns the code gets a test assertion that pins each line, and the line names that task. If nothing is implied, write `None found — <why>`.
 
