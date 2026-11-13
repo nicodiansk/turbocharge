@@ -42,7 +42,7 @@ Start from the plan's Executor hint, then override:
 
 **No agents here:** if the Agent tool is missing, or a dispatch fails because `turbocharge:builder` is not registered (some surfaces load skills without agents), run every builder lane inline (Step 4), one lane at a time, and say once: `agents unavailable — running lanes inline`.
 
-**Overlap:** lanes with no `After` path between them run at the same time — builder lanes in the background while the main session works the inline lanes. A lane with `After` starts only when every lane it names has finished (Step 5).
+**Overlap:** lanes with no `After` path between them run at the same time — builder lanes in the background while the main session works the inline lanes. A lane with `After` starts only when every lane it names has finished (Step 5). At most 3 builder lanes run at once: a fourth that is ready waits for a slot (Step 5). The cap covers plans written before 3.7.0 or by hand, and `--delegate`, which makes every lane a builder lane. Inline lanes don't count.
 
 **No overlap with stashing commit hooks:** if the project's commit hooks stash unstaged changes, run lanes one at a time. Check for the `pre-commit` framework (`.pre-commit-config.yaml`) and lint-staged — `.lintstagedrc*`, `lint-staged.config.*`, a `lint-staged` key in `package.json`, or a `.husky/` hook that runs it. A pathspec commit leaves every other lane's in-flight edits unstaged, and the hook would stash them out from under that lane.
 
@@ -56,7 +56,7 @@ lanes: 4 (inline 3 · builder 1)
 
 ## Step 3: Spawn Builder Lanes
 
-For each builder lane that is ready (its `After` lanes are done), spawn one builder — subagent type `turbocharge:builder` — with:
+For each builder lane that is ready (its `After` lanes are done) and has a slot (Step 2), spawn one builder — subagent type `turbocharge:builder` — with:
 - **`effort`** set on the Agent call from the lane's Effort column (default `medium`). The per-spawn value overrides the agent definition.
 - Plan file path, lane name, and its task line ranges — do NOT paste plan content; the builder reads the file directly
 - Working directory
@@ -87,7 +87,7 @@ If a builder reports `Blocked on: context` (Step 5), dispatch the researcher wit
 ## Step 4: Run Inline Lanes
 
 While builder lanes run, the main session works through the inline lanes, task by task. With `--reviewed`, record the lane's `BEFORE_SHA` first (Step 6), before its first task.
-1. Read the task's Decision and Test assertions from the plan. Its line ranges are plan-time hints: if an earlier task in the lane shifted the code, find it by content.
+1. Read the task's Decision and Test assertions from the plan. Its line ranges are plan-time hints: if an earlier task in the lane shifted the code, find it by content. When the task has `Like:`, read the target and its tests first and follow its shape (names, error handling, test layout). Where the new code has to differ, list `Like <target> · differs: <how> · <why>` in Step 7's Rulings. A target that no longer resolves: find it by content; if it's gone, build from the Decision and list `Like <target> · not found · built from the Decision`.
 2. Write the test from the assertions and run it — it must fail on an assertion about the result, for the reason the task names (RED). An import error, a missing name or a syntax error is not RED: add a stub that returns a neutral value (empty, zero, `None`), rerun, and the test now fails on its assertion. A test that expects an error is RED when the error doesn't come.
 3. Implement the Decision. Run the test — GREEN.
 4. Commit by pathspec: `git add <new files>`, then `git commit -m "<message>" -- <this task's files>`.
@@ -111,7 +111,7 @@ Inline lanes run no mutation and no join checks: they are exact-text edits, and 
 - **DONE_WITH_CONCERNS** → run the join checks; the lane is finished when they pass, and it still carries its concerns to Step 7.
 - **DONE or DONE_WITH_CONCERNS with no `Not done:` line** → DONE_WITH_CONCERNS, with `Not done: not reported`. A BLOCKED report follows its `Blocked on:` kind below, with or without the line.
 - **`DONE` with a `Not done:` other than `none`** → DONE_WITH_CONCERNS, the line carried to Step 7.
-- **BLOCKED on destructive, security, outside or design** → take the question to the user. Don't decide it for them.
+- **BLOCKED on destructive, security, outside or design** → take the question to the user. Don't decide it for them. The lane frees its slot, so start the next waiting builder lane (point 3, below).
 - **BLOCKED on context** → dispatch the researcher (Step 3), then resume the same builder with `SendMessage`, carrying its findings. Adding context is a change, so the same model is fine, and the builder's context is warm.
 - **BLOCKED on stuck**, or `Status: BLOCKED` again after a context resume → retry the lane once with a new Agent call: `subagent_type: turbocharge:builder`, `model: opus`, the same lane, naming the tasks already committed and quoting the BLOCKED report. The retry keeps the lane's `LANE_SHA` and carries the same `Mutation:` line: a new `LANE_SHA` would leave the first builder's commits out of check 2's count. `SendMessage` can't change the model. Never retry the same model with nothing changed. A BLOCKED Opus retry goes to the user.
 - **No Status line** → treat it as DONE_WITH_CONCERNS and run the join checks. They replace any look through `git log` of your own.
@@ -142,7 +142,7 @@ Three stages, not one pattern: added lines, minus the `+++ ` file headers, then 
 **After every lane finishes** — an inline lane's last commit, or a builder lane whose join checks pass:
 1. Report one line: `lane <name> ✓ · tasks a–b · commits N · files checked` for a builder lane, and `lane <name> ✓ · tasks a–b · commits N` for an inline lane, where no checks ran.
 2. With `--checkpoint`, stop and wait for human approval before starting anything new.
-3. Start every lane whose `After` lanes have all finished — Step 3 for a builder lane, Step 4 for an inline lane.
+3. Start every lane whose `After` lanes have all finished: an inline lane at once (Step 4), a builder lane while fewer than 3 builder lanes are running (Step 3). The rest wait, in plan order, for the next builder lane whose join checks pass. A builder lane holds its slot from its spawn until its join checks pass. One that stops BLOCKED with its question at the user frees its slot, and takes the next free slot once the user answers, before lanes still waiting; a context resume and the Opus retry keep theirs.
 
 ### 5a. Wait for the Completion Notifications
 
