@@ -90,7 +90,7 @@ trailing task without one, and continue from the next task number. Say
 ## Spec Self-Review (MANDATORY — before you remove the in-progress marker)
 
 After drafting the full plan and before you remove the in-progress marker, run this
-5-point self-review on your own plan and fix every gap inline. No subagent, no
+6-point self-review on your own plan and fix every gap inline. No subagent, no
 re-review — you fix it yourself, now.
 
 1. **Spec coverage** — for every requirement in the source spec, point to the
@@ -113,8 +113,9 @@ re-review — you fix it yourself, now.
    not that you skipped the check. The spec says what the software must do, not
    everything it will meet: its silence on an input is not permission for that
    input to break the program.
+6. **`Like:` targets resolve** — for every `Like:` line, the Grep tool (or `grep -n`) finds the symbol in the path, and the `(tests: …)` path exists. Not `rg`: ripgrep isn't on every machine, and the Grep tool bundles it. A target that doesn't resolve is fixed or removed.
 
-Only after all five checks succeed do you remove the in-progress marker.
+Only after all six checks succeed do you remove the in-progress marker.
 
 ## Plan Format
 
@@ -152,6 +153,7 @@ Before submitting:
 - [ ] No file belongs to two lanes; `After` has no cycles
 - [ ] Code appears only where the exact text is the decision
 - [ ] Review Focus has up to 5 lines, each `(pinned: Task N)` by an assertion in that task
+- [ ] Every `Like:` target resolves: the symbol is in the path, the tests path exists
 
 ## Remember
 

@@ -39,4 +39,16 @@ fi
 grep -qF -- "**Name it, don't describe it**" "$P" || { echo "    planner.md missing: **Name it, don't describe it**"; rc=1; }
 has "planner Remember" "$(sec "$P" '## Remember' '## ')" '(step 4)'
 
+# Task 3: the plan check resolves Like: targets
+SSR=$(sec "$P" '## Spec Self-Review' '## ')
+for p in '6. **`Like:` targets resolve**' 'Grep tool' 'grep -n' 'fixed or removed'; do
+    has "planner Spec Self-Review" "$SSR" "$p"
+done
+grep -nE '(^|[[:space:](])rg -' "$P" >/dev/null && { echo "    planner.md must not name rg"; rc=1; }
+has "planner Quality Checklist" "$(sec "$P" '## Quality Checklist' '## ')" 'Every `Like:` target resolves'
+CHECK=$(grep -F 'Check the saved plan' "$S" | head -1)
+has "plan Check the saved plan line" "$CHECK" 'every `Like:` target resolves'
+NOAGENT=$(grep -F '**No agent here:**' "$S" | head -1)
+has "plan No agent here line" "$NOAGENT" '`Like:` targets resolve'
+
 exit $rc
