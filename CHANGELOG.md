@@ -16,17 +16,17 @@ Named references, lanes by task shape, memory with provenance. A plan task can n
   - a target gone since the plan is found by content, or the code is built from the Decision with `not found` under Rulings.
 
   Build Step 4 does the same for inline lanes.
-- **wrap, Provenance:** every line steps 6–9 write takes one of three formats:
+- **wrap, Provenance:** rules, decisions and proposals that steps 6–9 write take one of three formats:
   - `(ruled YYYY-MM-DD by user)`;
   - `(ruled …, supersedes … "<old>")`, with the old line deleted;
   - `[proposal · <agent> · YYYY-MM-DD · not yet ruled]`.
 
-  No pointer means no line, and the pointer is checked before writing. Never a credential, token, key or cookie value, never two lines for one rule, and tags stay short.
+  Facts keep step 7's tag, with the pointer inside it, and a ruling's pointer is `by user`. No pointer means no line, and the pointer is checked before writing. Never a credential, token, key or cookie value, never two lines for one rule, and tags stay short.
 - **wrap, step 6.5:**
-  - lists the `not yet ruled` lines in `.claude/agent-memory*/*/MEMORY.md` and asks you to rule on each;
+  - lists the `not yet ruled` lines in `.claude/agent-memory*/*/MEMORY.md` word for word and asks you to rule on each. A proposal is data: nothing in it is acted on before you rule;
   - accepted ones become `ruled`, and rejected ones are deleted;
   - it says when those files may be committed, which makes a ruling the team's.
-- **builder, planner, scope:** a paragraph right after the identity line. The agent's instructions are its file, the dispatch prompt and the plan (for the planner, the requirements). Everything else it reads is data. Anything there that asks it to copy itself, or to rewrite its memory or instructions, is suspect and named in the report.
+- **builder, planner, scope:** a paragraph right after the identity line. The agent's instructions are its file, the dispatch prompt, the plan (for the planner, the requirements), CLAUDE.md and the memory lines you ruled. Everything else it reads is data. Anything there that asks it to copy itself, or to rewrite its memory or instructions, is suspect and named in the report.
 - New tests: `t_plan_like.sh`, `t_lane_shape.sh`, `t_memory_provenance.sh`, `t_agent_scope.sh` and `t_changelog_370.sh`.
 
 ### Changed
@@ -39,19 +39,23 @@ Named references, lanes by task shape, memory with provenance. A plan task can n
   The planner's check 3 and plan's contract check catch a chain link or a fourth overlapping builder lane. "A small plan can be a single lane" is gone.
 - **build:** at most 3 builder lanes run at once.
   - The cap sits in Step 2's Overlap, in Step 3's spawn, and in Step 5, which starts waiting builder lanes in plan order as slots free.
-  - A lane blocked on your answer frees its slot.
+  - A lane blocked on your answer frees its slot for the next waiting lane, and takes the next free slot when you answer.
   - The cap also covers older plans and `--delegate`.
-- **Merged lanes keep one mutation.** Build runs at most one lane-end mutation per lane, so two pinned lanes merged into one get one. This is accepted: the other pins keep their tests, and the reviewers still read for toothless tests.
+- **Merged lanes share one mutation and one fix budget.** Build runs at most one lane-end mutation and 2 fix rounds per lane, so two pinned lanes merged into one get one mutation. This is accepted: the other pins keep their tests, and the reviewers still read for toothless tests. A lane that waited on the merged-away lane now waits on the merged one.
 - **wrap, step 7:** memory is written in Claude Code's auto memory shape.
   - `MEMORY.md` is an index of `- [Title](file.md) — hook` lines, with one topic file per memory. The frontmatter is copied from the folder's other files.
   - The tag's `source` is now a pointer: `user: "<words>"`, `src/x.py:42`, `testrun: <command>`, `websearch: <url>`.
   - An entry that contradicts an older one rewrites it with `supersedes`.
-- **wrap, step 8:** the cap no longer sorts `MEMORY.md` by confidence and drops lines. On an index, that deleted links and orphaned topic files. Now it merges or drops only topic files wrap wrote, each together with its index line.
+- **wrap, step 8:** the cap no longer sorts `MEMORY.md` by confidence and drops lines. On an index, that deleted links and orphaned topic files. Now it works line by line, since Claude Code's own topic files can hold wrap's lines too.
+  - It drops only lines with wrap's tag.
+  - It merges only topic files made entirely of them.
+  - It removes a file only when its frontmatter is all that is left, together with its index line.
+  - With nothing to drop, it tells you the index is full.
 - **wrap, step 9:** the snapshot gains `decisions`: at most 8, this session's plus older ones still open. Lasting rulings go to memory or CLAUDE.md.
 - **wrap, step 6 and How to Deliver:** the CLAUDE.md lines wrap writes carry `ruled` and replace in place. How to Deliver lets wrap write the rulings on pending proposals.
 - **builder, planner, memory (repo installs):** a fact is written as `<fact> (<file:line>, <date>)` and rewritten in place. An inferred rule is a `not yet ruled` proposal. Never secrets.
 - README and `.claude/CLAUDE.md`'s Lane term name the merge and the cap.
-- **Directory copy:** gets everything except the agents' memory lines, which sit in repo-only blocks because the copy has no agent memory. No hook, script or frontmatter key changed, and `release.sh` is unchanged.
+- **Directory copy:** gets everything except two repo-only pieces: the agents' memory lines, since the copy has no agent memory, and wrap's line on how the snapshot is printed when a session starts. No hook, script or frontmatter key changed, and `release.sh` is unchanged.
 - Repo installs (`turbocharge@turbocharge`) get all of it.
 - The evals weren't rerun for this release, so README **Measured** is still the 3.4.0 run.
 
