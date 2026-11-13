@@ -76,6 +76,21 @@ Include in the resume prompt:
 Navigation: @ATLAS.md is current. CodeMap index: run `codemap validate` if unsure.
 ```
 
+### Provenance: who decided, and where it came from
+Every line steps 6–9 write to CLAUDE.md, memory or the snapshot, and every proposal, takes one of three formats:
+
+| Who decided | Line |
+|---|---|
+| The user | `<rule> (ruled YYYY-MM-DD by user)` |
+| The user changed their mind | `<new rule> (ruled YYYY-MM-DD, supersedes YYYY-MM-DD "<old, short>")`, and the old line is deleted |
+| An agent, with no person's ruling | `[proposal · <agent> · YYYY-MM-DD · not yet ruled] <text>` |
+
+- **No pointer, no line.** Every line points at its source: a `file:line`, the user's words (15 at most), or the test command.
+- **Check the pointer before writing:** `sed -n '<line>p' <file>` shows the line, or the user's words are in this session.
+- **Never** write a credential, token, key or cookie value, in memory, CLAUDE.md or the snapshot.
+- **Never two lines for the same rule.** Rewrite the old one.
+- **Short tags:** a date and a pointer, nothing more, since memory loads only its first 200 lines or 25 KB.
+
 ### 6. Encode Session Learnings
 Before generating the resume prompt, check: did the user correct any misunderstandings or wrong approaches during this session? If so:
 - **Update memory files** with corrections that apply to future sessions (domain concepts, preferences, conventions)
