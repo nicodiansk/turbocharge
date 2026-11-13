@@ -145,7 +145,7 @@ The SessionStart hook also pre-loads its Where to Look table at every session st
 | **brainstorm** | `/turbocharge:brainstorm` | Socratic requirements discovery before implementation |
 | **story** | `/turbocharge:story` | INVEST-compliant story breakdown with acceptance criteria |
 | **plan** | `/turbocharge:plan` | Lean plans — decisions, exact paths and test assertions in 2-5 min tasks, grouped into file-disjoint lanes |
-| **build** | `/turbocharge:build` | Runs each lane inline or with one Sonnet builder, overlaps independent lanes, then one full-suite gate. Opt-in per-lane review (`--reviewed`). |
+| **build** | `/turbocharge:build` | Runs each lane inline or with one Sonnet builder, overlaps independent lanes (at most 3 builders at once), then one full-suite gate. Opt-in per-lane review (`--reviewed`). |
 | **review** | `/turbocharge:review` | Pre-merge review against the plan by one senior reviewer |
 | **debug** | `/turbocharge:debug` | Systematic 4-phase root-cause investigation — no fix until cause is proven |
 | **ship** | `/turbocharge:ship` | Test verification, then merge / PR / keep (discard only when you ask). Triages review comments you save to a file or paste: verifies each, fixes the valid ones, drafts the replies |
@@ -175,7 +175,7 @@ A plan groups its tasks into **lanes** — sets of tasks that own disjoint files
 - **Inline** — mechanical lanes (content edits, exact text in the plan) run in your main session, task by task. No spawn at all.
 - **Builder** — lanes with real logic get one Sonnet builder for the whole lane, at the effort the plan sets.
 
-Independent lanes **overlap**: builders work in the background while your session runs the inline lanes, and every commit is scoped to its lane's files. When all lanes finish, build runs the full suite **once** — the full-suite gate. A failure goes back to the lane that owns the file; a builder lane's fix round **resumes** the same builder, context and prompt cache intact, instead of paying for a fresh spawn.
+Independent lanes **overlap**, at most 3 builder lanes at once: builders work in the background while your session runs the inline lanes, and every commit is scoped to its lane's files. Work that chains stays in one lane: the plan merges a builder lane that only waits on another builder lane into it, which saves a spawn and a hand-off. When all lanes finish, build runs the full suite **once** — the full-suite gate. A failure goes back to the lane that owns the file; a builder lane's fix round **resumes** the same builder, context and prompt cache intact, instead of paying for a fresh spawn.
 
 **Tests with teeth.** A task's test must first fail on an assertion about the result, not on an import error, and no lane gets to green by skipping, weakening or hard-coding a test. When the plan's Review Focus pins one of a builder lane's tests, or with `--reviewed`, the builder ends the lane with a mutation: it breaks one line that test covers, checks that the test fails on an assertion, and restores the line. A builder's report is a claim, so before marking its lane done, build checks the lane's files itself: nothing uncommitted, at least one commit per task, no test shortcuts in the added lines, and the lane's tests rerun green.
 

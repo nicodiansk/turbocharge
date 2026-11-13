@@ -50,4 +50,16 @@ for p in 'while fewer than 3 builder lanes are running' 'in plan order' 'whose j
     has "build Step 5" "$(sec "$BS" '## Step 5' '## ')" "$p"
 done
 
+# Task 9: README
+R="$PLUGIN_DIR/README.md"
+assert_file "$R" || exit 1
+ROW=$(grep -F '| **build** |' "$R" | head -1)
+PARA=$(grep -F 'Independent lanes **overlap**' "$R" | head -1)
+FILTERED=$(bash "$PLUGIN_DIR/scripts/directory-filter.sh" < "$R")
+has "README build row" "$ROW" 'at most 3 builders at once'
+has "README lanes paragraph" "$PARA" 'at most 3 builder lanes at once'
+has "README lanes paragraph" "$PARA" 'Work that chains stays in one lane'
+has "README filtered copy" "$FILTERED" 'at most 3 builders at once'
+has "README filtered copy" "$FILTERED" 'Work that chains stays in one lane'
+
 exit $rc
