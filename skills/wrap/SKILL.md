@@ -151,14 +151,18 @@ Write `.claude/turbocharge-session.json` in the project root (the standard Claud
   "branch": "master",
   "current_task": "ATLAS reshape design",
   "blockers": [],
+  "decisions": ["2026-04-14 · user · ATLAS keeps Where to Look first", "2026-04-14 · proposal: planner · split the atlas skill in two"],
   "next_steps": ["Chain to /turbocharge:plan", "Break into tasks"],
   "open_files": ["skills/atlas/SKILL.md"]
 }
 ```
 
+`decisions` holds strings `"YYYY-MM-DD · <user | proposal: agent> · <decision>"`, at most 8, this session's plus older ones still open. A ruling that should outlast the work goes to memory or CLAUDE.md with `ruled` (steps 6–7), not here. A changed decision replaces its string and never sits next to it. A snapshot with no `decisions` key (an older wrap) starts the list empty.
+
 The resume prompt's `@.claude/turbocharge-session.json` loads this into the next session.
 <!-- repo-only -->
 The SessionStart hook also prints it when the next session starts, so resume takes no tool call.
+It prints the snapshot within what is left of its output budget and cuts the rest, so `decisions` stays at 8 or fewer.
 <!-- /repo-only -->
 
 **Gitignore check (MANDATORY):** Before writing the snapshot, verify `.claude/turbocharge-session.json` is in the project `.gitignore`. If not, add exactly this line:

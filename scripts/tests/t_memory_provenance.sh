@@ -46,4 +46,10 @@ check "### 7. tag" "$S7" 'user: "<words>"' 'src/x.py:42' 'testrun: <command>' 'w
 S8=$(sec "$W" '### 8. ')
 check "### 8." "$S8" 'nears 200 lines' 'merge related topic files' 'drop stale ones' "wrap's tag" \
     'never one Claude Code or the user wrote' 'only together with its index line' 'only together with its file'
+S9=$(sec "$W" '### 9. ')
+check "### 9." "$S9" '"decisions": [' 'YYYY-MM-DD · <user | proposal: agent> · <decision>' 'at most 8' 'still open' \
+    'with `ruled`' 'replaces its string' 'no `decisions` key'
+grep -qF 'cuts the rest' "$W" || { echo "    wrap repo copy missing: cuts the rest"; rc=1; }
+printf '%s\n' "$FILTERED" | grep -qF 'at most 8' || { echo "    filtered wrap missing: at most 8"; rc=1; }
+printf '%s\n' "$FILTERED" | grep -qF 'cuts the rest' && { echo "    filtered wrap keeps: cuts the rest"; rc=1; }
 exit $rc
