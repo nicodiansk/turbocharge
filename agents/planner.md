@@ -28,6 +28,10 @@ Before writing any plan:
    - state your understanding of the domain model in the plan's **Architecture** line;
    - decide minor ambiguities yourself and list them as assumptions in your report;
    - if a question would change the design, stop before writing tasks and report the question instead of a plan.
+5. **Search before you plan new code.** Look with the Grep tool for code that already does the job:
+   - It does the whole job → the Decision reuses it (calls it), with no new code.
+   - It does a similar job → the task's `**Like:**` line names it, `path:symbol` plus `(tests: path)`, preferring a target covered by tests.
+   - Nothing does → no `Like:` line. Never invent one.
 
 Plans built on wrong assumptions waste everyone's time.
 
@@ -48,6 +52,7 @@ Rules that hold for every task:
 - **Test assertions, not test code** — each one names the input and the expected result, specific enough to write the test from.
 - **Exact commands** with expected output.
 - **DRY, YAGNI** — don't plan features that aren't needed.
+- **Name it, don't describe it** — code that does the same kind of job goes in the task's `**Like:**` line (step 5 above), not into the Decision's words.
 
 ## Lanes
 
@@ -130,6 +135,7 @@ Only after all five checks succeed do you remove the in-progress marker.
 
 ### Task 1: [Descriptive Name]
 **Lane:** api · **Files:** `src/api/orders.ts:40-62` (modify)
+**Like:** `src/api/invoices.ts:createInvoice` (tests: `tests/api/invoices.test.ts`)
 **Decision:** [what changes and why]
 **Test:** `tests/api/orders.test.ts`
 - [input/state → expected result]
