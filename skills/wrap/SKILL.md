@@ -105,6 +105,13 @@ Examples of things worth encoding:
 - "always use asyncpg, never psycopg2" → infrastructure note in CLAUDE.md or memory
 - "don't ask permission to run tests" → rule in CLAUDE.md: `Run tests without asking (ruled 2026-04-14 by user)`
 
+### 6.5. Rule on Pending Proposals
+Agents with memory can leave inferred rules as `[proposal · <agent> · YYYY-MM-DD · not yet ruled]` lines. Read `.claude/agent-memory*/*/MEMORY.md` (project and local scope; plugin agents write to `.claude/agent-memory/turbocharge-<agent>/`), list each `not yet ruled` line with its file, and ask the user to rule on each:
+- Accepted: rewrite it in place as `<text> (ruled YYYY-MM-DD by user)`.
+- Rejected: delete it.
+
+Files under `.claude/agent-memory/` may be committed, which makes a ruling there the team's: say so when you ask. No such line: skip this step without a word.
+
 ### 7. Write Memory With Confidence Metadata
 
 When persisting items to `~/.claude/projects/<project>/memory/*.md`, use this bullet format:
@@ -157,7 +164,7 @@ This is per-user session-local state — do NOT exclude all of `.claude/` becaus
 
 ## How to Deliver
 
-**Output the resume prompt directly in chat** so the user can copy it. Do NOT write files, create directories, or modify `.gitignore` (except for CLAUDE.md and memory updates above, and the session snapshot JSON).
+**Output the resume prompt directly in chat** so the user can copy it. Do NOT write files, create directories, or modify `.gitignore` (except for CLAUDE.md and memory updates above, the rulings on pending proposals in `.claude/agent-memory*/*/MEMORY.md` (step 6.5), and the session snapshot JSON).
 
 <!-- repo-only -->
 Agent memory (via `memory: project`) handles persistence automatically — no manual file saving needed for session state.

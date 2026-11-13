@@ -28,4 +28,12 @@ check Provenance "$PROV" '`<rule> (ruled YYYY-MM-DD by user)`' \
 S6=$(sec "$W" '### 6. ')
 check "### 6." "$S6" '(ruled YYYY-MM-DD by user)' 'rewrites that line' 'never adds one next to it' \
     'stay as they are' 'team-shared' 'step 7' '(ruled 2026-04-14 by user)'
+S65=$(sec "$W" '### 6.5. Rule on Pending Proposals')
+check "### 6.5." "$S65" '.claude/agent-memory*/*/MEMORY.md' '.claude/agent-memory/turbocharge-<agent>/' \
+    'not yet ruled' 'rewrite it in place' 'delete it' "the team's" 'skip this step'
+check "## How to Deliver" "$(sec "$W" '## How to Deliver')" '.claude/agent-memory*/*/MEMORY.md'
+FILTERED=$(bash "$PLUGIN_DIR/scripts/directory-filter.sh" < "$W")
+printf '%s\n' "$FILTERED" | grep -qF '### 6.5.' || { echo "    filtered wrap lost ### 6.5."; rc=1; }
+printf '%s\n' "$FILTERED" | grep -qi 'agent memory' && { echo "    filtered wrap says agent memory"; rc=1; }
+printf '%s\n' "$FILTERED" | grep -qF 'SessionStart' && { echo "    filtered wrap says SessionStart"; rc=1; }
 exit $rc
