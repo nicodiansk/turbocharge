@@ -36,4 +36,9 @@ FILTERED=$(bash "$PLUGIN_DIR/scripts/directory-filter.sh" < "$W")
 printf '%s\n' "$FILTERED" | grep -qF '### 6.5.' || { echo "    filtered wrap lost ### 6.5."; rc=1; }
 printf '%s\n' "$FILTERED" | grep -qi 'agent memory' && { echo "    filtered wrap says agent memory"; rc=1; }
 printf '%s\n' "$FILTERED" | grep -qF 'SessionStart' && { echo "    filtered wrap says SessionStart"; rc=1; }
+S7=$(sec "$W" '### 7. ')
+grep -qF -- "### 7. Write Memory in Auto Memory's Shape" "$W" || { echo "    wrap missing heading: ### 7. Write Memory in Auto Memory's Shape"; rc=1; }
+check "### 7." "$S7" '- [Title](file.md) — one-line hook' 'No `MEMORY.md` yet' \
+    '# Memory Index' '`name`, `description` and `metadata.type`' '`user`, `feedback`, `project` or `reference`' \
+    'Never write what the code or CLAUDE.md already says' 'tagged bullets from an older wrap' 'delete none'
 exit $rc

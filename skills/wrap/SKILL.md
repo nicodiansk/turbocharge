@@ -112,9 +112,15 @@ Agents with memory can leave inferred rules as `[proposal · <agent> · YYYY-MM-
 
 Files under `.claude/agent-memory/` may be committed, which makes a ruling there the team's: say so when you ask. No such line: skip this step without a word.
 
-### 7. Write Memory With Confidence Metadata
+### 7. Write Memory in Auto Memory's Shape
 
-When persisting items to `~/.claude/projects/<project>/memory/*.md`, use this bullet format:
+`~/.claude/projects/<project>/memory/` is Claude Code's auto memory directory, and wrap writes the way auto memory does:
+- `MEMORY.md` is an index, one line per topic file: `- [Title](file.md) — one-line hook`. No `MEMORY.md` yet: create it with a `# Memory Index` heading above the index lines, never a flat list of bullets.
+- Each topic file opens with frontmatter. Copy the keys an existing topic file in that folder uses, leaving out any you can't fill truthfully (a session id). With none, write `name`, `description` and `metadata.type` (`user`, `feedback`, `project` or `reference`).
+- Add to the topic file the memory belongs to, or create one with its frontmatter and its index line. Never write what the code or CLAUDE.md already says.
+- A `MEMORY.md` that still holds tagged bullets from an older wrap (it wrote them straight into the index): move them into a topic file with one index line, and delete none.
+
+Lines in a topic file use this bullet format:
 
 ```
 - Summary sentence _(source, YYYY-MM-DD, conf: 0.8)_
