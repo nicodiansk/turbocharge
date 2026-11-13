@@ -66,6 +66,7 @@ Each task MUST follow this format:
 ```markdown
 ### Task N: [Component Name]
 **Lane:** [lane] · **Files:** `exact/path.py:40-62` (modify), `exact/new_file.py` (create)
+**Like:** `src/importers/csv.py:parse_row` (tests: `tests/importers/test_csv.py`)
 **Decision:** [1–4 lines: what changes and why — names, signatures, behavior, edge cases]
 **Test:** `tests/exact/test_file.py`
 - [assertion: input/state → expected result]
@@ -74,9 +75,12 @@ Each task MUST follow this format:
 **Commit:** `feat: [description]`
 ```
 
+`**Like:**` is optional. Write it only when the codebase already has code doing the same kind of job, and add `(tests: …)` when the target has tests. Otherwise leave the line out: never invent one.
+
 ## Rules
 
 - **Decisions, not code.** Record what to build and why; the builder or the main session writes the code. Include code only where the exact text *is* the decision — a regex, a signature, a JSON key, an error string — inline or in a fence of ≤10 lines. Target ≈1.5 KB per task.
+- **Name it, don't describe it.** Code that already does the same kind of job goes in the task's `Like:` line, not into a paragraph about it. Code that does the whole job is reused: the Decision calls it, with no new code.
 - Each task: **2-5 minutes** of work. If longer, split it.
 - **Exact file paths**, with line ranges for modifications — not "somewhere in src/". Line ranges are plan-time hints; build re-locates code by content when an earlier task in the lane shifts it
 - **Verify runs the task's own tests — never the full suite** while another lane can still be running: it would see that lane's half-written files. Build runs the full suite once, at the join; only a final lane that comes `After` every other lane may verify with it
