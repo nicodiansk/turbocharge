@@ -80,6 +80,13 @@ check allow 'git add $(git ls-files -m)'
 check allow 'echo $(echo a) && git add b.txt'
 check block "$(printf '%s\n' 'cat <<< x; git add .')"
 
+# The classic form again, with a body line that is itself blocked text, and with a blocked command after it.
+BODY="$(printf '%s\n' 'git commit -m "$(cat <<'"'EOF'" "feat: it's done" '' 'git add -A' 'Notes 1) and "quoted' 'EOF' ')" -- new.txt')"
+check allow "$BODY"
+check block "$BODY && git add -A"
+check block "$BODY; git commit --no-verify -m x"
+
+
 check allow 'echo $(git add -A'
 check block 'echo $(echo $(echo $(echo $(git add -A))))'
 check allow 'echo $(echo $(echo $(echo $(echo $(git add -A)))))'
