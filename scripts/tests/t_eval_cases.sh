@@ -103,7 +103,7 @@ fi
 
 # --- plan-quality case -----------------------------------------------------
 P="$EVALS/planning/csv-export"
-[ "$(find "$P/graders" -name '*.md' 2>/dev/null | wc -l)" -eq 6 ] || fail "planning-csv-export should have 6 graders"
+[ "$(find "$P/graders" -name '*.md' 2>/dev/null | wc -l)" -eq 7 ] || fail "planning-csv-export should have 7 graders"
 if [ -d "$P" ]; then
     scored=0
     for g in "$P"/graders/*.md; do
