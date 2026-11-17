@@ -1,5 +1,23 @@
 # Changelog
 
+## [3.7.1] - 2026-11-17
+
+Build reads its arguments and the plan more carefully, and brainstorm and story ask before committing. Build parses its flags before taking the plan path, and won't build a plan the planner left unfinished. A full-gate failure in a file no lane owns now has somewhere to go. Brainstorm and story commit their doc only where git tracks it, and ask first on the default branch.
+
+### Fixed
+- **build, Step 1:** parses the flags first, and what remains is the plan path. With no path it takes the one in this session's plan `Next:` line, or asks which plan, offering the newest `docs/plans/*.md`. A plan whose line 1 is `<!-- plan: in progress -->` isn't built: build offers `/turbocharge:plan <path>`, which resumes it. Before, build ran the tasks an unfinished plan had so far and counted them as the whole plan.
+- **build, fix rounds (5c):** a full-gate failure in a file no lane owns, usually a cross-lane regression, goes to the lane whose change it points to. That lane may edit the file for this fix and lists it under its Rulings. When no lane's change explains it, the main session fixes it, or the user decides.
+- **brainstorm and story:** commit the doc they save only if git tracks its folder; on the default branch they ask first whether to commit there or on a new branch.
+- **brainstorm, small path:** gives its recommendation for each choice, plus one alternative when the choice is real. The "Single approach" red flag now applies to projects only, since a small item skips step 4.
+- New tests `t_build_plan_intake.sh`, `t_fix_round_unowned.sh` and `t_doc_commit_guard.sh`; `t_brainstorm_sizing.sh` covers the small path.
+- Dev only: `.claude/CLAUDE.md` gets working test commands, says the evals are off and lists the directory rules one per line; CI drops a stale comment.
+- **Directory copy:** gets all of it. No hook, script or frontmatter key changed. It isn't sent to the directory yet: 3.7.0 is waiting for a reviewer, and a push to `release` restarts that wait.
+- Repo installs (`turbocharge@turbocharge`) get all of it.
+- The evals weren't rerun for this patch.
+
+### Upgrading
+After updating, run `/reload-plugins` or restart Claude Code.
+
 ## [3.7.0] - 2026-11-13
 
 Named references, lanes by task shape, memory with provenance. A plan task can name the code to imitate instead of describing it. The plan merges builder lanes that only chain, and build runs at most 3 builder lanes at once. Every line wrap or an agent writes to memory, CLAUDE.md or the snapshot says who decided it and where it came from.
