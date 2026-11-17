@@ -37,7 +37,7 @@ HEADERS="# ATLAS — Test
 # atlas WTL KP IP MM: ATLAS.md from section bodies (each "" or table rows, newline separated)
 atlas() {
     printf '%s\n' "# ATLAS — Test" "## Where to Look" "| I want to... | Open | Why |" "|---|---|---|" "$1" \
-        "## Entry Points" "## Module Map" "| Directory | Purpose | Key files |" "|---|---|---|" "$4" \
+        "## Entry Points" ${5:+"## Key Flows" "$5"} "## Module Map" "| Directory | Purpose | Key files |" "|---|---|---|" "$4" \
         "## Key Symbols" "| Symbol | File | Kind | Refs |" "|---|---|---|---|" "$2" \
         "## Integration Points" "| System | Config key | Path |" "|---|---|---|" "$3" "## Conventions & Gotchas"
 }
@@ -105,4 +105,58 @@ atlas "" "" '| db | `DATABASE_URL` | `src/*.py` |' "" > "$D/ATLAS.md"
 expect_ok "$D" "glob that matches"
 atlas "" "" '| db | `DATABASE_URL` | `src/*.rs` |' "" > "$D/ATLAS.md"
 expect_fail "$D" "glob that matches nothing"
+# Footer: in a git work tree with a commit, atlas-sha must name a commit
+D="$(fresh)"; src_app "$D"
+git init -q "$D"; git -C "$D" config user.name Fixture; git -C "$D" config user.email fixture@example.com
+git -C "$D" add -A && git -C "$D" commit -q -m one
+HEAD_SHA="$(git -C "$D" rev-parse HEAD)"
+atlas "" "" "" "" > "$D/ATLAS.md"
+expect_fail "$D" "no footer in git"
+has_out "missing atlas-sha footer" "no footer in git"
+{ atlas "" "" "" ""; echo "<!-- atlas-sha:$HEAD_SHA -->"; } > "$D/ATLAS.md"
+expect_ok "$D" "footer = HEAD"
+{ atlas "" "" "" ""; echo "<!-- atlas-sha:${HEAD_SHA%"${HEAD_SHA#???????}"} -->"; } > "$D/ATLAS.md"
+expect_ok "$D" "footer = 7-char HEAD"
+{ atlas "" "" "" ""; echo "<!-- atlas-sha:0000000 -->"; } > "$D/ATLAS.md"
+expect_fail "$D" "footer not a commit"
+has_out "atlas-sha 0000000 is not a commit in this repository" "footer not a commit"
+{ atlas "" "" "" ""; echo "<!-- atlas-hash:abc123def456 -->"; } > "$D/ATLAS.md"
+expect_fail "$D" "only an atlas-hash footer"
+has_out "missing atlas-sha footer" "only an atlas-hash footer"
+# the last footer wins
+{ atlas "" "" "" ""; echo "<!-- atlas-sha:0000000 -->"; echo "<!-- atlas-sha:$HEAD_SHA -->"; } > "$D/ATLAS.md"
+expect_ok "$D" "last footer wins"
+# a git repository with no commit has nothing to name: no footer check
+E="$(fresh)"; git init -q "$E"; atlas "" "" "" "" > "$E/ATLAS.md"
+expect_ok "$E" "git repository with no commit"
+# outside git, no footer is fine
+D="$(fresh)"; atlas "" "" "" "" > "$D/ATLAS.md"; expect_ok "$D" "non-git, no footer"
+
+# Key Symbols names the file only: a line number is refused
+D="$(fresh)"; src_app "$D"
+atlas "" '| `run_app` | `src/app.py:10-42` | function | 3 |' "" "" > "$D/ATLAS.md"
+expect_fail "$D" "key symbols line number"
+has_out "Key Symbols cites a line number (src/app.py:10-42): name the file only" "key symbols line number"
+atlas "" '| `run_app` | `src/app.py:10` | function | 3 |' "" "" > "$D/ATLAS.md"
+expect_fail "$D" "key symbols single line number"
+has_out "cites a line number (src/app.py:10)" "key symbols single line number"
+
+# Key Flows: optional, every token must exist, at most 5 bullets
+D="$(fresh)"; src_app "$D"; printf 'x\n' > "$D/src/b.py"; printf 'x\n' > "$D/src/c.py"
+FLOW='- ship: `src/app.py` → `src/b.py` → `src/c.py`'
+THREE="$FLOW$NL"'- again: `src/app.py` → `src/b.py`'"$NL"'- third: `src/c.py`'
+atlas "" "" "" "" "$THREE" > "$D/ATLAS.md"
+expect_ok "$D" "three flows"
+atlas "" "" "" "" "$FLOW
+$FLOW
+$FLOW
+$FLOW
+$FLOW
+$FLOW" > "$D/ATLAS.md"
+expect_fail "$D" "six flows"
+has_out "Key Flows has 6 flows, at most 5" "six flows"
+atlas "" "" "" "" '- broken: `src/app.py` → `src/nope.py`' > "$D/ATLAS.md"
+expect_fail "$D" "flow citing a missing file"
+has_out "path not found: src/nope.py" "flow citing a missing file"
+lacks_out "path not found: src/app.py" "flow citing a missing file"
 exit 0

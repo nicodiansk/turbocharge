@@ -28,4 +28,23 @@ EXPECTED="$(printf '%s\n' 'defined in:' '  src/orders/parse.py:3 (function)' 'ca
 [ "$OUT" = "$EXPECTED" ] || { echo "    unexpected where output:"; printf '%s\n' "$OUT" | sed 's/^/      /'; exit 1; }
 printf '%s\n' "$OUT" | sed -n '/^callers/,$p' | grep -q 'def parse_order' && { echo "    the definition line is listed as a caller"; exit 1; }
 done
+
+# The fixture's committed ATLAS.md, with Key Symbols counted by `top` and the footer at HEAD, passes the validator
+V="$PLUGIN_DIR/skills/atlas/validate-atlas.sh"
+assert_file "$V" || exit 1
+REFS="$(cd "$F" && ATLAS_SYMBOLS_NO_PYTHON=1 bash "$S" top 30 | awk -F'\t' '$2 == "parse_order" { print $1 }')"
+[ -n "$REFS" ] || { echo "    top didn't rank parse_order"; exit 1; }
+SHA="$(git -C "$F" rev-parse HEAD)"
+{
+    printf '%s\n' '# ATLAS — Fixture' '' '## Where to Look' '| I want to... | Open | Why |' '|---|---|---|' \
+        '| parse an order | `src/orders/parse.py` | the parser |' '' \
+        '## Entry Points' '| File | Role | Starts |' '|---|---|---|' '| `src/api/routes.py` | API | routes |' '' \
+        '## Key Flows' '- order: `src/api/routes.py` → `src/orders/parse.py`' '' \
+        '## Module Map' '| Directory | Purpose | Key files |' '|---|---|---|' '| `src/orders/` | orders | `src/orders/parse.py` |' '' \
+        '## Key Symbols' '| Symbol | File | Kind | Refs |' '|---|---|---|---|'
+    printf '| `parse_order` | `src/orders/parse.py` | function | %s |\n' "$REFS"
+    printf '%s\n' '' '## Integration Points' '| System | Config key | Path |' '|---|---|---|' '' '## Conventions & Gotchas' '' "<!-- atlas-sha:$SHA -->"
+} > "$F/ATLAS.md"
+git -C "$F" add ATLAS.md && git -C "$F" commit -q -m atlas
+VOUT="$(cd "$F" && bash "$V" ATLAS.md 2>&1)" || { echo "    validate-atlas.sh rejected the fixture's ATLAS.md: $VOUT"; exit 1; }
 exit 0
