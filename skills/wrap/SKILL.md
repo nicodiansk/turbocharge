@@ -89,6 +89,8 @@ Facts in memory use step 7's tag instead, and the snapshot's `decisions` use ste
 - **No pointer, no line.** A fact's tag points at its source: `user: "<words>"` (15 words at most), a `file:line`, `testrun: <command>` or `websearch: <url>`. A ruling comes from the user, so `by user` is its pointer.
 - **Check the pointer before writing:** `sed -n '<line>p' <file>` shows the line, or the user's words are in this session.
 - **Never** write a credential, token, key or cookie value, in memory, CLAUDE.md or the snapshot.
+- A key appears only as its name, the file it lives in and `sha256:<first 12 hex>`, in memory and in the snapshot.
+- When the session needs a key, write a script that generates or reads it and prints only its name, length and fingerprint, never the value.
 - **Never two lines for the same rule.** Rewrite the old one.
 - **Short tags:** the pointer (or `by user`), the date and, in memory, the confidence. Nothing more, since memory loads only its first 200 lines or 25 KB.
 
@@ -161,6 +163,11 @@ Write `.claude/turbocharge-session.json` in the project root (the standard Claud
 ```
 
 `decisions` holds strings `"YYYY-MM-DD · <user | proposal: agent> · <decision>"`, at most 8, this session's plus older ones still open. A ruling that should outlast the work goes to memory or CLAUDE.md with `ruled` (steps 6–7), not here. A changed decision replaces its string and never sits next to it. A snapshot with no `decisions` key (an older wrap) starts the list empty.
+
+Before writing, check every field for a value that looks like a key (a known key prefix, a PEM block, a long hex or base64 run). A match blocks the write: name the field and let the user decide.
+<!-- repo-only -->
+The check runs in code. Write the snapshot only through `bash "${CLAUDE_PLUGIN_ROOT}/skills/wrap/write-snapshot.sh"` with the JSON on stdin. Exit 1 names each field and writes nothing: show the user the fields; they replace the value with name + fingerprint, or rerun with `--allow <field>`.
+<!-- /repo-only -->
 
 The resume prompt's `@.claude/turbocharge-session.json` loads this into the next session.
 <!-- repo-only -->
