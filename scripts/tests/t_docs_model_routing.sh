@@ -37,4 +37,7 @@ TS=$(cat "$TIER")
 for p in 'in two places' 'marked lane' 'stuck Sonnet lane' '&lt;reason&gt;' 'YOU DECIDE' 'NEVER HAIKU'; do has "$TS" "$p" "model-tiering.svg"; done
 hasnt "$TS" 'in one place only' "model-tiering.svg"
 hasnt "$TS" 'one place only' "model-tiering.svg"
+CS=$(cat "$CHAIN")
+hasnt "$CS" 'one Sonnet builder' "build-review-chain.svg"
+for p in 'Opus when the plan marks the lane' '>Opus · marked<' 'a Sonnet lane gets one retry on Opus'; do has "$CS" "$p" "build-review-chain.svg"; done
 exit $rc
