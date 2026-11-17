@@ -18,4 +18,16 @@ for p in '`concurrency`' '`security`' '`irreversible`' '`edge-cases`' '`opus · 
 done
 has "plan 'Check the saved plan' line" "$(grep -F 'Check the saved plan' "$S" | tr -d '\r')" 'one of the four reasons'
 has "plan 'No agent here' line" "$(grep -F '**No agent here:**' "$S" | tr -d '\r')" 'one of the four reasons'
+
+# The planner writes the column (Lanes rules and the Plan Format template) and checks every cell before it finishes.
+P="$PLUGIN_DIR/agents/planner.md"
+assert_file "$P" || exit 1
+N="$(tr -d '\r' < "$P" | grep -cF -- "$HEADER")"
+[ "$N" -ge 2 ] || { echo "    planner.md holds the seven-column header $N times, wants 2 (Lanes and Plan Format)"; rc=1; }
+LN="$(sec "$P" '## Lanes' '## Task Sizing')"
+for p in '`concurrency`' '`security`' '`irreversible`' '`edge-cases`' 'the higher Model'; do
+    has "planner Lanes" "$LN" "$p"
+done
+has "planner Spec Self-Review" "$(sec "$P" '## Spec Self-Review' '## Plan Format')" 'one of the four reasons'
+has "planner Quality Checklist" "$(sec "$P" '## Quality Checklist' '## Remember')" 'one of the four reasons'
 exit $rc

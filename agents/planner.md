@@ -59,14 +59,15 @@ Rules that hold for every task:
 ## Lanes
 
 Group tasks into lanes in a `## Lanes` table after the header:
-`| Lane | Owns files | Tasks | After | Executor | Effort |`
+`| Lane | Owns files | Tasks | After | Executor | Effort | Model |`
 - Owns files lists full repo-relative paths (build diffs and reviews each lane by them). No file belongs to two lanes — test files included. Tasks inside a lane run in order.
 - `After` lists lanes that must finish first. Lanes with no `After` path between them may overlap.
 - Executor `inline` for mechanical lanes (content edits, exact text given, ≤3 tasks); `builder` for real logic or judgment calls. Effort `low`/`medium`/`high` for builder lanes.
+- Model applies to builder lanes: `sonnet` by default; `opus · <reason>` when the lane holds one of four things, each a fixed word: `concurrency` (concurrency or async ordering), `security` (auth, permissions, crypto, parsing untrusted input), `irreversible` (migrations, data deletion), `edge-cases` (an algorithm with dense edge cases named in Review Focus). Use `—` for inline.
 
 **Lane shape:** the task shape decides the lanes.
 1. **One lane is the default.** Split only independent work: disjoint files, and no need for another lane's result.
-2. **Chain → one lane.** Builder lane B merges into builder lane A when B's only `After` is A and no other lane names A in `After`. Merging costs no time: B's tasks start after A's either way, and a spawn and a hand-off go away. The merged lane gets one lane-end mutation and one budget of 2 fix rounds, and a lane whose `After` named B now names A. Repeat until no such pair is left, so A→B→C becomes one lane. The merged lane keeps A's name, owns both file sets, runs A's tasks then B's, and takes the higher Effort.
+2. **Chain → one lane.** Builder lane B merges into builder lane A when B's only `After` is A and no other lane names A in `After`. Merging costs no time: B's tasks start after A's either way, and a spawn and a hand-off go away. The merged lane gets one lane-end mutation and one budget of 2 fix rounds, and a lane whose `After` named B now names A. Repeat until no such pair is left, so A→B→C becomes one lane. The merged lane keeps A's name, owns both file sets, runs A's tasks then B's, and takes the higher Effort and the higher Model: one `opus` lane in the chain puts the merged lane on Opus.
 3. **Inline lanes stay separate**, before or after a builder lane: they cost no spawn. A chain through an inline lane doesn't merge: the builder lane after it names the inline lane in `After`, not a builder lane.
 4. **At most 3 builder lanes overlap** (no `After` path between any two). With more independent pieces, merge the smallest into one lane, which owns the union of their files. Inline lanes don't count.
 
@@ -109,8 +110,10 @@ re-review — you fix it yourself, now.
    handling`, `similar to Task N`, and vague decisions ("handle errors", "update
    as needed"). Replace each with a concrete decision.
 3. **Lane disjointness** — no file appears in two lanes, the `After` graph
-   has no cycles, no builder→builder chain link (Lanes, rule 2), and
-   at most 3 overlapping builder lanes (rule 4).
+   has no cycles, no builder→builder chain link (Lanes, rule 2),
+   at most 3 overlapping builder lanes (rule 4), every builder lane's Model
+   is `sonnet` or `opus · <reason>` with one of the four reasons, and every
+   inline lane's is `—`.
 4. **Type consistency** — every function/method signature and property name
    introduced in an early task matches its usage in later tasks
    (e.g. `clearLayers()` vs `clearFullLayers()`). Reconcile mismatches.
@@ -136,9 +139,9 @@ Only after all six checks succeed do you remove the in-progress marker.
 **Tech Stack:** [Key technologies]
 
 ## Lanes
-| Lane | Owns files | Tasks | After | Executor | Effort |
-|------|-----------|-------|-------|----------|--------|
-| api | `src/api/orders.ts`, `tests/api/orders.test.ts` | 1–2 | — | builder | medium |
+| Lane | Owns files | Tasks | After | Executor | Effort | Model |
+|------|-----------|-------|-------|----------|--------|-------|
+| api | `src/api/orders.ts`, `tests/api/orders.test.ts` | 1–2 | — | builder | medium | sonnet |
 
 ## Review Focus
 - An order with no line items → rejected with a clear error, not a zero-total order (pinned: Task N)
@@ -161,6 +164,7 @@ Before submitting:
 - [ ] Every task has a Decision, Test assertions, and Verify
 - [ ] No file belongs to two lanes; `After` has no cycles
 - [ ] No builder→builder chain link; at most 3 builder lanes overlap
+- [ ] Every builder lane's Model is `sonnet` or `opus · <reason>` with one of the four reasons; every inline lane's is `—`
 - [ ] Code appears only where the exact text is the decision
 - [ ] Review Focus has up to 5 lines, each `(pinned: Task N)` by an assertion in that task
 - [ ] Every `Like:` target resolves: the symbol is in the path, the tests path exists
