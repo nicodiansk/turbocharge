@@ -66,14 +66,14 @@ Start With:
 
 **MANDATORY:** `@.claude/turbocharge-session.json` MUST appear on the first line of every resume prompt — it is not optional context, it is the session state. Do not move it to "Context Files" or omit it. If the project keeps CLAUDE.md at `.claude/CLAUDE.md`, write `@.claude/CLAUDE.md` in place of `@CLAUDE.md`.
 
-### 5.5. Atlas + CodeMap Freshness (MANDATORY)
-Before generating the resume prompt:
-1. **Always run `/turbocharge:atlas`** to refresh the domain map — do not skip, even if changes seem minor.
-2. **If `.codemap/` exists**, run `codemap update` (or note it in the resume prompt if watch mode is active).
+### 5.5. Atlas Freshness
+Before generating the resume prompt, decide whether the domain map needs a rerun:
+1. No ATLAS.md, no `<!-- atlas-sha:<hex> -->` footer (pre-3.8, or written outside git; read the last match with `\r` stripped), or a sha `git cat-file -e <sha>^{commit}` rejects: run `/turbocharge:atlas`.
+2. Else list what changed: `git diff --name-only --no-renames <atlas-sha> -- . ':(exclude)ATLAS.md' ':(exclude)CLAUDE.md' ':(exclude).claude'` (commits since and uncommitted edits), plus `git ls-files --others --exclude-standard` with the same excludes. Empty: don't rerun, and say one line: `Atlas: no file changed since <sha7>, map not rerun.` Not empty: run `/turbocharge:atlas`, whose update mode rechecks the rows citing those files.
 
 Include in the resume prompt:
 ```
-Navigation: @ATLAS.md is current. CodeMap index: run `codemap validate` if unsure.
+Navigation: @ATLAS.md is current (atlas-sha <short sha>).
 ```
 
 ### Provenance: who decided, and where it came from
