@@ -23,7 +23,7 @@ NO BUILD COMPLETE WITHOUT THE FULL SUITE GREEN AT THE JOIN
 2. Read the plan file. Line 1 is `<!-- plan: in progress -->` → the planner stopped before finishing: don't build it; offer `/turbocharge:plan <path>`, which resumes it.
 3. Review critically — identify concerns or questions
 4. If concerns: raise them before starting
-5. Read the plan's **Lanes table** (`| Lane | Owns files | Tasks | After | Executor | Effort |`). **No Lanes table** (a legacy plan) → treat the whole plan as one sequential lane and route it in Step 2 like any other.
+5. Read the plan's **Lanes table** (`| Lane | Owns files | Tasks | After | Executor | Effort | Model |`), columns by header name. A valid Model cell is `sonnet`, `opus · <reason>` with one of the four words (`concurrency`, `security`, `irreversible`, `edge-cases`), or `—`. A six-column table (no Model column) → every builder lane is `sonnet`. Any other value, or an `opus` cell whose reason isn't one of the four → a plan concern (item 4), and the lane reads as `sonnet` unless the user says otherwise. `opus` on a lane whose Executor is `inline` → a plan concern too; the lane runs inline, on the session's model. **No Lanes table** (a legacy plan) → treat the whole plan as one sequential lane and route it in Step 2 like any other.
 
 ## Step 2: Route Lanes
 
