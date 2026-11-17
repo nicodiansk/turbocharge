@@ -195,10 +195,12 @@ Runs after step 9, since the exclusions use the new snapshot. Scope: `docs/plans
 1. **Always excluded:** a path the new snapshot names (`open_files`, `next_steps`, `blockers`, `current_task`), a path the resume prompt names (its `Context Files` `@` paths, the arguments of `Start With`), a file whose line 1 is `<!-- plan: in progress -->`.
 2. **Done plans** (line 1 `<!-- plan: done YYYY-MM-DD -->`, written by build) move without asking, with their siblings. For `YYYY-MM-DD-<topic>.md` a sibling is exactly `<any date>-<topic>-design.md` or `<any date>-<topic>-stories.md`; `<topic>-2.md` or a `-scope` doc stays. An excluded sibling stays.
 3. **Proposal:** unmarked docs whose filename date is more than 14 days before today, minus exclusions and step 2's moves. No `YYYY-MM-DD-` prefix: never proposed. List them numbered; ask: all, none, or the numbers.
+4. **Move:** `docs/plans/archive` exists and is not a directory: stop the step and report it. Else `mkdir -p docs/plans/archive`. A file is tracked when `git -C "<file's dir>" ls-files --error-unmatch "<file name>"` succeeds: then `git mv` in the repo that holds the file (a separate notes repo in `docs/` works), else `mv`. Never overwrite: a name already in `archive/` is skipped and reported. A `git mv` that fails leaves the file where it is, listed with the reason. Tracked moves only: commit by pathspec, old and new paths (`docs: archive finished plans`); on the default branch, ask first: commit there or on a new branch. Untracked: no commit.
+5. **Deliver:** after the resume prompt, one line `archived: N (done: …, chosen: …) · kept: M`. Nothing moved or proposed: no output from this step.
 
 ## How to Deliver
 
-**Output the resume prompt directly in chat** so the user can copy it. Do NOT write files, create directories, or modify `.gitignore` (except for CLAUDE.md and memory updates above, the rulings on pending proposals in `.claude/agent-memory*/*/MEMORY.md` (step 6.5), and the session snapshot JSON).
+**Output the resume prompt directly in chat** so the user can copy it. Do NOT write files, create directories, or modify `.gitignore` (except for CLAUDE.md and memory updates above, the rulings on pending proposals in `.claude/agent-memory*/*/MEMORY.md` (step 6.5), the session snapshot JSON, and step 10's moves).
 
 <!-- repo-only -->
 Agent memory (via `memory: project`) handles persistence automatically — no manual file saving needed for session state.

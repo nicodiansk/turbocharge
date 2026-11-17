@@ -19,4 +19,16 @@ for p in 'docs/plans/*.md' '`docs/plans/archive/`' 'open_files' 'next_steps' 'bl
 done
 FILTERED=$(bash "$PLUGIN_DIR/scripts/directory-filter.sh" < "$W")
 printf '%s\n' "$FILTERED" | grep -qF '### 10. Archive Finished Docs' || { echo "    filtered wrap lost ### 10."; rc=1; }
+for p in 'ls-files --error-unmatch' 'git mv' 'else `mv`' 'Never overwrite' 'is not a directory' 'docs: archive finished plans' \
+    'on the default branch, ask first' 'archived: N (done:' 'kept: M' 'no output from this step'; do
+    printf '%s\n' "$S" | grep -qF -- "$p" || { echo "    wrap step 10 missing: $p"; rc=1; }
+done
+sec "$W" '## How to Deliver' | grep -qF "step 10's moves" || { echo "    wrap How to Deliver missing: step 10's moves"; rc=1; }
+# Skill bodies come back after compaction capped at 5,000 tokens each: stay under the byte bound.
+SIZE=$(wc -c < "$W" | tr -d ' ')
+[ "$SIZE" -lt 19000 ] || { echo "    wrap SKILL.md is $SIZE bytes, bound 19000"; rc=1; }
+for p in SessionStart; do
+    printf '%s\n' "$FILTERED" | grep -qF -- "$p" && { echo "    filtered wrap says $p"; rc=1; }
+done
+printf '%s\n' "$FILTERED" | grep -qi 'agent memory' && { echo "    filtered wrap says agent memory"; rc=1; }
 exit $rc
