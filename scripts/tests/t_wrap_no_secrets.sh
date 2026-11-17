@@ -42,6 +42,18 @@ expect_block b64 "{\"current_task\": \"$B64\"}" current_task 'long base64' "$B64
 expect_block hex "{\"open_files\": [\"$HEX64\"]}" open_files 'long hex' "$HEX64"
 expect_block gh "{\"branch\": \"ghp_$(printf 'a%.0s' $(seq 1 24))\"}" branch 'GitHub token' ghp_aaaa
 expect_block slack "{\"branch\": \"xoxb-1234567890-abcdef\"}" branch 'Slack token' xoxb-1234567890
+expect_block sk_start "{\"branch\": \"$SKKEY\"}" branch 'sk- key' "$SKKEY"
+expect_block sk_assign "{\"blockers\": [\"OPENAI_API_KEY=$SKKEY\"]}" blockers 'sk- key' "$SKKEY"
+
+# Branch names, slugs, paths and URLs that hold sk- inside a word or long hyphenated runs pass without --allow
+NAMES='{
+  "branch": "fix/risk-assessment-for-checkout-flow",
+  "current_task": "feat/task-review-pipeline-lean-v3",
+  "next_steps": ["fix/add-the-ci-job-for-v2-api-key-run-now-ok-yes-go-up-on-it", "https://example.com/docs/guide/section/chapter/page/anchor/more"],
+  "open_files": ["scripts/tests/t_task-reviewer-per-lane-verdict-spec.sh", "/Users/me/.claude/projects/-Users-desk-PC-VSCodeProjects-turbocharge/memory/MEMORY.md"]
+}'
+run names "$NAMES"
+[ "$CODE" = 0 ] || { echo "    branch names, slugs and paths: exit $CODE: $OUT"; rc=1; }
 
 run allow "{\"blockers\": [\"deploy key $AWSKEY\"]}" --allow blockers
 { [ "$CODE" = 0 ] && [ -f "$R/out/allow.json" ]; } || { echo "    --allow blockers: exit $CODE, written? no"; rc=1; }

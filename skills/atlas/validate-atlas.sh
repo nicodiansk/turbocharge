@@ -87,7 +87,11 @@ TAB="$(printf '\t')"
 while IFS="$TAB" read -r n kind a b; do
     case "$kind" in
         path)
-            path_exists "$a" || problem "line $n: path not found: $a"
+            # a placeholder (skills/<name>/), a home path (~/.claude/) or a variable isn't a file in this repo
+            case "$a" in
+                *'<'*'>'*|'~'*|*'$'*) warn "line $n: not checked (a placeholder, home path or variable): $a" ;;
+                *) path_exists "$a" || problem "line $n: path not found: $a" ;;
+            esac
             ;;
         lineref)
             problem "line $n: Key Symbols cites a line number ($a): name the file only"

@@ -88,6 +88,39 @@ done
 [ ! -e "$F/x" ] || { echo "    where --output=x wrote a file"; exit 1; }
 (cd "$F" && bash "$S" where >/dev/null 2>&1); [ $? = 2 ] || { echo "    where with no name should exit 2"; exit 1; }
 
+# No definitions at all (only C and a README): top prints nothing, and where still lists the callers
+E="$TMP/nodefs"
+git init -q "$E"
+git -C "$E" config user.name Fixture
+git -C "$E" config user.email fixture@example.com
+printf '%s\n' '#include <stdio.h>' 'int main(void) { printf("hi"); return 0; }' > "$E/main.c"
+printf '%s\n' '# Readme' 'Some words here.' > "$E/README.md"
+printf '%s\n' 'print("a")' 'print("b")' > "$E/b.py"
+git -C "$E" add -A && git -C "$E" commit -q -m nodefs
+for mode in ATLAS_SYMBOLS_NO_PYTHON=1 ATLAS_SYMBOLS_UNUSED=1; do
+    T="$(cd "$E" && env "$mode" bash "$S" top 2>&1)"; RC=$?
+    [ "$RC" = 0 ] && [ -z "$T" ] || { echo "    $mode: top with no definitions should print nothing, got rc $RC: $T"; exit 1; }
+    W="$(cd "$E" && env "$mode" bash "$S" where print 2>&1)"; RC=$?
+    [ "$RC" = 0 ] || { echo "    $mode: where print exited $RC: $W"; exit 1; }
+    printf '%s\n' "$W" | grep -qF 'defined in: none found' || { echo "    $mode: where print should find no definition: $W"; exit 1; }
+    printf '%s\n' "$W" | grep -qF 'callers (2 in 1 files):' || { echo "    $mode: where print lost its callers: $W"; exit 1; }
+done
+
+# File names that are not ASCII or hold a colon keep their rows
+N="$TMP/names"
+git init -q "$N"
+git -C "$N" config user.name Fixture
+git -C "$N" config user.email fixture@example.com
+printf '%s\n' 'def eacute_fn():' '    pass' > "$N/é.py"
+printf '%s\n' 'export function colonFn() {}' > "$N/x:y.ts"
+printf '%s\n' 'eacute_fn()' 'colonFn()' > "$N/use.py"
+git -C "$N" add -A && git -C "$N" commit -q -m names
+T="$(cd "$N" && ATLAS_SYMBOLS_NO_PYTHON=1 bash "$S" top 2>&1)"
+printf '%s\n' "$T" | grep -qxF "1${TAB}eacute_fn${TAB}function${TAB}é.py" || { echo "    a non-ASCII file name lost its row: $T"; exit 1; }
+printf '%s\n' "$T" | grep -qxF "1${TAB}colonFn${TAB}function${TAB}x:y.ts" || { echo "    a file name with a colon lost its row: $T"; exit 1; }
+W="$(cd "$N" && ATLAS_SYMBOLS_NO_PYTHON=1 bash "$S" where colonFn 2>&1)"
+printf '%s\n' "$W" | grep -qF '  x:y.ts:1 (function)' || { echo "    where colonFn lacks x:y.ts: $W"; exit 1; }
+
 # Python definitions: ast when python3 exists, regex otherwise
 if ! command -v python3 >/dev/null 2>&1; then
     echo "    python3 not installed, skipping ast cases"
@@ -120,4 +153,6 @@ has "4${TAB}parse_order${TAB}function${TAB}src/orders.py" || exit 1
 printf '%s\n' "$OUT" | grep -qE "${TAB}OrderBook${TAB}class${TAB}src/orders.py\$" || { echo "    ast mode: OrderBook isn't a class row"; exit 1; }
 printf '%s\n' "$OUT" | grep -qE "${TAB}(ab|__init__)${TAB}" && { echo "    ast mode listed a short or dunder name"; exit 1; }
 [ "$(printf '%s\n' "$OUT" | grep -c "${TAB}helper${TAB}")" = 2 ] || { echo "    ast mode: helper should have two rows"; exit 1; }
+T="$(cd "$N" && bash "$S" top 2>&1)"
+printf '%s\n' "$T" | grep -qxF "1${TAB}eacute_fn${TAB}function${TAB}é.py" || { echo "    ast mode: a non-ASCII file name lost its row: $T"; exit 1; }
 exit 0

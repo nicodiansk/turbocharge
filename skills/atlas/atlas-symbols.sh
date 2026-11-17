@@ -17,11 +17,12 @@ usage() {
     exit 2
 }
 
-# git grep over the given globs, leaving out files that would only skew the counts.
+# git grep over the given globs, leaving out files that would only skew the counts. quotepath=off keeps non-ASCII
+# file names as they are, so they match the ast rows and the files on disk.
 grep_in() {
     local mode="$1" pattern="$2"
     shift 2
-    git grep "$mode" -e "$pattern" -- "$@" \
+    git -c core.quotepath=off grep "$mode" -e "$pattern" -- "$@" \
         ':(exclude)ATLAS.md' ':(exclude)*.min.js' ':(exclude)*.lock' ':(exclude)package-lock.json'
 }
 
@@ -43,8 +44,9 @@ extract_definitions() {
         }
     }
     {
-        i = index($0, ":"); file = substr($0, 1, i - 1); rest = substr($0, i + 1)
-        i = index(rest, ":"); ln = substr(rest, 1, i - 1); text = substr(rest, i + 1)
+        # split at the first :<line>: so a file name holding a colon (x:y.ts) stays whole
+        if (!match($0, /:[0-9]+:/)) next
+        file = substr($0, 1, RSTART - 1); ln = substr($0, RSTART + 1, RLENGTH - 2); text = substr($0, RSTART + RLENGTH)
         e = ext(file)
         if (e == "py") { after("def", "function"); after("class", "class") }
         else if (e ~ /^(js|jsx|mjs|cjs|ts|tsx)$/) {
@@ -84,10 +86,10 @@ extract_definitions() {
     }'
 }
 
-# Python definitions from ast (never imports or runs the file): reads the file list on stdin and prints
+# Python definitions from ast (never imports or runs the file): reads the NUL-separated file list on stdin and prints
 # `file<TAB>line<TAB>name<TAB>kind`. A file ast can't parse falls back to the regex used for the other languages.
 PYTHON_AST_SCRIPT='
-import ast, re, sys
+import ast, os, re, sys
 MIN = int(sys.argv[1])
 RX = ((re.compile(r"(?:^|[^A-Za-z0-9_.$])def\s+([A-Za-z_][A-Za-z0-9_]*)"), "function"),
       (re.compile(r"(?:^|[^A-Za-z0-9_.$])class\s+([A-Za-z_][A-Za-z0-9_]*)"), "class"))
@@ -113,9 +115,10 @@ def by_ast(path, tree):
                 stack.append((child, False))
             else:
                 stack.append((child, in_class))
-for path in sys.stdin.read().split("\n"):
-    if not path:
+for raw in sys.stdin.buffer.read().split(b"\0"):
+    if not raw:
         continue
+    path = os.fsdecode(raw)
     try:
         with open(path, "rb") as fh:
             data = fh.read()
@@ -136,7 +139,7 @@ python_available() {
 # Python rows from ast. Returns 1 when ast mode is off or python3 fails, so the caller uses the regex step.
 python_definitions() {
     python_available || return 1
-    git ls-files -- '*.py' | python3 -I -c "$PYTHON_AST_SCRIPT" "$MIN_NAME_LENGTH"
+    git ls-files -z -- '*.py' | python3 -I -c "$PYTHON_AST_SCRIPT" "$MIN_NAME_LENGTH"
 }
 
 # All definitions as `file<TAB>line<TAB>name<TAB>kind`, one row per file, line and name.
@@ -154,10 +157,17 @@ definitions() {
 }
 
 # `refs<TAB>name<TAB>kind<TAB>file`, unsorted: every occurrence of the name minus its definition lines.
+# The definitions are read in BEGIN, not with FNR == NR: an empty definitions file would make awk read stdin as them.
 ranked_rows() {
     local defs_file="$1"
-    grep_in -ohIwE '[A-Za-z_][A-Za-z0-9_]*' . | awk -F'\t' '
-        FNR == NR { lines[$3]++; if (!(($3 SUBSEP $1) in seen)) { seen[$3 SUBSEP $1] = 1; kind[$3 SUBSEP $1] = $4; order[++n] = $3 SUBSEP $1 } next }
+    grep_in -ohIwE '[A-Za-z_][A-Za-z0-9_]*' . | awk -v defs="$defs_file" '
+        BEGIN {
+            while ((getline row < defs) > 0) {
+                split(row, f, "\t"); key = f[3] SUBSEP f[1]; lines[f[3]]++
+                if (!(key in seen)) { seen[key] = 1; kind[key] = f[4]; order[++n] = key }
+            }
+            close(defs)
+        }
         ($0 in lines) { occ[$0]++ }
         END {
             for (k = 1; k <= n; k++) {
@@ -165,7 +175,7 @@ ranked_rows() {
                 r = occ[p[1]] - lines[p[1]]; if (r < 0) r = 0
                 print r "\t" p[1] "\t" kind[order[k]] "\t" p[2]
             }
-        }' "$defs_file" -
+        }'
 }
 
 cmd_top() {
@@ -186,17 +196,17 @@ cmd_where() {
     defs_file="$(mktemp)" || exit 2
     trap "rm -f '$defs_file'" EXIT
     definitions | awk -F'\t' -v n="$name" '$3 == n' > "$defs_file"
-    callers="$(grep_in -nIw "$name" . | awk -F'\t' '
-        FNR == NR { isdef[$1 SUBSEP $2] = 1; next }
+    callers="$(grep_in -nIw "$name" . | awk -v defs="$defs_file" '
+        BEGIN { while ((getline row < defs) > 0) { split(row, f, "\t"); isdef[f[1] SUBSEP f[2]] = 1 } close(defs) }
         {
-            i = index($0, ":"); file = substr($0, 1, i - 1); rest = substr($0, i + 1)
-            i = index(rest, ":"); ln = substr(rest, 1, i - 1); text = substr(rest, i + 1)
+            if (!match($0, /:[0-9]+:/)) next
+            file = substr($0, 1, RSTART - 1); ln = substr($0, RSTART + 1, RLENGTH - 2); text = substr($0, RSTART + RLENGTH)
             if ((file SUBSEP ln) in isdef) next
             sub(/^[[:space:]]+/, "", text)
             if (file != last) { out = out file "\n"; files++; last = file }
             out = out "  " ln ": " text "\n"; total++
         }
-        END { if (total > 0) printf "callers (%d in %d files):\n%s", total, files, out }' "$defs_file" -)"
+        END { if (total > 0) printf "callers (%d in %d files):\n%s", total, files, out }')"
     if [ -s "$defs_file" ]; then
         echo "defined in:"
         awk -F'\t' '{ print "  " $1 ":" $2 " (" $4 ")" }' "$defs_file"

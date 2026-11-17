@@ -69,7 +69,7 @@ Start With:
 ### 5.5. Atlas Freshness
 Before generating the resume prompt, decide whether the domain map needs a rerun:
 1. No ATLAS.md, no `<!-- atlas-sha:<hex> -->` footer (pre-3.8, or written outside git; read the last match with `\r` stripped), or a sha `git cat-file -e <sha>^{commit}` rejects: run `/turbocharge:atlas`.
-2. Else list what changed: `git diff --name-only --no-renames <atlas-sha> -- . ':(exclude)ATLAS.md' ':(exclude)CLAUDE.md' ':(exclude).claude'` (commits since and uncommitted edits), plus `git ls-files --others --exclude-standard` with the same excludes. Empty: don't rerun, and say one line: `Atlas: no file changed since <sha7>, map not rerun.` Not empty: run `/turbocharge:atlas`, whose update mode rechecks the rows citing those files.
+2. Else list what changed, from the repo root (from a subfolder, `-- .` sees only that folder): `git diff --name-only --no-renames <atlas-sha> -- . ':(exclude)ATLAS.md' ':(exclude)CLAUDE.md' ':(exclude).claude' ':(exclude)docs' ':(exclude)*.md'` (commits since and uncommitted edits), plus `git ls-files --others --exclude-standard` with the same excludes. Plans, notes and other markdown don't change the code the map describes. Empty: don't rerun, and say one line: `Atlas: no file changed since <sha7>, map not rerun.` Not empty: run `/turbocharge:atlas`, whose update mode rechecks the rows citing those files.
 
 Include in the resume prompt:
 ```
@@ -173,7 +173,7 @@ Write `.claude/turbocharge-session.json` in the project root (the standard Claud
 
 `decisions` holds strings `"YYYY-MM-DD · <user | proposal: agent> · <decision>"`, at most 8, this session's plus older ones still open. A ruling that should outlast the work goes to memory or CLAUDE.md with `ruled` (steps 6–7), not here. A changed decision replaces its string and never sits next to it. A snapshot with no `decisions` key (an older wrap) starts the list empty.
 
-Before writing, check every field for a value that looks like a key (a known key prefix, a PEM block, a long hex or base64 run). A match blocks the write: name the field and let the user decide.
+Before writing, check every field for a value that looks like a key (a known key prefix, a PEM block, a long hex or base64 run). A match blocks the write: name the field and let the user decide. The check is a heuristic for common key shapes and misses others, such as a database URL that holds a password, so the rule against writing values still applies.
 <!-- repo-only -->
 The check runs in code. Write the snapshot only through `bash "${CLAUDE_PLUGIN_ROOT}/skills/wrap/write-snapshot.sh"` with the JSON on stdin. Exit 1 names each field and writes nothing: show the user the fields; they replace the value with name + fingerprint, or rerun with `--allow <field>`.
 <!-- /repo-only -->

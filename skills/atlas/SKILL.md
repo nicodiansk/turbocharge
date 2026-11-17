@@ -33,7 +33,7 @@ Regardless of mode:
 
 ### Step 2b: Count Key Symbols
 
-Find the definitions with `git grep -nE` (one pattern per language: `def`, `class`, `function`, `func`, `fn`, `struct`, `interface`), then rank them by `git grep -cw <name>`: the 20-30 most cited become Key Symbols, each with its count.
+Find the definitions with `git grep -nE` (one pattern per language: `def`, `class`, `function`, `func`, `fn`, `struct`, `interface`), then rank them by `git grep -cw <name>`, which prints one count per file, so add them up: the 20-30 most cited become Key Symbols, each with its count.
 <!-- repo-only -->
 `bash "${CLAUDE_PLUGIN_ROOT}/skills/atlas/atlas-symbols.sh" top 30` does this in one pass (Python through ast when python3 is there).
 <!-- /repo-only -->

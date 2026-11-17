@@ -82,6 +82,16 @@ has_out "path not found: src/missing.py" "module map"
 lacks_out "path not found: src/app.py" "module map"
 lacks_out "path not found: src/\`" "module map"
 
+# Placeholders, home paths and variables warn and never block
+D="$(fresh)"; src_app "$D"
+atlas '| add a skill | `skills/<name>/SKILL.md` | layout |
+| user rules | `~/.claude/rules/` | global |
+| plugin root | `${CLAUDE_PLUGIN_ROOT}/hooks/` | runtime |' "" "" "" > "$D/ATLAS.md"
+expect_ok "$D" "placeholder paths"
+has_out "not checked (a placeholder, home path or variable): skills/<name>/SKILL.md" "placeholder paths"
+has_out "not checked (a placeholder, home path or variable): ~/.claude/rules/" "placeholder paths"
+lacks_out "path not found" "placeholder paths"
+
 # Key Symbols: the symbol must still appear in its file
 D="$(fresh)"; src_app "$D"
 atlas "" '| `run_app` | `src/app.py` | function | 3 |' "" "" > "$D/ATLAS.md"

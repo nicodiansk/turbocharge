@@ -33,14 +33,18 @@ is_json || { echo "write-snapshot: the draft isn't JSON" >&2; exit 2; }
 
 LC_ALL=C awk -v allow="$allowed" '
 function inclass(c, cls) { return c ~ cls }
-# does s hold prefix followed by at least min chars of cls?
-function after(s, prefix, cls, min,    p, rest, n, off) {
+# does s hold prefix at the start of a word (risk-, task- and desk- hold sk- inside one) followed by at least min chars
+# of cls, with a digit among them when digit is set?
+function after(s, prefix, cls, min, digit,    p, at, rest, n, d, off) {
     off = 0
     while ((p = index(substr(s, off + 1), prefix)) > 0) {
-        rest = substr(s, off + p + length(prefix)); n = 0
-        while (n < length(rest) && inclass(substr(rest, n + 1, 1), cls)) n++
-        if (n >= min) return 1
-        off = off + p
+        at = off + p
+        if (at == 1 || substr(s, at - 1, 1) !~ /[A-Za-z0-9]/) {
+            rest = substr(s, at + length(prefix)); n = 0; d = 0
+            while (n < length(rest) && inclass(substr(rest, n + 1, 1), cls)) { if (substr(rest, n + 1, 1) ~ /[0-9]/) d = 1; n++ }
+            if (n >= min && (d || !digit)) return 1
+        }
+        off = at
     }
     return 0
 }
@@ -52,17 +56,18 @@ function longest_run(s, cls,    i, n, best) {
     return best
 }
 function cclass(c) { return c ~ /[A-Z]/ ? "U" : c ~ /[a-z]/ ? "L" : c ~ /[0-9]/ ? "D" : "O" }
-# a base64-looking run of 40+ whose class changes on at least 0.40 of adjacent pairs
-function random_run(s,    i, n, c, prev, ch, start, len) {
-    s = s " "; start = 0; len = 0; ch = 0; prev = ""
+# a base64-looking run of 40+ whose letters and digits change class (upper, lower, digit) on at least 0.40 of their
+# adjacent pairs. A pair that touches - _ / + = does not count, so hyphenated slugs and URL paths read as words.
+function random_run(s,    i, c, prev, ch, pairs, len) {
+    s = s " "; len = 0; ch = 0; pairs = 0; prev = ""
     for (i = 1; i <= length(s); i++) {
         c = substr(s, i, 1)
         if (c ~ /[A-Za-z0-9+\/=_-]/) {
-            if (len > 0 && cclass(c) != cclass(prev)) ch++
+            if (len > 0 && cclass(c) != "O" && cclass(prev) != "O") { pairs++; if (cclass(c) != cclass(prev)) ch++ }
             len++; prev = c
         } else {
-            if (len >= 40 && ch / (len - 1) >= 0.40) return 1
-            len = 0; ch = 0
+            if (len >= 40 && pairs > 0 && ch / pairs >= 0.40) return 1
+            len = 0; ch = 0; pairs = 0
         }
     }
     return 0
@@ -84,7 +89,7 @@ function scrub(s,    i, c, n, out, run, cmd) {
 }
 function rule_of(v,    w) {
     w = scrub(v)
-    if (after(w, "sk-", "[A-Za-z0-9_-]", 16)) return "sk- key"
+    if (after(w, "sk-", "[A-Za-z0-9_-]", 16, 1)) return "sk- key"
     if (after(w, "AKIA", "[0-9A-Z]", 16)) return "AWS key"
     if (after(w, "ghp_", "[A-Za-z0-9]", 20) || after(w, "gho_", "[A-Za-z0-9]", 20) || after(w, "ghu_", "[A-Za-z0-9]", 20) \
         || after(w, "ghs_", "[A-Za-z0-9]", 20) || after(w, "ghr_", "[A-Za-z0-9]", 20) \

@@ -9,6 +9,7 @@ sec() { awk -v h="$2" '{ sub(/\r$/, "") } index($0, h) == 1 { s=1; next } s && /
 S=$(sec "$W" '### 5.5.')
 [ -n "$S" ] || { echo "    wrap has no ### 5.5. section"; exit 1; }
 for p in 'git diff --name-only --no-renames <atlas-sha> --' ':(exclude)CLAUDE.md' ':(exclude).claude' \
+    ':(exclude)docs' ':(exclude)*.md' 'from the repo root' \
     'git ls-files --others --exclude-standard' 'map not rerun' 'git cat-file -e' 'atlas-sha <short sha>'; do
     printf '%s\n' "$S" | grep -qF -- "$p" || { echo "    wrap 5.5 missing: $p"; rc=1; }
 done
