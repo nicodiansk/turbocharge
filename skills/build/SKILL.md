@@ -19,11 +19,11 @@ NO BUILD COMPLETE WITHOUT THE FULL SUITE GREEN AT THE JOIN
 
 ## Step 1: Load and Review Plan
 
-1. Read the plan file at $ARGUMENTS
-2. Review critically — identify concerns or questions
-3. If concerns: raise them before starting
-4. Read the plan's **Lanes table** (`| Lane | Owns files | Tasks | After | Executor | Effort |`). **No Lanes table** (a legacy plan) → treat the whole plan as one sequential lane and route it in Step 2 like any other.
-5. Parse flags from $ARGUMENTS: `--inline` / `--delegate` (Step 2), `--reviewed` (Step 6), `--checkpoint` (human wait after each lane; off by default). Legacy forms: `--checkpoint=N` means `--checkpoint`; `--checkpoint=0` and `--no-checkpoint` mean no pauses, the default.
+1. Parse flags from $ARGUMENTS: `--inline` / `--delegate` (Step 2), `--reviewed` (Step 6), `--checkpoint` (human wait after each lane; off by default). Legacy forms: `--checkpoint=N` means `--checkpoint`; `--checkpoint=0` and `--no-checkpoint` mean no pauses, the default. What remains is the plan path. With no path, take the one in this session's plan `Next:` line; failing that, ask the user which plan, offering the newest `docs/plans/*.md`.
+2. Read the plan file. Line 1 is `<!-- plan: in progress -->` → the planner stopped before finishing: don't build it; offer `/turbocharge:plan <path>`, which resumes it.
+3. Review critically — identify concerns or questions
+4. If concerns: raise them before starting
+5. Read the plan's **Lanes table** (`| Lane | Owns files | Tasks | After | Executor | Effort |`). **No Lanes table** (a legacy plan) → treat the whole plan as one sequential lane and route it in Step 2 like any other.
 
 ## Step 2: Route Lanes
 
@@ -163,6 +163,7 @@ When every lane has finished — with `--reviewed`, once every lane's review has
 Route each failure to the lane that owns the failing file:
 - **Inline lane:** fix it in the main session, commit by pathspec.
 - **Builder lane:** resume that lane's builder with `SendMessage` — send only the failing output. Its context and prompt cache are intact, so it skips the cold start a new spawn would pay. Wait for its completion notification.
+- **A file no lane owns** (usually a cross-lane regression: a lane changed code that an untouched test exercises): route it to the lane whose change the failure points to, as above. Every lane has finished, so that lane may edit the file for this fix: say so when you resume it, and list the file under its Rulings in Step 7. If no lane's change explains the failure, fix it in the main session, or ask the user when the fix would change what a lane built.
 
 Then rerun the full gate. **Max 2 rounds per lane** — then stop and escalate, or switch to `/turbocharge:debug` when the cause isn't obvious.
 
