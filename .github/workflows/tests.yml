@@ -21,7 +21,6 @@ jobs:
     timeout-minutes: 15
     strategy:
       fail-fast: false
-      # Bump both CLI pins each release: the npm `latest` the release was checked on, and the current `stable`.
       # macOS runs BSD userland (no GNU touch -d, cp --backup, sed -i without a suffix) and bash 3.2.
       matrix:
         include:
