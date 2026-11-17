@@ -30,4 +30,10 @@ OFFER=$(printf '%s\n' "$STEP7" | grep -nF 'Offer:' | head -1 | cut -d: -f1)
 if [ -z "$GREEN" ] || [ -z "$MARK" ] || [ -z "$OFFER" ] || [ "$MARK" -le "$GREEN" ] || [ "$MARK" -ge "$OFFER" ]; then
     echo "    build Step 7: the marker bullet must sit after 'After the full gate is green' and before 'Offer:'"; rc=1
 fi
+R="$PLUGIN_DIR/skills/review/SKILL.md"
+SH="$PLUGIN_DIR/skills/ship/SKILL.md"
+assert_file "$R" || exit 1
+assert_file "$SH" || exit 1
+need "$(sec "$R" '## Step 1' '## Step 2')" 'review Step 1' 'docs/plans/archive/' 'plan found in archive/'
+need "$(sec "$SH" '## Triage review comments' '## ')" 'ship Triage' 'docs/plans/archive/' 'plan found in archive/'
 exit $rc
