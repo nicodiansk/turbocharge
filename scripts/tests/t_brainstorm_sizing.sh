@@ -8,4 +8,8 @@ for p in '### 2. Size It' '**quick**' '**small**' '**project**' 'override' 'step
          'Design doc for a quick fix' 'Designing several projects at once'; do
     grep -qF "$p" "$S" || { echo "    brainstorm missing: $p"; exit 1; }
 done
+# A small item has no step 4: it names its recommendation, and the 2-3 approaches flag is for projects only.
+SMALL=$(tr -d '\r' < "$S" | grep -F -- '- **small**' | head -1)
+printf '%s\n' "$SMALL" | grep -qF 'your recommendation' || { echo "    small path must name your recommendation"; exit 1; }
+grep -qF '| Single approach on a project |' "$S" || { echo "    'Single approach' flag must be scoped to projects"; exit 1; }
 exit 0

@@ -147,7 +147,7 @@ Run each story through all 6 criteria. Fix failures. Re-split if needed.
 ## After Stories Are Complete
 
 - Save to `docs/plans/YYYY-MM-DD-<feature>-stories.md`
-- Commit
+- Commit it if git tracks its folder (a repo, not ignored); on the default branch, ask first: commit there or on a new branch
 - Offer: "Ready for implementation planning?" → chains to `/turbocharge:plan`
 
 ## Workflow Position

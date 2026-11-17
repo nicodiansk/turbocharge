@@ -25,7 +25,7 @@ NO IMPLEMENTATION WITHOUT UNDERSTANDING REQUIREMENTS FIRST
 Name the size in one plain line, with the reason. The user can override it.
 - **Before any question:** if the request already says everything that matters (clear, a few lines, no open choices), it's **quick**. Do it now, say what you did, no design doc.
 - **Otherwise,** discover requirements first (step 3). Once you understand what they want, name the size:
-  - **small** (one component, one or two choices): agree the approach in chat, no design doc. Then offer `/turbocharge:plan` or go straight to the change.
+  - **small** (one component, one or two choices): for each choice give your recommendation, plus one alternative when the choice is real; agree it in chat, no design doc. Then offer `/turbocharge:plan` or go straight to the change.
   - **project**: continue through the steps below to a design doc.
 - If the work grows mid-way, say so and step up a size.
 - If several independent projects emerge, say so, agree an order, and take them one at a time, one design doc each.
@@ -61,7 +61,7 @@ Name the size in one plain line, with the reason. The user can override it.
   5. Update the doc with their answers.
 
   With no Agent tool, or `turbocharge:researcher` not registered (some surfaces load skills without agents), read the doc as that builder yourself.
-- Commit the design document, then hand it over with the list of `Ruled in brainstorm:` calls for the user to check while reading
+- Commit the design document if git tracks its folder (a repo, not ignored); on the default branch, ask first: commit there or on a new branch. Then hand it over with the list of `Ruled in brainstorm:` calls for the user to check while reading
 - Offer: "Ready for story breakdown?" → chains to `/turbocharge:story`
 - Or: "Ready for implementation planning?" → chains to `/turbocharge:plan`
 
@@ -70,7 +70,7 @@ Name the size in one plain line, with the reason. The user can override it.
 | Flag | Problem |
 |------|---------|
 | Jumping to code | Didn't explore requirements |
-| Single approach | Didn't propose 2-3 alternatives |
+| Single approach on a project | Didn't propose 2-3 alternatives (step 4) |
 | Wall of text | Present in 200-300 word sections |
 | Unanswered questions | Don't design around unknowns |
 | No YAGNI review | Remove unnecessary features |
