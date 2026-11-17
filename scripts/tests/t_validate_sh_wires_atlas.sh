@@ -3,4 +3,4 @@
 # ABOUTME: Checks the wiring exists; does NOT re-run validate.sh (avoids recursion).
 source "$PLUGIN_DIR/scripts/tests/helpers.sh"
 F="$PLUGIN_DIR/scripts/validate.sh"
-assert_grep "$F" "validate-atlas.sh" || exit 1
+assert_grep "$F" "skills/atlas/validate-atlas.sh" || exit 1
