@@ -8,8 +8,9 @@ rc=0
 grep -qF 'Nothing has measured yet' "$R" || { echo "    README lost: Nothing has measured yet"; rc=1; }
 grep -qF 'without searching' "$R" && { echo "    README still says the agents navigate without searching"; rc=1; }
 grep -qF 'skills/atlas/validate-atlas.sh' "$R" || { echo "    repo README doesn't name skills/atlas/validate-atlas.sh"; rc=1; }
+grep -qi 'codemap' "$R" && { echo "    README still names CodeMap: $(grep -ni 'codemap' "$R" | head -n 1)"; rc=1; }
 D="$(bash "$PLUGIN_DIR/scripts/directory-filter.sh" < "$R")" || { echo "    filter refused README.md"; exit 1; }
-for p in 'Names shared by different modules' 'aliases' 'dynamic calls' 'code intelligence (LSP)'; do
+for p in 'Names shared by different modules' 'aliases' 'dynamic calls' 'code intelligence (LSP)' 'docs/plans/archive/'; do
     printf '%s' "$D" | grep -qF -- "$p" || { echo "    directory README lost: $p"; rc=1; }
 done
 for p in atlas-symbols validate-atlas write-snapshot; do
