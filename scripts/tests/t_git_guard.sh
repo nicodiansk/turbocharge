@@ -66,5 +66,24 @@ check block 'git status # note
 git add -A'
 check allow 'git status # git add -A'
 
+# --- Task 3: command substitution and heredocs
+CLASSIC="$(printf '%s\n' 'git add new.txt && git commit -m "$(cat <<'"'EOF'"'' \
+    "feat: it's done" '' 'Notes 1) say "git add -A" and --no-verify' 'EOF' ')" -- new.txt')"
+check allow "$CLASSIC"
+check allow "$(printf '%s\n' 'cat > notes.md <<'"'EOF'" 'git add -A' 'EOF')"
+check block "$(printf '%s\n' 'cat <<EOF' 'x' 'EOF' 'git add -A')"
+check block "$(printf '%s\n' 'cat <<-EOF' '	x' '	EOF' 'git add -A')"
+check block 'x=$(git add -A)'
+check block 'out=`git add .`'
+check block 'echo "$(git add -A)"'
+check allow 'git add $(git ls-files -m)'
+check allow 'echo $(echo a) && git add b.txt'
+check block "$(printf '%s\n' 'cat <<< x; git add .')"
+
+check allow 'echo $(git add -A'
+check block 'echo $(echo $(echo $(echo $(git add -A))))'
+check allow 'echo $(echo $(echo $(echo $(echo $(git add -A)))))'
+check block 'echo "a $(echo "b $(git add -A)") c"'
+
 [ "$FAILS" = 0 ] || { echo "    $FAILS check(s) failed"; exit 1; }
 exit 0
