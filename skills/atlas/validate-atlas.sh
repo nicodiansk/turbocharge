@@ -13,11 +13,24 @@ ROOT="$(cd "$(dirname "$TARGET")" && pwd)" || exit 1
 # One normalized copy with the trailing \r of every line stripped; every check reads it, never the target.
 NORM="$(mktemp)" || exit 1
 CITED="$(mktemp)" || exit 1
-trap 'rm -f "$NORM" "$CITED"' EXIT
+WTL_ROWS="$(mktemp)" || exit 1
+PIN_NOTES="$(mktemp)" || exit 1
+trap 'rm -f "$NORM" "$CITED" "$WTL_ROWS" "$PIN_NOTES"' EXIT
 awk '{ sub(/\r$/, ""); print }' "$TARGET" > "$NORM"
 
+# Budgets: a breach warns (ATLAS-VALIDATE: warning: ...), never changes the exit code.
+WTL_MAX_ROWS=25
+WTL_MAX_CHARS=140
+PIN_MAX_LINES=2
+PIN_MAX_CHARS=280
+ATLAS_MAX_BYTES=20480
 FLOWS_MAX=5
 PROBLEMS=0
+WARNINGS=0
+warn() {
+    echo "ATLAS-VALIDATE: warning: $1" >&2
+    WARNINGS=$((WARNINGS+1))
+}
 problem() {
     echo "ATLAS-VALIDATE: $1" >&2
     PROBLEMS=$((PROBLEMS+1))
@@ -93,6 +106,49 @@ if [ "$FLOWS" -gt "$FLOWS_MAX" ]; then
     problem "Key Flows has $FLOWS flows, at most $FLOWS_MAX"
 fi
 
+# Where to Look data rows as `line<TAB>row`, and 📌 notes as `line<TAB>line count<TAB>text of all its lines`.
+awk '
+/^## / { section = $0; first = 1; next }
+section == "## Where to Look" && /^\|/ {
+    if ($0 ~ /^\|[[:space:]:|-]+$/) next
+    if (first) { first = 0; next }
+    print NR "\t" $0
+}' "$NORM" > "$WTL_ROWS"
+awk '
+function flush() { if (start) print start "\t" k "\t" text; start = 0 }
+{
+    t = $0; sub(/^[[:space:]]+/, "", t); body = t; sub(/^-[[:space:]]+/, "", body)
+    if (index(body, "📌") == 1) { flush(); start = NR; k = 1; text = $0; next }
+    if (start && t != "" && t !~ /^(\||#|-|\*|<!--)/) { k++; text = text $0; next }
+    flush()
+}
+END { flush() }' "$NORM" > "$PIN_NOTES"
+
+# Characters as code points: the bytes left once the UTF-8 continuation bytes are gone.
+chars() { printf '%s' "$1" | LC_ALL=C tr -d '\200-\277' | wc -c | tr -d ' '; }
+
+ROW_COUNT=0
+while IFS="$TAB" read -r n row; do
+    ROW_COUNT=$((ROW_COUNT+1))
+    c="$(chars "$row")"
+    if [ "$c" -gt "$WTL_MAX_CHARS" ]; then
+        warn "line $n: Where to Look row is $c characters, keep it under $WTL_MAX_CHARS"
+    fi
+done < "$WTL_ROWS"
+if [ "$ROW_COUNT" -gt "$WTL_MAX_ROWS" ]; then
+    warn "Where to Look has $ROW_COUNT rows, keep at most $WTL_MAX_ROWS (most useful first)"
+fi
+while IFS="$TAB" read -r n k text; do
+    c="$(chars "$text")"
+    if [ "$k" -gt "$PIN_MAX_LINES" ] || [ "$c" -gt "$PIN_MAX_CHARS" ]; then
+        warn "line $n: 📌 note is over its $PIN_MAX_LINES-line budget (lines: $k, characters: $c): detail goes in a design doc"
+    fi
+done < "$PIN_NOTES"
+BYTES="$(wc -c < "$TARGET" | tr -d ' ')"
+if [ "$BYTES" -gt "$ATLAS_MAX_BYTES" ]; then
+    warn "ATLAS.md is $BYTES bytes, aim for 15–20 KB"
+fi
+
 # The footer names the commit the map was written at: only checkable inside a git work tree that has a commit.
 if git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 && git -C "$ROOT" rev-parse -q --verify HEAD >/dev/null 2>&1; then
     SHA="$(grep -oE '<!-- atlas-sha:[0-9a-f]{7,40} -->' "$NORM" | tail -n 1 | sed 's/^<!-- atlas-sha://; s/ -->$//')"
@@ -107,4 +163,8 @@ if [ "$PROBLEMS" -gt 0 ]; then
     echo "ATLAS-VALIDATE: $PROBLEMS problem(s)." >&2
     exit 1
 fi
-echo "ATLAS-VALIDATE: $TARGET OK"
+if [ "$WARNINGS" -gt 0 ]; then
+    echo "ATLAS-VALIDATE: $TARGET OK, $WARNINGS warning(s)"
+else
+    echo "ATLAS-VALIDATE: $TARGET OK"
+fi

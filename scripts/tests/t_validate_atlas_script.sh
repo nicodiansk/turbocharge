@@ -159,4 +159,57 @@ atlas "" "" "" "" '- broken: `src/app.py` → `src/nope.py`' > "$D/ATLAS.md"
 expect_fail "$D" "flow citing a missing file"
 has_out "path not found: src/nope.py" "flow citing a missing file"
 lacks_out "path not found: src/app.py" "flow citing a missing file"
+
+# Warnings: stderr, never a changed exit code. A pass with warnings says how many.
+# rowof N: a table row of exactly N characters (code points)
+rowof() { printf '|%s|' "$(printf '%*s' $(($1 - 2)) '' | tr ' ' x)"; }
+D="$(fresh)"
+atlas "$(rowof 141)" "" "" "" > "$D/ATLAS.md"
+expect_ok "$D" "141-character row"
+has_out "ATLAS-VALIDATE: warning: line 5: Where to Look row is 141 characters, keep it under 140" "141-character row"
+has_out "ATLAS-VALIDATE: ATLAS.md OK, 1 warning(s)" "141-character row"
+# exactly 140 characters with ten arrows (160 bytes): no warning, saved LF or CRLF
+ARROWS="→→→→→→→→→→"
+ROW140="|$(printf '%*s' 128 '' | tr ' ' x)$ARROWS|"
+atlas "$ROW140" "" "" "" > "$D/ATLAS.md"
+expect_ok "$D" "140-character row with arrows"
+lacks_out "warning" "140-character row with arrows"
+sed 's/$/\r/' "$D/ATLAS.md" > "$D/crlf.md"; mv "$D/crlf.md" "$D/ATLAS.md"
+expect_ok "$D" "140-character CRLF row with arrows"
+lacks_out "warning" "140-character CRLF row with arrows"
+# 26 data rows warn, 25 don't
+rows() { local i=1 r=""; while [ "$i" -le "$1" ]; do r="$r| intent $i | none | why |$NL"; i=$((i+1)); done; printf '%s' "${r%"$NL"}"; }
+atlas "$(rows 26)" "" "" "" > "$D/ATLAS.md"
+expect_ok "$D" "26 rows"
+has_out "ATLAS-VALIDATE: warning: Where to Look has 26 rows, keep at most 25 (most useful first)" "26 rows"
+atlas "$(rows 25)" "" "" "" > "$D/ATLAS.md"
+expect_ok "$D" "25 rows"
+lacks_out "Where to Look has" "25 rows"
+# 📌 notes: 2 lines and 280 characters at most; the template comment is not a note
+PIN="📌"
+note_file() { atlas "" "" "" "" > "$D/ATLAS.md"; printf '%s\n' "$@" >> "$D/ATLAS.md"; }
+note_file "- $PIN first" "  second" "  third"
+expect_ok "$D" "3-line note"
+has_out "📌 note is over its 2-line budget (lines: 3, characters:" "3-line note"
+has_out "detail goes in a design doc" "3-line note"
+note_file "$PIN$(printf '%*s' 299 '' | tr ' ' y)"
+expect_ok "$D" "300-character note"
+has_out "characters: 300)" "300-character note"
+note_file "- $PIN short note" "- $PIN another" "<!-- $PIN-prefixed lines are manual notes, preserved across atlas updates -->"
+expect_ok "$D" "short notes"
+lacks_out "📌 note" "short notes"
+note_file "$PIN two lines" "second line"
+expect_ok "$D" "2-line note"
+lacks_out "📌 note" "2-line note"
+# size: over 20480 bytes warns, exit stays 0
+atlas "" "" "" "" > "$D/ATLAS.md"
+BASE="$(wc -c < "$D/ATLAS.md" | tr -d ' ')"
+printf '%s\n' "$(printf '%*s' $((21000 - BASE - 1)) '' | tr ' ' z)" >> "$D/ATLAS.md"
+[ "$(wc -c < "$D/ATLAS.md" | tr -d ' ')" = 21000 ] || { echo "    fixture isn't 21000 bytes"; exit 1; }
+expect_ok "$D" "21000-byte atlas"
+has_out "ATLAS.md is 21000 bytes, aim for 15–20 KB" "21000-byte atlas"
+# the header-only fixture stays clean
+D="$(fresh)"; printf '%s\n' "$HEADERS" > "$D/ATLAS.md"; expect_ok "$D" "header-only"
+lacks_out "warning" "header-only"
+has_out "ATLAS-VALIDATE: ATLAS.md OK" "header-only"
 exit 0
