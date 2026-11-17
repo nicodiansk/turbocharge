@@ -162,7 +162,7 @@ The verified review runs when you type `/turbocharge:review`: five lens reviewer
 
 - **One source of truth.** No competing `planner-v2.md` files, no rules that contradict each other. Install once, update once.
 - **Each step gates the next.** Requirements before stories, stories before plans, plans before code. The skill you skipped is usually the bug you ship.
-- **Right model for each role.** Builders, reviewers, and researchers run on Sonnet — fast and focused. Your orchestration session runs whatever model you've configured, so you can reach for a more capable one on the planning and judgment calls.
+- **Right model for each role.** Builders run on Sonnet, or Opus on lanes the plan marks; reviewers and researchers run on Sonnet — fast and focused. Your orchestration session runs whatever model you've configured, so you can reach for a more capable one on the planning and judgment calls.
 - **Drop in anywhere.** Already have a plan? Start at `build`. Hit a bug? `debug`. Wrapping up? `wrap`. You're never forced through the whole chain.
 
 ## How Build Works
@@ -230,18 +230,20 @@ Dispatched by skills. You never invoke them directly.
 
 <!-- repo-only -->
 <p align="center">
-  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/model-tiering.svg" alt="The right model for each role: your session orchestrates on the model you pick, and the planner inherits it (Opus if you orchestrate on Opus, never below Sonnet); builder, researcher, task-reviewer, code-reviewer, verifier and the review swarm's five lenses are fixed on Sonnet; Opus comes in one place only, when build retries a stuck builder lane once, and if it is still stuck you decide; design or destructive questions go to you, never to Opus; never Haiku, because turn count beats token price" width="100%">
+  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/model-tiering.svg" alt="The right model for each role: your session orchestrates on the model you pick, and the planner inherits it (Opus if you orchestrate on Opus, never below Sonnet); builder, researcher, task-reviewer, code-reviewer, verifier and the review swarm's five lenses are fixed on Sonnet; Opus comes in two places: a builder lane the plan marks (concurrency, security, irreversible or edge-cases) and one retry of a stuck Sonnet lane; a stuck Opus lane, or a retry still stuck, goes to you; design or destructive questions go to you, never to Opus; never Haiku, because turn count beats token price" width="100%">
 </p>
 <!-- /repo-only -->
 
 | Agent | Role | Model |
 |:------|:-----|:------|
-| **builder** | TDD implementation, self-review, commits | Sonnet |
+| **builder** | TDD implementation, self-review, commits | Sonnet (Opus on lanes the plan marks) |
 | **planner** | Task breakdown, verifies entity names against codebase | inherit |
 | **researcher** | Fast read-only codebase exploration | Sonnet |
 | **task-reviewer** | Spec + Quality verdicts on a lane diff (opt-in) | Sonnet |
 | **code-reviewer** | Holistic pre-merge assessment | Sonnet |
 | **verifier** | Tries to refute one finding or review comment; read-only | Sonnet |
+
+**Advisor.** Claude Code's advisor (`/advisor`) is yours to set, and builders inherit it, so a Sonnet builder can consult a stronger model when it wants. Turbocharge neither sets nor reads it.
 
 <!-- repo-only -->
 All agents except the verifier have `memory: project` for persistent codebase knowledge across sessions; the verifier judges each finding fresh.

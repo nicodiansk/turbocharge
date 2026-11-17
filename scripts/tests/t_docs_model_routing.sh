@@ -19,4 +19,13 @@ hasnt "$AM" 'Opus appears in one place' "CLAUDE.md Agent Models"
 LANE=$(tr -d '\r' < "$C" | grep -F '| **Lane** |')
 has "$LANE" 'Opus on lanes the plan marks' "CLAUDE.md Lane row"
 hasnt "$LANE" 'one Sonnet builder' "CLAUDE.md Lane row"
+
+RD=$(tr -d '\r' < "$R")
+hasnt "$RD" 'one place only' "README"
+has "$(printf '%s\n' "$RD" | grep -F '| **builder** |')" 'Opus on lanes the plan marks' "README builder row"
+TIERIMG=$(printf '%s\n' "$RD" | grep -F 'model-tiering.svg')
+has "$TIERIMG" 'two places' "README model-tiering img"
+has "$TIERIMG" 'stuck Opus lane' "README model-tiering img"
+FILT=$(bash "$PLUGIN_DIR/scripts/directory-filter.sh" < "$R" | tr -d '\r')
+for p in '**Advisor.**' '`/advisor`' 'neither sets nor reads it'; do has "$FILT" "$p" "filtered README"; done
 exit $rc
