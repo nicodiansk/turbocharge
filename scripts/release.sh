@@ -12,8 +12,10 @@ SHIPPED=(.claude-plugin agents hooks skills templates workflows LICENSE NOTICE R
 # From a non-Verified organization the directory takes only Markdown, text, JSON, YAML and images, nothing that starts
 # with #!, and no package manager configuration: it refused 3.5.8 with LOCAL_CODE_FILE_TYPE (count 2) for the debug
 # skill's bisection script and TypeScript example, so the copy leaves both out.
+# The atlas and wrap skills' scripts start with #! too: in the directory copy those skills run the same checks as
+# git grep / git diff commands, or as the model's own check.
 # An entry drops that path and everything under it.
-DIRECTORY_DROP=(hooks workflows/review-swarm.js skills/debug/find-polluter.sh skills/debug/condition-based-waiting-example.ts)
+DIRECTORY_DROP=(hooks workflows/review-swarm.js skills/debug/find-polluter.sh skills/debug/condition-based-waiting-example.ts skills/atlas/atlas-symbols.sh skills/atlas/validate-atlas.sh skills/wrap/write-snapshot.sh)
 ALLOWED_EXT_RE='[.](md|txt|json|yaml|yml|png|jpg|jpeg|gif|webp|ico)$'
 ALLOWED_PLAIN=(LICENSE NOTICE .gitignore)
 IMAGE_EXT_RE='[.](png|jpg|jpeg|gif|webp|ico)$'
