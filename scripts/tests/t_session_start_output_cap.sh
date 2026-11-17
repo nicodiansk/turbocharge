@@ -62,6 +62,23 @@ OUT="$(bash "$F" 2>&1 || true)"
 echo "$OUT" | grep -q "SMALL_SNAPSHOT_7781" || { echo "    small snapshot not emitted"; cleanup; exit 1; }
 echo "$OUT" | grep -q "truncated —" && { echo "    small inputs were truncated"; cleanup; exit 1; }
 
+# A full table (25 rows of exactly 140 ASCII characters) reaches the session whole.
+cd "$TMP"; rm -rf .claude .git src
+{
+    printf '# ATLAS\n\n## Where to Look\n\n| I want to... | Open | Why |\n|---|---|---|\n'
+    for i in $(seq 1 25); do
+        row="| Row $i |"; tag="ROW_${i}_PAD"; [ "$i" -eq 25 ] && tag="ROW_25_END"
+        while [ ${#row} -lt $((140 - ${#tag} - 1)) ]; do row="$row-"; done
+        printf '%s %s\n' "$row" "$tag" | cut -c1-140
+    done
+    printf '\n## Module Map\n'
+} > ATLAS.md
+ROW_LEN=$(grep '^| Row 25 ' ATLAS.md | awk '{ print length($0) }')
+[ "$ROW_LEN" -eq 140 ] || { echo "    fixture row 25 is $ROW_LEN characters, expected 140"; cleanup; exit 1; }
+OUT="$(bash "$F" 2>&1 || true)"
+echo "$OUT" | grep -q "ROW_25_END" || { echo "    row 25 of a full Where to Look table was cut"; cleanup; exit 1; }
+echo "$OUT" | grep -qF "truncated — Read ATLAS.md" && { echo "    a 25-row table was truncated"; cleanup; exit 1; }
+
 # Leftover budget: tiny ATLAS + ~6 KB snapshot -> snapshot gets more than the old fixed 2,500 B, total stays < 10,000.
 cd "$TMP"; mkdir -p .claude
 printf '# ATLAS\n\n## Where to Look\n\n| a | b | c |\n' > ATLAS.md

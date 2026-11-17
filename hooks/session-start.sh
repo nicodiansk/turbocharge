@@ -8,7 +8,8 @@ HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Per-section byte caps. Claude Code saves hook output over 10,000 chars to disk
 # and injects only a 2,000-char preview, so the sum of these plus the fixed
 # prose must stay under 10,000 (guarded by scripts/tests/t_session_start_output_cap.sh).
-ATLAS_CAP=3500
+# ATLAS_CAP fits validate-atlas's limits: 25 rows of ~140 characters, a few multibyte arrows, plus the table header.
+ATLAS_CAP=4000
 # The list of ATLAS.md lines at risk gets a 1200-byte budget, so TOTAL_BUDGET stays 9500.
 ATLAS_STALE_CAP=1200
 # Everything the hook prints stays under TOTAL_BUDGET; the snapshot gets what the
