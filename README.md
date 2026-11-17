@@ -134,9 +134,11 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 
 **`wrap`** stands alone — run it any time to capture session state, decisions, and a resume prompt for your next session.
 
-**`atlas`** stands alone — generates `ATLAS.md` domain map from the actual codebase. The planner, researcher and code-reviewer get it on every dispatch, so they navigate without searching.
+**`atlas`** stands alone — generates `ATLAS.md` from the actual codebase: where to look, entry points, the most cited symbols (counted, not picked) and the commit it maps. The planner, researcher and code-reviewer get it on every dispatch as a map of where to look. Nothing has measured yet whether that saves them work.
+
+**Atlas's limits:** it finds definitions and callers by name (`git grep -w`). Names shared by different modules, aliases and dynamic calls fool it. That's fine for finding your way. For a refactoring, use a code intelligence (LSP) plugin.
 <!-- repo-only -->
-The SessionStart hook also pre-loads its Where to Look table at every session start.
+The SessionStart hook also pre-loads its Where to Look table at every session start. `skills/atlas/atlas-symbols.sh` counts the symbols (Python through `ast` when `python3` is installed), and `skills/atlas/validate-atlas.sh` blocks an `ATLAS.md` commit whose paths or symbols are gone and warns when Where to Look passes 25 rows of ~140 characters.
 <!-- /repo-only -->
 
 | Skill | Command | What it does |
@@ -351,7 +353,7 @@ turbocharge/
 │   ├── plugin.json              # Plugin manifest
 │   ├── icon.png                 # Plugin icon
 │   └── marketplace.json         # Distribution config
-├── skills/                      # 10 skill definitions
+├── skills/                      # 10 skill definitions (atlas and wrap also hold their scripts)
 │   └── <skill-name>/SKILL.md
 ├── agents/                      # 6 agent definitions
 │   └── <agent-name>.md
