@@ -30,4 +30,18 @@ for p in '`concurrency`' '`security`' '`irreversible`' '`edge-cases`' 'the highe
 done
 has "planner Spec Self-Review" "$(sec "$P" '## Spec Self-Review' '## Plan Format')" 'one of the four reasons'
 has "planner Quality Checklist" "$(sec "$P" '## Quality Checklist' '## Remember')" 'one of the four reasons'
+
+# The planning eval grades the column; lanes-table.md keeps its pattern, so before and after stay comparable.
+G="$PLUGIN_DIR/evals/planning/csv-export/graders/lanes-model.md"
+if [ -f "$G" ]; then
+    FM="$(frontmatter "$G")"
+    for p in 'type: llm' 'arm: with-only' 'docs/plans/plan.md'; do has "lanes-model.md frontmatter" "$FM" "$p"; done
+    BODY="$(awk '{ sub(/\r$/, "") } NR == 1 && $0 == "---" { f = 1; next } f && $0 == "---" { f = 0; next } !f' "$G")"
+    for p in Model sonnet opus; do has "lanes-model.md body" "$BODY" "$p"; done
+else
+    echo "    missing evals/planning/csv-export/graders/lanes-model.md"; rc=1
+fi
+T="$(grep '^pattern:' "$PLUGIN_DIR/evals/planning/csv-export/graders/lanes-table.md" | tr -d '\r')"
+[ "$T" = "pattern: '\| Lane \| Owns files \| Tasks \| After \| Executor \| Effort \|'" ] \
+    || { echo "    lanes-table.md pattern changed: $T"; rc=1; }
 exit $rc
