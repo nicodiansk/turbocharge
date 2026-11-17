@@ -53,7 +53,7 @@ Announce the routing before executing:
 lanes: 3 (inline 1 · builder 2)
   plan-format   inline                             tasks 1–2
   hook-cleanup  builder (medium · sonnet)          tasks 6–8   ← background
-  git-guard     builder (high · opus · security)   tasks 9–12  ← background
+  auth-tokens   builder (high · opus · security)   tasks 9–12  ← background
 ```
 
 ## Step 3: Spawn Builder Lanes
