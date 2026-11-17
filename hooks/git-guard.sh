@@ -284,6 +284,76 @@ check_git() {
     esac
 }
 
+deny_symlink() {
+    deny "turbocharge git-guard: \`$(excerpt "$1")\` goes through the symlink \`$(excerpt "$2")\`, so the delete empties the folder the link points to, not the link. To remove only the link: rm $2 (no trailing slash). To clear the target, name its real path. To turn this check off, the user sets TURBOCHARGE_GIT_GUARD_SYMLINKS=off."
+}
+
+# strip_trailing <path>: drop trailing / and /. until neither is left
+strip_trailing() {
+    local p="$1"
+    while :; do
+        case "$p" in
+            */.) p="${p%/.}" ;;
+            */) p="${p%/}" ;;
+            *) break ;;
+        esac
+    done
+    printf '%s' "$p"
+}
+
+# resolve_path <path as written>: absolute path from ~, an absolute path or the tracked cwd; empty when unknown
+resolve_path() {
+    case "$1" in
+        '~') printf '%s' "${HOME:-}" ;;
+        '~/'*) [ -n "${HOME:-}" ] && printf '%s/%s' "$HOME" "${1#\~/}" ;;
+        /*|[A-Za-z]:/*) printf '%s' "$1" ;;
+        *) [ -n "$CWD" ] && printf '%s/%s' "$CWD" "$1" ;;
+    esac
+    return 0
+}
+
+# check_through <operand as written>: a trailing / or /. on a symlink to a directory deletes the target's contents
+check_through() {
+    local op="$1" base path
+    case "$op" in */|*/.) ;; *) return 0 ;; esac
+    base="$(strip_trailing "$op")"
+    [ -n "$base" ] || return 0
+    path="$(resolve_path "$base")"
+    [ -n "$path" ] || return 0
+    if [ -L "$path" ] && [ -d "$path" ]; then deny_symlink "$op" "$base"; fi
+    return 0
+}
+
+# check_rm <index of the rm word>: the operands of a recursive rm
+check_rm() {
+    local i n=${#WV[@]} past=0 rec=0 w ops=()
+    for ((i = $1 + 1; i < n; i++)); do
+        [ "${WK[i]}" = L ] || continue
+        w="${WV[i]}"
+        if [ "$past" = 1 ]; then ops[${#ops[@]}]="$w"; continue; fi
+        case "$w" in
+            --) past=1 ;;
+            --recursive) rec=1 ;;
+            --*) ;;
+            -?*) case "$w" in *[rR]*) rec=1 ;; esac ;;
+            *) ops[${#ops[@]}]="$w" ;;
+        esac
+    done
+    [ "$rec" = 1 ] || return 0
+    for w in ${ops[@]+"${ops[@]}"}; do check_through "$w"; done
+}
+
+# track_cwd <index of the cd word>: cd moves the tracked cwd; an unknown target makes it unknown
+track_cwd() {
+    local i=$(($1 + 1)) n=${#WV[@]}
+    while [ "$i" -lt "$n" ] && [ "${WK[i]}" = L ]; do
+        case "${WV[i]}" in -P|-L|-e|-@|--) i=$((i + 1)) ;; *) break ;; esac
+    done
+    if [ "$i" -ge "$n" ]; then CWD="${HOME:-}"
+    elif [ "${WK[i]}" != L ] || [ "${WV[i]}" = - ]; then CWD=""
+    else CWD="$(resolve_path "${WV[i]}")"; fi
+}
+
 # Words skipped before a segment's command word: wrappers (their own -options too) and shell keywords.
 WRAPPERS=" sudo env command builtin exec nohup time nice "
 KEYWORDS=" ! { if then else elif do while until "
@@ -352,6 +422,9 @@ check_segment() {
     case "$base" in
         git) check_git "$CMD_I" ;;
         eval) check_eval "$CMD_I" ;;
+        rm) check_rm "$CMD_I" ;;
+        cd) track_cwd "$CMD_I" ;;
+        pushd|popd) CWD="" ;;
         *) case "$SHELLS" in *" $base "*) check_shell "$CMD_I" ;; esac ;;
     esac
 }
@@ -367,5 +440,6 @@ check_command() {
     done <<< "$segs"
 }
 
+CWD="$(field .cwd)"; CWD="${CWD//\\//}"
 check_command "$COMMAND"
 exit 0

@@ -115,5 +115,26 @@ wrap() { printf 'bash -c %q' "$1"; }
 check block "$(wrap "$(wrap "$(wrap 'git add -A')")")"
 check allow "$(wrap "$(wrap "$(wrap "$(wrap 'git add -A')")")")"
 
+# --- Task 7: rm -r through a symlink, with cd tracking
+mkdir -p "$WORK/plain" "$WORK/linked" "$WORK/deep/a" "$WORK/node_modules/.pnpm/pkg" "$ROOT/stub-linux"
+echo x > "$WORK/plain/f.txt"; echo x > "$WORK/node_modules/.pnpm/pkg/index.js"
+ln -s ../plain "$WORK/linked/up"
+ln -s ../../plain "$WORK/deep/a/l"
+ln -s plain "$WORK/linkonly"
+ln -s linked "$WORK/linkdir"
+ln -s .pnpm/pkg "$WORK/node_modules/pkg"
+printf '#!/bin/sh\necho Linux\n' > "$ROOT/stub-linux/uname"; chmod +x "$ROOT/stub-linux/uname"
+PREPATH="$ROOT/stub-linux"
+
+check block 'rm -rf linkdir/' 'linkdir'
+for c in 'rm -r linkonly/.' 'rm -fr linkonly//' 'rm -R linkdir/' 'rm --recursive linkdir/' 'rm -r -f -- linkdir/' "/bin/rm -rf \"$WORK/linkdir/\"" \
+    'sudo rm -rf linkdir/' 'rm -rf plain linkdir/'; do check block "$c" 'goes through the symlink'; done
+CHECK_CWD=/ check block "cd \"$WORK\" && rm -rf linkdir/" 'linkdir'
+CHECK_CWD=/ check block "cd '$ROOT' && cd 'work dir' && rm -rf linkdir/"
+for c in 'rm -rf linked' 'rm -rf deep' 'rm -rf node_modules' 'rm -rf linkonly' 'rm -rf plain/' 'rm -rf missing/' 'rm -f linkdir/' 'rm -rf linked/*' \
+    'cd "$X" && rm -rf linkdir/' 'cd - && rm -rf linkdir/' 'rm -rf' 'rm' 'rm -rf -- ' 'rm -rf /' 'rm -rf linkdir'; do check allow "$c"; done
+CHECK_CWD=/ check allow 'rm -rf linkdir/'
+CHECK_CWD=/ check allow "cd \"$WORK/plain\" && rm -rf linkdir/"
+
 [ "$FAILS" = 0 ] || { echo "    $FAILS check(s) failed"; exit 1; }
 exit 0
