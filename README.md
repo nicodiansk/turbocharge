@@ -18,7 +18,7 @@ from the directory copy, whose scan holds any version that names an image file o
 You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that contradict each other, and a `planner-actually-good.md` you wrote at 2 AM. Claude picks whichever it finds first. You can't remember which is current. Neither can Claude.
 
 <!-- repo-only -->
-**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 6 agents, 2 hooks, 1 workflow. One system to install, nothing to maintain.
+**Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 6 agents, 3 hooks, 1 workflow. One system to install, nothing to maintain.
 <!-- /repo-only -->
 <!-- directory-only
 **Turbocharge replaces all of it** with a single opinionated pipeline: 10 skills, 6 agents. One system to install, nothing to maintain.
@@ -26,7 +26,7 @@ You have 6 agents in `~/.claude/agents/`, 4 custom commands, 3 rule files that c
 
 <!-- repo-only -->
 <p align="center">
-  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/before-after.svg" alt="Before: agents in ~/.claude/agents/ with planner.md next to planner-actually-good.md, commands in .claude/commands/, rule files that contradict each other and a session snapshot saved months ago; you can't remember which is current, and neither can Claude. After: one pipeline, brainstorm, story, plan, build, review, ship, with debug looping under build; 10 skills, 6 agents, 2 hooks, 1 workflow, installed with claude plugin install turbocharge@turbocharge. One source of truth." width="100%">
+  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/before-after.svg" alt="Before: agents in ~/.claude/agents/ with planner.md next to planner-actually-good.md, commands in .claude/commands/, rule files that contradict each other and a session snapshot saved months ago; you can't remember which is current, and neither can Claude. After: one pipeline, brainstorm, story, plan, build, review, ship, with debug looping under build; 10 skills, 6 agents, 3 hooks, 1 workflow, installed with claude plugin install turbocharge@turbocharge. One source of truth." width="100%">
 </p>
 <!-- /repo-only -->
 
