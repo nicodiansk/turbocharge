@@ -9,6 +9,8 @@ assert_grep "$F" "^## Module Map"           || exit 1
 assert_grep "$F" "^## Key Symbols"          || exit 1
 assert_grep "$F" "^## Integration Points"   || exit 1
 assert_grep "$F" "^## Conventions & Gotchas" || exit 1
+assert_grep "$F" "^## Key Flows"            || exit 1
+assert_no_grep "$F" "File:line-range"       || exit 1
 # Removed sections must NOT appear in the template section of the skill
 assert_no_grep "$F" "^## Data Flows"        || exit 1
 assert_no_grep "$F" "^## Domain Model"      || exit 1
