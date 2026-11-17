@@ -20,7 +20,8 @@ for p in \
 done
 
 # Per-lane review: the pathspec isolates one lane even though other lanes' commits interleave.
-grep -qF 'git diff $BEFORE_SHA..HEAD -- <lane paths>' "$F" || { echo "    reviewer must diff the lane by pathspec"; rc=1; }
+grep -qF 'git diff $BEFORE_SHA..HEAD -- <lane paths>' "$PLUGIN_DIR/skills/build/references/reviewed-mode.md" 2>/dev/null \
+    || { echo "    reviewer must diff the lane by pathspec (reviewed-mode.md)"; rc=1; }
 grep -qF 'NO BUILD COMPLETE WITHOUT THE FULL SUITE GREEN AT THE JOIN' "$F" || { echo "    Iron Law must gate on the join"; rc=1; }
 
 # Agent Teams multi-track is gone (overlapping lanes replace it).

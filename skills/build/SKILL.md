@@ -1,6 +1,6 @@
 ---
 name: build
-description: Use when you have an implementation plan ready to execute. Routes each plan lane inline (main session) or to one Sonnet builder, overlaps independent lanes, and joins with one full-suite gate. Opt-in per-lane review (single Sonnet task-reviewer, two verdicts) for high-risk work.
+description: "Use when a written implementation plan is ready to execute: the docs/plans/ file /turbocharge:plan just saved, or a plan path the user names ('build the plan', 'implement docs/plans/x.md', a go-ahead right after a plan). Runs each lane inline or with one builder, overlaps independent lanes and runs the full suite once; --reviewed adds a per-lane review. Without a plan file, plan first."
 argument-hint: "[plan-file] [--inline | --delegate] [--reviewed] [--checkpoint]"
 ---
 
@@ -19,7 +19,7 @@ NO BUILD COMPLETE WITHOUT THE FULL SUITE GREEN AT THE JOIN
 
 ## Step 1: Load and Review Plan
 
-1. Parse flags from $ARGUMENTS: `--inline` / `--delegate` (Step 2), `--reviewed` (Step 6), `--checkpoint` (human wait after each lane; off by default). Legacy forms: `--checkpoint=N` means `--checkpoint`; `--checkpoint=0` and `--no-checkpoint` mean no pauses, the default. What remains is the plan path. With no path, take the one in this session's plan `Next:` line; failing that, ask the user which plan, offering the newest `docs/plans/*.md`.
+1. Parse flags from $ARGUMENTS: `--inline` / `--delegate` (Step 2), `--reviewed` (Step 6: read `references/reviewed-mode.md` in this skill's directory now, before any lane starts), `--checkpoint` (human wait after each lane; off by default). Legacy forms: `--checkpoint=N` means `--checkpoint`; `--checkpoint=0` and `--no-checkpoint` mean no pauses, the default. What remains is the plan path. With no path, take the one in this session's plan `Next:` line; failing that, ask the user which plan, offering the newest `docs/plans/*.md`.
 2. Read the plan file. Line 1 is `<!-- plan: in progress -->` → the planner stopped before finishing: don't build it; offer `/turbocharge:plan <path>`, which resumes it.
 3. Review critically — identify concerns or questions
 4. If concerns: raise them before starting
@@ -169,26 +169,7 @@ Then rerun the full gate. **Max 2 rounds per lane** — then stop and escalate, 
 
 ## Step 6: Reviewed Mode (`--reviewed`)
 
-For security-sensitive code, unfamiliar codebases, or complex integrations. Reviews run **per lane**, not per task:
-
-1. **Before the lane starts:** a builder lane's `BEFORE_SHA` is its `LANE_SHA` (Step 3); an inline lane records `BEFORE_SHA=$(git rev-parse HEAD)` before its first task.
-2. **After the lane finishes** and its builder's completion notification has arrived, dispatch one task-reviewer (Sonnet) with:
-   - Plan file path + the lane's task line ranges (the reviewer reads the plan directly — do NOT paste requirements)
-   - The lane's diff: `git diff $BEFORE_SHA..HEAD -- <lane paths>`. Lanes own disjoint files, so the pathspec isolates this lane even though other lanes' commits interleave in the range. Run it as the join checks say (Step 5): in `bash`, with the SHA and the paths written out.
-   - Working directory. Do NOT send the builder's narrative report — the reviewer reads the diff, not claims.
-3. Then wait for its completion notification and apply the disposition.
-
-The reviewer returns two verdicts: `Spec: ✅ / ❌` and `Quality: Approved / Issues found / N/A` (N/A when Spec is ❌ — quality isn't assessed on code that will be rewritten), then its `Declined to judge:` lines.
-
-If `turbocharge:task-reviewer` is not registered, or there is no Agent tool, review the lane diff yourself against the task-reviewer's checklist and give the same two verdicts plus Declined to judge lines.
-
-**Declined to judge:** rule on every line. If it's in scope, it becomes a finding under the disposition below, graded by its effect on a reasonable user. If it's out of scope, carry it to Step 7 as `set aside: <line>`. A line you skip is a decision nobody saw.
-
-**Disposition:**
-- **Spec ❌, or Quality has any 🔴 Critical:** fix only those items — builder lane: `SendMessage` the lane's builder; inline lane: fix in the main session. Then `SendMessage` the same task-reviewer to re-review the new diff. **Max 2 cycles** — escalate to the user if still failing.
-- **🟡 Important / 🟢 Minor only:** do NOT loop. Carry them into the completion report (Step 7) so the user decides.
-
-A reviewed lane is complete only after Spec ✅ with no unresolved 🔴 Critical.
+For security-sensitive code, unfamiliar codebases, or complex integrations: one task-reviewer per lane, after the lane finishes. Its procedure (dispatch, verdicts, Declined to judge, disposition) is in `references/reviewed-mode.md` in this skill's directory, which Step 1 reads when `--reviewed` is set. Two facts the other steps rely on: a builder lane's `BEFORE_SHA` is its `LANE_SHA` (Step 3), and an inline lane records `BEFORE_SHA=$(git rev-parse HEAD)` before its first task. A reviewed lane is complete only after Spec ✅ with no unresolved 🔴 Critical.
 
 ## Step 7: Complete
 
