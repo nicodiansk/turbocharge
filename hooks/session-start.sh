@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ABOUTME: SessionStart hook — bootstrap cat, pre-load ATLAS.md + session snapshot.
-# ABOUTME: Pre-loading ATLAS means zero tool calls for "where is X" lookups.
+# ABOUTME: Pre-loads the Where to Look table and flags ATLAS.md lines whose cited files changed.
 # ABOUTME: Read-only — emits text to stdout only; creates/modifies/deletes nothing, no network.
 # ABOUTME: Per-section byte caps keep total output under Claude Code's 10,000-char inline limit.
 HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -9,7 +9,8 @@ HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 # and injects only a 2,000-char preview, so the sum of these plus the fixed
 # prose must stay under 10,000 (guarded by scripts/tests/t_session_start_output_cap.sh).
 ATLAS_CAP=3500
-CODEMAP_CAP=1200
+# The list of ATLAS.md lines at risk gets a 1200-byte budget, so TOTAL_BUDGET stays 9500.
+ATLAS_STALE_CAP=1200
 # Everything the hook prints stays under TOTAL_BUDGET; the snapshot gets what the
 # other sections leave over (minus SNAPSHOT_OVERHEAD for its header/footer/marker).
 TOTAL_BUDGET=9500
@@ -66,11 +67,11 @@ atlas_stale_lines() {
     ' - ATLAS.md)
     [ -n "$list" ] || return 0
     echo "ATLAS.md may be stale: files it cites changed since $sha7."
-    printf '%s\n' "$list"
+    printf '%s\n' "$list" | cap_section "$ATLAS_STALE_CAP" "Run \`git diff --name-only --no-renames $sha7 HEAD\`"
     echo "Run /turbocharge:atlas to update those lines."
 }
 
-# emit_head — bootstrap, ATLAS, staleness, CodeMap: everything printed before the snapshot.
+# emit_head — bootstrap, ATLAS, staleness: everything printed before the snapshot.
 emit_head() {
     cat "$HOOK_DIR/session-bootstrap.md"
 
@@ -91,14 +92,6 @@ emit_head() {
     if [ -f "ATLAS.md" ]; then
         STALE_OUT="$(atlas_stale_lines)"
         [ -n "$STALE_OUT" ] && printf '\n%s\n' "$STALE_OUT"
-    fi
-
-    if [ -d ".codemap" ] && command -v codemap >/dev/null 2>&1; then
-        echo ""
-        echo "--- CodeMap index available ---"
-        codemap stats | cap_section "$CODEMAP_CAP" "Run \`codemap stats\`"
-        echo "Use: codemap find 'SymbolName' | codemap show path/to/file"
-        echo "--- end CodeMap ---"
     fi
 }
 
