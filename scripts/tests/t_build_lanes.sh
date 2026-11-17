@@ -15,7 +15,7 @@ for p in \
     'index.lock' \
     'Full Gate, once' \
     'SendMessage' \
-    'lanes: L (inline I · builder B)'; do
+    'lanes: L (inline I · builder B, opus O)'; do
     grep -qF -- "$p" "$F" || { echo "    build missing: $p"; rc=1; }
 done
 

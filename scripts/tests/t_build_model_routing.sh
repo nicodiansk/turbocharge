@@ -31,4 +31,8 @@ STEP5=$(sec "$S" '## Step 5' '## Step 6')
 need "$STEP5" 'Step 5' 'started on Opus' 'no retry' 'Opus is unavailable' 'raised in Step 2' 'whatever its model' \
     'model: opus' "keeps the lane's \`LANE_SHA\`" 'the same `Mutation:` line'
 grep -qF 'on Opus lanes too' "$PLUGIN_DIR/skills/build/references/reviewed-mode.md" || { echo "    reviewed-mode.md missing: on Opus lanes too"; rc=1; }
+STEP7=$(sec "$S" '## Step 7' '## Red Flags')
+need "$STEP7" 'Step 7' 'builder B, opus O)' 'opus 0'
+FLAGS=$(sec "$S" '## Red Flags' '### Rationalizations')
+need "$FLAGS" 'Red Flags' "the plan doesn't mark" 'already ran on Opus'
 exit $rc

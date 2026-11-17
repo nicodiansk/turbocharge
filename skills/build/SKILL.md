@@ -178,7 +178,7 @@ For security-sensitive code, unfamiliar codebases, or complex integrations: one 
 
 After the full gate is green:
 - Report a completion summary, including any carried 🟡/🟢 review findings, and every lane's **Rulings**, concerns and `Not done:` line, each `shortcut check:` note and each check 2 concern (inline lanes too, where the main session lists its calls and states its own `Not done:`) so the user can check the decisions taken on their behalf
-- Print the final visibility line: `lanes: L (inline I · builder B) · spawns: S · tasks: Y/Y`
+- Print the final visibility line: `lanes: L (inline I · builder B, opus O) · spawns: S · tasks: Y/Y`; O counts builder lanes that ran on Opus at any point (marked, raised, or the stuck retry), always printed, `opus 0` included
 - Offer: "Ready for holistic code review?" → chains to `/turbocharge:review`
 
 > Visibility note: the orchestrator cannot read exact token counts. This line is the lane/spawn/task summary (the measurable proxy), NOT a fabricated token number.
@@ -199,6 +199,8 @@ After the full gate is green:
 | Skipping Reviewed mode for security-sensitive code | Save tokens, lose safety |
 | Using Reviewed mode for trivial lanes | Wastes tokens on mechanical checks |
 | Retrying a BLOCKED lane twice, or sending a design question to Opus | One Opus retry for a stuck lane; design and destructive questions go to the user |
+| Opus on a lane the plan doesn't mark, with no reason in the routing announcement | Opus is for the four kinds the plan names; anything else needs its reason shown |
+| Retrying a lane that already ran on Opus | A stuck Opus lane goes to the user; a second attempt repeats the first |
 | With `--checkpoint`, continuing past a lane without approval | The user asked to steer between lanes |
 | Fix or review loop >2 cycles | Escalate to user, don't keep retrying |
 | Marking a builder lane ✓ from its report | A return is a claim: run the four checks on its files first |
