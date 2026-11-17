@@ -190,6 +190,12 @@ It prints the snapshot within what is left of its output budget and cuts the res
 ```
 This is per-user session-local state — do NOT exclude all of `.claude/` because `settings.json` is team-shared.
 
+### 10. Archive Finished Docs
+Runs after step 9, since the exclusions use the new snapshot. Scope: `docs/plans/*.md` at the top level, never `docs/plans/archive/`; no `docs/plans/` means nothing to do. Read each file's line 1 with `\r` stripped.
+1. **Always excluded:** a path the new snapshot names (`open_files`, `next_steps`, `blockers`, `current_task`), a path the resume prompt names (its `Context Files` `@` paths, the arguments of `Start With`), a file whose line 1 is `<!-- plan: in progress -->`.
+2. **Done plans** (line 1 `<!-- plan: done YYYY-MM-DD -->`, written by build) move without asking, with their siblings. For `YYYY-MM-DD-<topic>.md` a sibling is exactly `<any date>-<topic>-design.md` or `<any date>-<topic>-stories.md`; `<topic>-2.md` or a `-scope` doc stays. An excluded sibling stays.
+3. **Proposal:** unmarked docs whose filename date is more than 14 days before today, minus exclusions and step 2's moves. No `YYYY-MM-DD-` prefix: never proposed. List them numbered; ask: all, none, or the numbers.
+
 ## How to Deliver
 
 **Output the resume prompt directly in chat** so the user can copy it. Do NOT write files, create directories, or modify `.gitignore` (except for CLAUDE.md and memory updates above, the rulings on pending proposals in `.claude/agent-memory*/*/MEMORY.md` (step 6.5), and the session snapshot JSON).
