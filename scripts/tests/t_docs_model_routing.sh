@@ -28,4 +28,9 @@ has "$TIERIMG" 'two places' "README model-tiering img"
 has "$TIERIMG" 'stuck Opus lane' "README model-tiering img"
 FILT=$(bash "$PLUGIN_DIR/scripts/directory-filter.sh" < "$R" | tr -d '\r')
 for p in '**Advisor.**' '`/advisor`' 'neither sets nor reads it'; do has "$FILT" "$p" "filtered README"; done
+has "$(printf '%s\n' "$RD" | grep -F '| **build** |')" 'Opus on lanes the plan marks' "README build row"
+has "$(printf '%s\n' "$RD" | grep -F '| **build** |')" 'at most 3 builders at once' "README build row"
+hasnt "$RD" 'one Sonnet builder' "README"
+has "$(printf '%s\n' "$RD" | grep -F 'build-review-chain.svg')" 'Opus when the plan marks the lane' "README build-review-chain img"
+for p in 'no Model column' 'plan: done YYYY-MM-DD' 'docs/plans/archive/' 'rerunning a done plan asks first'; do has "$FILT" "$p" "filtered README"; done
 exit $rc
