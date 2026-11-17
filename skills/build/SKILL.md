@@ -32,13 +32,15 @@ Each lane runs one of two ways:
 | Executor | Who runs it | Use for |
 |----------|-------------|---------|
 | `inline` | The main session, task by task | Mechanical lanes: content edits, exact text given, ≤3 tasks |
-| `builder` | One Sonnet builder for the whole lane | Real logic, unfamiliar code, judgment calls |
+| `builder` | One builder for the whole lane, on the lane's model: Sonnet, or Opus on lanes the plan marks | Real logic, unfamiliar code, judgment calls |
 
 Start from the plan's Executor hint, then override:
 - → `builder` when the lane holds real application logic (functions, classes, control flow) or a design question the plan left open.
 - → `inline` when the lane is only a few exact-text edits. A builder spawn costs ~25k tokens and 30–90 s before it writes a line.
 - `--inline` runs every lane inline; `--delegate` gives every lane a builder.
 - If a lane's route isn't obvious, ask the user.
+
+**Model** is a hint, like Executor. Build may raise or lower a lane's model only with the reason in the routing announcement. An `opus` lane that is only exact-text edits goes inline and loses its model. `--inline` ignores the Model column. `--delegate` keeps each lane's value; a lane that was inline (`—`) gets `sonnet`, as does a lane Step 2 promotes to a builder, with no plan concern: `—` is a valid cell, not an unknown value.
 
 **No agents here:** if the Agent tool is missing, or a dispatch fails because `turbocharge:builder` is not registered (some surfaces load skills without agents), run every builder lane inline (Step 4), one lane at a time, and say once: `agents unavailable — running lanes inline`.
 
@@ -48,10 +50,10 @@ Start from the plan's Executor hint, then override:
 
 Announce the routing before executing:
 ```
-lanes: 4 (inline 3 · builder 1)
-  plan-format   inline            tasks 1–2
-  hook-cleanup  builder (medium)  tasks 6–8   ← background
-  ...
+lanes: 3 (inline 1 · builder 2)
+  plan-format   inline                             tasks 1–2
+  hook-cleanup  builder (medium · sonnet)          tasks 6–8   ← background
+  git-guard     builder (high · opus · security)   tasks 9–12  ← background
 ```
 
 ## Step 3: Spawn Builder Lanes

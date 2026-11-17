@@ -19,4 +19,8 @@ lack() { # lack <section text> <label> <phrase>
 STEP1=$(sec "$S" '## Step 1' '## Step 2')
 need "$STEP1" 'Step 1' '| Effort | Model |' 'six-column table' '`opus · <reason>`' '`concurrency`' '`security`' \
     '`irreversible`' '`edge-cases`' 'plan concern' 'unless the user says otherwise' "session's model"
+STEP2=$(sec "$S" '## Step 2' '## Step 3')
+need "$STEP2" 'Step 2' 'builder (high · opus · security)' 'reason in the routing announcement' 'loses its model' \
+    'ignores the Model column' 'lane that was inline (`—`) gets `sonnet`' 'promotes to a builder'
+lack "$STEP2" 'Step 2' 'One Sonnet builder'
 exit $rc
