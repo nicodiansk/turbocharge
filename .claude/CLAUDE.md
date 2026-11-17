@@ -69,7 +69,7 @@ start a new directory submission. Never rename the plugin `name`: it sets every 
 | **Agent** | A markdown file in `agents/` — dispatched by skills via the Agent tool |
 | **Hook** | Shell command executed at lifecycle events: SessionStart (bootstrap), and SubagentStop plus PreToolUse on `SubagentHandback` (builder exit gate, one script on two events), and PreToolUse on `Bash` (git-guard: refuses bulk staging, skipped git hooks, and a recursive delete through a symlink, plus on Windows shells one of a folder holding links; lets the rest through). The count is hook scripts, not hooks.json entries. Repo installs only: the directory copy ships no hooks since 3.5.8 |
 | **Marketplace** | GitHub repo with `.claude-plugin/marketplace.json` that indexes plugins — lives at the root of this repo (`nicodiansk/turbocharge`) as of v2.3.0; previously a sibling `turbocharge-marketplace` repo (deleted 2026-04-13) |
-| **Lane** | A group of plan tasks that owns a disjoint set of files (plan's `## Lanes` table, which merges chained builder lanes). `/turbocharge:build` runs each lane inline in the main session or with one Sonnet builder, overlaps lanes with no `After` dependency, at most 3 builder lanes at once, commits by pathspec, checks each builder lane's files before marking it done, and runs the full suite once at the join |
+| **Lane** | A group of plan tasks that owns a disjoint set of files (plan's `## Lanes` table, which merges chained builder lanes). `/turbocharge:build` runs each lane inline in the main session or with one builder (Sonnet, or Opus on lanes the plan marks), overlaps lanes with no `After` dependency, at most 3 builder lanes at once, commits by pathspec, checks each builder lane's files before marking it done, and runs the full suite once at the join |
 | **Iron Law** | An enforced constraint (not a suggestion) baked into skill definitions |
 | **Red Flag** | Anti-rationalization table that catches Claude skipping process steps |
 | **Review Focus** | A plan section listing up to 5 inputs or failure modes the spec implies but never names, each pinned by a test in the task that owns the code (`(pinned: Task N)`). Reviewers check the pins |
@@ -121,9 +121,11 @@ agent hard-pins `model: sonnet`, the verifier included, and the review swarm's l
 agents set `model: 'sonnet'` in the script.
 
 No agent file pins Opus. Apart from the planner inheriting an Opus session,
-Opus appears in one place: build retries a **stuck** builder lane once with
-`model: opus` on the Agent call. Design or destructive questions go to the user,
-never to an Opus retry.
+Opus appears in two places, both as `model: opus` on build's Agent call: a builder
+lane the plan marks `opus · <reason>` (`concurrency`, `security`, `irreversible`
+or `edge-cases`), and the one retry of a stuck Sonnet lane. A stuck Opus lane goes
+to the user, with no retry. Design or destructive questions go to the user, never
+to an Opus retry.
 
 ### Release Naming
 

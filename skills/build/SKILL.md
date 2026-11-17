@@ -1,6 +1,6 @@
 ---
 name: build
-description: Use when you have an implementation plan ready to execute. Routes each plan lane inline (main session) or to one Sonnet builder, overlaps independent lanes, and joins with one full-suite gate. Opt-in per-lane review (single Sonnet task-reviewer, two verdicts) for high-risk work.
+description: "Use when a written implementation plan is ready to execute: the docs/plans/ file /turbocharge:plan just saved, or a plan path the user names ('build the plan', 'implement docs/plans/x.md', a go-ahead right after a plan). Runs each lane inline or with one builder, overlaps independent lanes and runs the full suite once; --reviewed adds a per-lane review. Without a plan file, plan first."
 argument-hint: "[plan-file] [--inline | --delegate] [--reviewed] [--checkpoint]"
 ---
 
@@ -19,11 +19,11 @@ NO BUILD COMPLETE WITHOUT THE FULL SUITE GREEN AT THE JOIN
 
 ## Step 1: Load and Review Plan
 
-1. Parse flags from $ARGUMENTS: `--inline` / `--delegate` (Step 2), `--reviewed` (Step 6), `--checkpoint` (human wait after each lane; off by default). Legacy forms: `--checkpoint=N` means `--checkpoint`; `--checkpoint=0` and `--no-checkpoint` mean no pauses, the default. What remains is the plan path. With no path, take the one in this session's plan `Next:` line; failing that, ask the user which plan, offering the newest `docs/plans/*.md`.
-2. Read the plan file. Line 1 is `<!-- plan: in progress -->` → the planner stopped before finishing: don't build it; offer `/turbocharge:plan <path>`, which resumes it.
+1. Parse flags from $ARGUMENTS: `--inline` / `--delegate` (Step 2), `--reviewed` (Step 6: read `references/reviewed-mode.md` in this skill's directory now, before any lane starts), `--checkpoint` (human wait after each lane; off by default). Legacy forms: `--checkpoint=N` means `--checkpoint`; `--checkpoint=0` and `--no-checkpoint` mean no pauses, the default. What remains is the plan path. With no path, take the one in this session's plan `Next:` line; failing that, ask the user which plan, offering the newest `docs/plans/*.md`.
+2. Read the plan file. A plan path that doesn't exist → look for the same filename in `archive/` in the path's folder, then in `docs/plans/archive/`; found → use it and say `plan found in archive/`; not found → as before. Read line 1 with `\r` stripped. Line 1 is `<!-- plan: in progress -->` → the planner stopped before finishing: don't build it; offer `/turbocharge:plan <path>`, which resumes it. Line 1 is `<!-- plan: done YYYY-MM-DD -->` → say the plan was marked done on that date and ask before running it again: no → stop; yes → delete that line just before the first lane starts, after items 3–5, without a commit (Step 7's commit carries the change), so a rerun that stops partway leaves no marker. An archived plan gets the same check.
 3. Review critically — identify concerns or questions
 4. If concerns: raise them before starting
-5. Read the plan's **Lanes table** (`| Lane | Owns files | Tasks | After | Executor | Effort |`). **No Lanes table** (a legacy plan) → treat the whole plan as one sequential lane and route it in Step 2 like any other.
+5. Read the plan's **Lanes table** (`| Lane | Owns files | Tasks | After | Executor | Effort | Model |`), columns by header name. A valid Model cell is `sonnet`, `opus · <reason>` with one of the four words (`concurrency`, `security`, `irreversible`, `edge-cases`), or `—`. A six-column table (no Model column) → every builder lane is `sonnet`. Any other value, or an `opus` cell whose reason isn't one of the four → a plan concern (item 4), and the lane reads as `sonnet` unless the user says otherwise. `opus` on a lane whose Executor is `inline` → a plan concern too; the lane runs inline, on the session's model. **No Lanes table** (a legacy plan) → treat the whole plan as one sequential lane, on `sonnet`, and route it in Step 2 like any other.
 
 ## Step 2: Route Lanes
 
@@ -32,7 +32,7 @@ Each lane runs one of two ways:
 | Executor | Who runs it | Use for |
 |----------|-------------|---------|
 | `inline` | The main session, task by task | Mechanical lanes: content edits, exact text given, ≤3 tasks |
-| `builder` | One Sonnet builder for the whole lane | Real logic, unfamiliar code, judgment calls |
+| `builder` | One builder for the whole lane, on the lane's model: Sonnet, or Opus on lanes the plan marks | Real logic, unfamiliar code, judgment calls |
 
 Start from the plan's Executor hint, then override:
 - → `builder` when the lane holds real application logic (functions, classes, control flow) or a design question the plan left open.
@@ -40,24 +40,27 @@ Start from the plan's Executor hint, then override:
 - `--inline` runs every lane inline; `--delegate` gives every lane a builder.
 - If a lane's route isn't obvious, ask the user.
 
+**Model** is a hint, like Executor, in one direction: build may lower a lane's model, never raise it. Opus runs only on lanes the plan marks and on Step 5's one retry of a stuck Sonnet lane. A lowered lane gives the reason in the routing announcement. An `opus` lane that is only exact-text edits goes inline and loses its model. `--inline` ignores the Model column. `--delegate` keeps each lane's value; a lane that was inline (`—`) gets `sonnet`, as does a lane Step 2 promotes to a builder, with no plan concern: `—` is a valid cell, not an unknown value.
+
 **No agents here:** if the Agent tool is missing, or a dispatch fails because `turbocharge:builder` is not registered (some surfaces load skills without agents), run every builder lane inline (Step 4), one lane at a time, and say once: `agents unavailable — running lanes inline`.
 
-**Overlap:** lanes with no `After` path between them run at the same time — builder lanes in the background while the main session works the inline lanes. A lane with `After` starts only when every lane it names has finished (Step 5). At most 3 builder lanes run at once: a fourth that is ready waits for a slot (Step 5). The cap covers plans written before 3.7.0 or by hand, and `--delegate`, which makes every lane a builder lane. Inline lanes don't count.
+**Overlap:** lanes with no `After` path between them run at the same time — builder lanes in the background while the main session works the inline lanes. A lane with `After` starts only when every lane it names has finished (Step 5). At most 3 builder lanes run at once: a fourth that is ready waits for a slot (Step 5). The cap covers plans written before 3.7.0 or by hand, and `--delegate`, which makes every lane a builder lane. Inline lanes don't count. Opus lanes count toward the cap.
 
 **No overlap with stashing commit hooks:** if the project's commit hooks stash unstaged changes, run lanes one at a time. Check for the `pre-commit` framework (`.pre-commit-config.yaml`) and lint-staged — `.lintstagedrc*`, `lint-staged.config.*`, a `lint-staged` key in `package.json`, or a `.husky/` hook that runs it. A pathspec commit leaves every other lane's in-flight edits unstaged, and the hook would stash them out from under that lane.
 
 Announce the routing before executing:
 ```
-lanes: 4 (inline 3 · builder 1)
-  plan-format   inline            tasks 1–2
-  hook-cleanup  builder (medium)  tasks 6–8   ← background
-  ...
+lanes: 3 (inline 1 · builder 2)
+  plan-format   inline                             tasks 1–2
+  hook-cleanup  builder (medium · sonnet)          tasks 6–8   ← background
+  auth-tokens   builder (high · opus · security)   tasks 9–12  ← background
 ```
 
 ## Step 3: Spawn Builder Lanes
 
 For each builder lane that is ready (its `After` lanes are done) and has a slot (Step 2), spawn one builder — subagent type `turbocharge:builder` — with:
 - **`effort`** set on the Agent call from the lane's Effort column (default `medium`). The per-spawn value overrides the agent definition.
+- **`model`**: an `opus` lane spawns with `model: opus` on the Agent call; a `sonnet` lane passes no `model`, so the builder file's `model: sonnet` applies. If that spawn fails because Opus isn't available (account or provider), spawn the same lane with no `model` and say `opus unavailable — lane <name> on sonnet`. Build remembers it for the rest of the run: later `opus` lanes spawn on Sonnet directly, each named once by the same line. An `opus` alias that resolves to an older Opus on another provider spawns fine and is not a failure.
 - Plan file path, lane name, and its task line ranges — do NOT paste plan content; the builder reads the file directly
 - Working directory
 - Prefix: `@CLAUDE.md` (conventions) — or `@AGENTS.md` if the project has no CLAUDE.md. `.claude/CLAUDE.md` counts as a CLAUDE.md: if the project keeps it there, use `@.claude/CLAUDE.md`. Do NOT inject `@ATLAS.md` — builders read the spec and diff, not the navigation index.
@@ -112,8 +115,8 @@ Inline lanes run no mutation and no join checks: they are exact-text edits, and 
 - **DONE or DONE_WITH_CONCERNS with no `Not done:` line** → DONE_WITH_CONCERNS, with `Not done: not reported`. A BLOCKED report follows its `Blocked on:` kind below, with or without the line.
 - **`DONE` with a `Not done:` other than `none`** → DONE_WITH_CONCERNS, the line carried to Step 7.
 - **BLOCKED on destructive, security, outside or design** → take the question to the user. Don't decide it for them. The lane frees its slot, so start the next waiting builder lane (point 3, below).
-- **BLOCKED on context** → dispatch the researcher (Step 3), then resume the same builder with `SendMessage`, carrying its findings. Adding context is a change, so the same model is fine, and the builder's context is warm.
-- **BLOCKED on stuck**, or `Status: BLOCKED` again after a context resume → retry the lane once with a new Agent call: `subagent_type: turbocharge:builder`, `model: opus`, the same lane, naming the tasks already committed and quoting the BLOCKED report. The retry keeps the lane's `LANE_SHA` and carries the same `Mutation:` line: a new `LANE_SHA` would leave the first builder's commits out of check 2's count. `SendMessage` can't change the model. Never retry the same model with nothing changed. A BLOCKED Opus retry goes to the user.
+- **BLOCKED on context** → dispatch the researcher (Step 3), then resume the same builder with `SendMessage`, carrying its findings. Adding context is a change, so the same model is fine, whatever its model, and the builder's context is warm.
+- **BLOCKED on stuck**, or `Status: BLOCKED` again after a context resume, splits by the model the lane actually ran on. A lane that started on Opus (the plan's `opus`) goes to the user with its BLOCKED report, with no retry, like the other BLOCKED kinds; it frees its slot. When Opus is unavailable this run (Step 3), a stuck Sonnet lane goes to the user too: never the same model with nothing changed. The same holds when the retry's own spawn fails because Opus isn't available: the lane goes to the user. Otherwise a lane that ran on Sonnet → retry the lane once with a new Agent call: `subagent_type: turbocharge:builder`, `model: opus`, the same lane, naming the tasks already committed and quoting the BLOCKED report. The retry keeps the lane's `LANE_SHA` and carries the same `Mutation:` line: a new `LANE_SHA` would leave the first builder's commits out of check 2's count. `SendMessage` can't change the model. Never retry the same model with nothing changed. A BLOCKED Opus retry goes to the user.
 - **No Status line** → treat it as DONE_WITH_CONCERNS and run the join checks. They replace any look through `git log` of your own.
 
 **Join checks, builder lanes only.** On a builder lane's DONE or DONE_WITH_CONCERNS, before `lane ✓`, run four checks on the lane's paths (its Owns files):
@@ -169,32 +172,14 @@ Then rerun the full gate. **Max 2 rounds per lane** — then stop and escalate, 
 
 ## Step 6: Reviewed Mode (`--reviewed`)
 
-For security-sensitive code, unfamiliar codebases, or complex integrations. Reviews run **per lane**, not per task:
-
-1. **Before the lane starts:** a builder lane's `BEFORE_SHA` is its `LANE_SHA` (Step 3); an inline lane records `BEFORE_SHA=$(git rev-parse HEAD)` before its first task.
-2. **After the lane finishes** and its builder's completion notification has arrived, dispatch one task-reviewer (Sonnet) with:
-   - Plan file path + the lane's task line ranges (the reviewer reads the plan directly — do NOT paste requirements)
-   - The lane's diff: `git diff $BEFORE_SHA..HEAD -- <lane paths>`. Lanes own disjoint files, so the pathspec isolates this lane even though other lanes' commits interleave in the range. Run it as the join checks say (Step 5): in `bash`, with the SHA and the paths written out.
-   - Working directory. Do NOT send the builder's narrative report — the reviewer reads the diff, not claims.
-3. Then wait for its completion notification and apply the disposition.
-
-The reviewer returns two verdicts: `Spec: ✅ / ❌` and `Quality: Approved / Issues found / N/A` (N/A when Spec is ❌ — quality isn't assessed on code that will be rewritten), then its `Declined to judge:` lines.
-
-If `turbocharge:task-reviewer` is not registered, or there is no Agent tool, review the lane diff yourself against the task-reviewer's checklist and give the same two verdicts plus Declined to judge lines.
-
-**Declined to judge:** rule on every line. If it's in scope, it becomes a finding under the disposition below, graded by its effect on a reasonable user. If it's out of scope, carry it to Step 7 as `set aside: <line>`. A line you skip is a decision nobody saw.
-
-**Disposition:**
-- **Spec ❌, or Quality has any 🔴 Critical:** fix only those items — builder lane: `SendMessage` the lane's builder; inline lane: fix in the main session. Then `SendMessage` the same task-reviewer to re-review the new diff. **Max 2 cycles** — escalate to the user if still failing.
-- **🟡 Important / 🟢 Minor only:** do NOT loop. Carry them into the completion report (Step 7) so the user decides.
-
-A reviewed lane is complete only after Spec ✅ with no unresolved 🔴 Critical.
+For security-sensitive code, unfamiliar codebases, or complex integrations: one task-reviewer per lane, after the lane finishes. Its procedure (dispatch, verdicts, Declined to judge, disposition) is in `references/reviewed-mode.md` in this skill's directory, which Step 1 reads when `--reviewed` is set. Two facts the other steps rely on: a builder lane's `BEFORE_SHA` is its `LANE_SHA` (Step 3), and an inline lane records `BEFORE_SHA=$(git rev-parse HEAD)` before its first task. A reviewed lane is complete only after Spec ✅ with no unresolved 🔴 Critical.
 
 ## Step 7: Complete
 
 After the full gate is green:
 - Report a completion summary, including any carried 🟡/🟢 review findings, and every lane's **Rulings**, concerns and `Not done:` line, each `shortcut check:` note and each check 2 concern (inline lanes too, where the main session lists its calls and states its own `Not done:`) so the user can check the decisions taken on their behalf
-- Print the final visibility line: `lanes: L (inline I · builder B) · spawns: S · tasks: Y/Y`
+- Print the final visibility line: `lanes: L (inline I · builder B, opus O) · spawns: S · tasks: Y/Y`; O counts builder lanes that ran on Opus at any point (marked, or the stuck retry), always printed, `opus 0` included
+- Mark the plan done, only when no lane ended BLOCKED (one the user unblocked and that then finished counts as finished) and every lane's `Not done:` is `none` (`not reported` counts as an item): insert `<!-- plan: done YYYY-MM-DD -->` (today) as a new line 1, in the file's line endings. Otherwise write no marker and say why in one line. Run the tracked test in the plan's own folder: `git -C "<plan's folder>" ls-files --error-unmatch "<plan file name>"` succeeds → commit that file alone, in that repo: `git -C "<plan's folder>" commit -m "docs: mark plan done" -- "<plan file name>"`; on that repo's default branch, ask first. It fails (untracked, ignored, outside a repo) → write the line only, no commit.
 - Offer: "Ready for holistic code review?" → chains to `/turbocharge:review`
 
 > Visibility note: the orchestrator cannot read exact token counts. This line is the lane/spawn/task summary (the measurable proxy), NOT a fabricated token number.
@@ -214,7 +199,9 @@ After the full gate is green:
 | Spawning a new builder for a fix round | The lane's builder still has its context and a warm cache — resume it with `SendMessage` |
 | Skipping Reviewed mode for security-sensitive code | Save tokens, lose safety |
 | Using Reviewed mode for trivial lanes | Wastes tokens on mechanical checks |
-| Retrying a BLOCKED lane twice, or sending a design question to Opus | One Opus retry for a stuck lane; design and destructive questions go to the user |
+| Retrying a BLOCKED lane twice, or sending a design question to Opus | One Opus retry for a stuck Sonnet lane; design and destructive questions go to the user |
+| Raising a lane to Opus that the plan doesn't mark | Opus runs only on the four kinds the plan names and on the stuck-lane retry; build may lower a lane, never raise it |
+| Retrying a lane that already ran on Opus | A stuck Opus lane goes to the user; a second attempt repeats the first |
 | With `--checkpoint`, continuing past a lane without approval | The user asked to steer between lanes |
 | Fix or review loop >2 cycles | Escalate to user, don't keep retrying |
 | Marking a builder lane ✓ from its report | A return is a claim: run the four checks on its files first |

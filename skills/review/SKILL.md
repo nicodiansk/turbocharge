@@ -33,7 +33,7 @@ git diff --name-only $BASE_SHA..HEAD
 
 - Empty diff: print `Nothing to review: HEAD has no commits beyond <base>.` (naming the base branch) and stop.
 - Uncommitted tracked changes (`git status --porcelain`): say in one line that they are not part of this review.
-- The plan is `$ARGUMENTS` when it names a file. Otherwise the plan is the description, or none.
+- The plan is `$ARGUMENTS` when it names a file. A named plan file that doesn't exist → look for the same filename in `archive/` in its folder, then in `docs/plans/archive/`; found → use it and say `plan found in archive/`; not found → as below. Otherwise the plan is the description, or none.
 
 <!-- repo-only -->
 ## Step 2: Pick the reviewer

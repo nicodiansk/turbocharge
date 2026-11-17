@@ -12,7 +12,7 @@ for p in 'run the full gate' 'start a lane that lists it in `After`' 'dispatch a
     grep -qF "$p" "$F" || { echo "    join wait must gate: $p"; exit 1; }
 done
 # Reviewed mode waits on the task-reviewer too.
-grep -qF "wait for its completion notification" "$F" \
+grep -qF "wait for its completion notification" "$PLUGIN_DIR/skills/build/references/reviewed-mode.md" 2>/dev/null \
     || { echo "    reviewed mode must wait for the task-reviewer"; exit 1; }
 # A Red Flags row names the violation.
 awk '/^## Red Flags/{f=1} f' "$F" | grep -q "completion notification" \

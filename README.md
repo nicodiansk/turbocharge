@@ -148,7 +148,7 @@ The SessionStart hook also pre-loads its Where to Look table at every session st
 | **brainstorm** | `/turbocharge:brainstorm` | Socratic requirements discovery before implementation |
 | **story** | `/turbocharge:story` | INVEST-compliant story breakdown with acceptance criteria |
 | **plan** | `/turbocharge:plan` | Lean plans — decisions, exact paths and test assertions in 2-5 min tasks, grouped into file-disjoint lanes |
-| **build** | `/turbocharge:build` | Runs each lane inline or with one Sonnet builder, overlaps independent lanes (at most 3 builders at once), then one full-suite gate. Opt-in per-lane review (`--reviewed`). |
+| **build** | `/turbocharge:build` | Runs each lane inline or with one builder (Sonnet, or Opus on lanes the plan marks), overlaps independent lanes (at most 3 builders at once), then one full-suite gate. Opt-in per-lane review (`--reviewed`). |
 | **review** | `/turbocharge:review` | Pre-merge review against the plan by one senior reviewer |
 | **debug** | `/turbocharge:debug` | Systematic 4-phase root-cause investigation — no fix until cause is proven |
 | **ship** | `/turbocharge:ship` | Test verification, then merge / PR / keep (discard only when you ask). Triages review comments you save to a file or paste: verifies each, fixes the valid ones, drafts the replies |
@@ -162,21 +162,21 @@ The verified review runs when you type `/turbocharge:review`: five lens reviewer
 
 - **One source of truth.** No competing `planner-v2.md` files, no rules that contradict each other. Install once, update once.
 - **Each step gates the next.** Requirements before stories, stories before plans, plans before code. The skill you skipped is usually the bug you ship.
-- **Right model for each role.** Builders, reviewers, and researchers run on Sonnet — fast and focused. Your orchestration session runs whatever model you've configured, so you can reach for a more capable one on the planning and judgment calls.
+- **Right model for each role.** Builders run on Sonnet, or Opus on lanes the plan marks; reviewers and researchers run on Sonnet — fast and focused. Your orchestration session runs whatever model you've configured, so you can reach for a more capable one on the planning and judgment calls.
 - **Drop in anywhere.** Already have a plan? Start at `build`. Hit a bug? `debug`. Wrapping up? `wrap`. You're never forced through the whole chain.
 
 ## How Build Works
 
 <!-- repo-only -->
 <p align="center">
-  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/build-review-chain.svg" alt="How build runs: your session orchestrates lanes in parallel, each lane inline or with one Sonnet builder; every task goes red (a test failing on the result), green, commit of the lane's own files; a builder lane ends with a mutation and four checks on its files; the full suite runs once at the join, a red result goes back to the owning lane, green goes on to a fresh reviewer" width="100%">
+  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/build-review-chain.svg" alt="How build runs: your session orchestrates lanes in parallel, each lane inline or with one builder, on Sonnet or on Opus when the plan marks the lane; every task goes red (a test failing on the result), green, commit of the lane's own files; a builder lane ends with a mutation and four checks on its files; the full suite runs once at the join, a red result goes back to the owning lane, green goes on to a fresh reviewer" width="100%">
 </p>
 <!-- /repo-only -->
 
 A plan groups its tasks into **lanes** — sets of tasks that own disjoint files. Build routes each lane one of two ways:
 
 - **Inline** — mechanical lanes (content edits, exact text in the plan) run in your main session, task by task. No spawn at all.
-- **Builder** — lanes with real logic get one Sonnet builder for the whole lane, at the effort the plan sets.
+- **Builder** — lanes with real logic get one builder for the whole lane, at the effort the plan sets: Sonnet, or Opus when the plan marks the lane `opus · <reason>`. Without Opus on the account or provider, the lane runs on Sonnet and build says so.
 
 Independent lanes **overlap**, at most 3 builder lanes at once: builders work in the background while your session runs the inline lanes, and every commit is scoped to its lane's files. Work that chains stays in one lane: the plan merges a builder lane that only waits on another builder lane into it, which saves a spawn and a hand-off. When all lanes finish, build runs the full suite **once** — the full-suite gate. A failure goes back to the lane that owns the file; a builder lane's fix round **resumes** the same builder, context and prompt cache intact, instead of paying for a fresh spawn.
 
@@ -184,7 +184,9 @@ Independent lanes **overlap**, at most 3 builder lanes at once: builders work in
 
 `--inline` runs every lane in your session; `--delegate` gives every lane a builder. For security-sensitive or unfamiliar code, `--reviewed` adds one Sonnet `task-reviewer` per lane that reads the lane's diff once and returns Spec + Quality verdicts, looping fixes for up to two cycles. `--checkpoint` pauses for your feedback after each lane. After the gate, chain to `/turbocharge:review` for the final holistic assessment.
 
-Plans written before 3.1 have no Lanes table; build runs them as one lane.
+Plans written before 3.1 have no Lanes table; build runs them as one lane. Plans written before 3.8 have no Model column; their builder lanes run on Sonnet.
+
+When the gate is green and no lane left work undone, build writes `<!-- plan: done YYYY-MM-DD -->` as the plan's first line, committed only where git tracks the plan (asking first on the default branch). Before any lane starts, rerunning a done plan asks first. A plan moved to `docs/plans/archive/` is still found by build, review and ship.
 
 ## Measured
 
@@ -230,18 +232,20 @@ Dispatched by skills. You never invoke them directly.
 
 <!-- repo-only -->
 <p align="center">
-  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/model-tiering.svg" alt="The right model for each role: your session orchestrates on the model you pick, and the planner inherits it (Opus if you orchestrate on Opus, never below Sonnet); builder, researcher, task-reviewer, code-reviewer, verifier and the review swarm's five lenses are fixed on Sonnet; Opus comes in one place only, when build retries a stuck builder lane once, and if it is still stuck you decide; design or destructive questions go to you, never to Opus; never Haiku, because turn count beats token price" width="100%">
+  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/model-tiering.svg" alt="The right model for each role: your session orchestrates on the model you pick, and the planner inherits it (Opus if you orchestrate on Opus, never below Sonnet); builder, researcher, task-reviewer, code-reviewer, verifier and the review swarm's five lenses are fixed on Sonnet; Opus comes in two places: a builder lane the plan marks (concurrency, security, irreversible or edge-cases) and one retry of a stuck Sonnet lane; a stuck Opus lane, or a retry still stuck, goes to you; design or destructive questions go to you, never to Opus; never Haiku, because turn count beats token price" width="100%">
 </p>
 <!-- /repo-only -->
 
 | Agent | Role | Model |
 |:------|:-----|:------|
-| **builder** | TDD implementation, self-review, commits | Sonnet |
+| **builder** | TDD implementation, self-review, commits | Sonnet (Opus on lanes the plan marks) |
 | **planner** | Task breakdown, verifies entity names against codebase | inherit |
 | **researcher** | Fast read-only codebase exploration | Sonnet |
 | **task-reviewer** | Spec + Quality verdicts on a lane diff (opt-in) | Sonnet |
 | **code-reviewer** | Holistic pre-merge assessment | Sonnet |
 | **verifier** | Tries to refute one finding or review comment; read-only | Sonnet |
+
+**Advisor.** Claude Code's advisor (`/advisor`) is yours to set, and builders inherit it, so a Sonnet builder can consult a stronger model when it wants. Turbocharge neither sets nor reads it.
 
 <!-- repo-only -->
 All agents except the verifier have `memory: project` for persistent codebase knowledge across sessions; the verifier judges each finding fresh.

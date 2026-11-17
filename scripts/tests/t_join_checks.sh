@@ -94,8 +94,9 @@ sec "$S" '## Step 4' '## ' | grep -qF 'Inline lanes run no mutation and no join 
 # Review 🟢 5: "exact-text edits" is no reason for a builder lane run inline; it gets its own.
 sec "$S" '## Step 4' '## ' | grep -qF 'the fallback stays as light as an inline lane' || { echo "    build Step 4 missing: the fallback stays as light as an inline lane"; rc=1; }
 grep -qF 'That holds for builder lanes run inline because agents are unavailable, too.' "$S" && { echo "    build Step 4 still gives builder lanes run inline the exact-text reason"; rc=1; }
-# Review 🟢 4: Step 6's lane diff has the same zsh and lost-SHA hazard, so it points at Step 5's rule.
-sec "$S" '## Step 6' '## ' | grep -qF 'Run it as the join checks say (Step 5)' || { echo "    build Step 6 missing: Run it as the join checks say (Step 5)"; rc=1; }
+# Review 🟢 4: Reviewed Mode's lane diff has the same zsh and lost-SHA hazard, so it points at Step 5's rule.
+grep -qF 'Run it as the join checks say (Step 5)' "$PLUGIN_DIR/skills/build/references/reviewed-mode.md" 2>/dev/null \
+    || { echo "    reviewed-mode.md missing: Run it as the join checks say (Step 5)"; rc=1; }
 
 # Task 9: a builder lane is done only after its checks.
 printf '%s\n' "$STEP5" | grep -qF '· files checked' || { echo "    build Step 5 missing: · files checked"; rc=1; }

@@ -83,6 +83,8 @@ Reached from routing: a pull request's review comments, handed over in a file or
 
 Each comment becomes an item: id, kind (inline or issue), author, path:line (inline), body, url. Skip a comment the file shows already answered.
 
+**The plan.** A plan path from the conversation that doesn't exist → look for the same filename in `archive/` in its folder, then in `docs/plans/archive/`; found → use it and say `plan found in archive/`.
+
 **Verify.** Each item goes to `turbocharge:verifier` through the Agent tool. The prompt holds the comment, its path:line, the branch and its base, and asks "is this comment right about the current code?". Send independent items together and wait for every completion notification. Never verify an item yourself while the Agent tool can dispatch the verifier, even when the comment looks obviously right or wrong: a reply or a fix needs a check that didn't come from the session making the fix. Only with no Agent tool, or with the verifier not registered, verify inline by the same rules (try to refute; quote the code) and say so in the report.
 
 **Classify.** CONFIRMED + defect = valid. CONFIRMED + nit = nit. REFUTED = false positive. UNCERTAIN = the user's batch, because a reply needs evidence.

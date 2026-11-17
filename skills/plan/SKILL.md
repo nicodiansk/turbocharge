@@ -12,9 +12,9 @@ Turn the requirements at $ARGUMENTS into a lean implementation plan. The planner
 
 Dispatch `turbocharge:planner` through the Agent tool. Its prompt holds the context prefix (Context Gathering, below), the requirements path, and the plan path when the request names one. Wait for its result before you report: if it runs in the background, that is its completion notification. Never write the plan in this session while the planner can be dispatched.
 
-Check the saved plan against this contract before you relay it: a Lanes table with full paths and no file in two lanes, no builder→builder chain link and at most 3 overlapping builder lanes, Review Focus lines pinned to a task, every `Like:` target resolves (the Grep tool finds the symbol in the path, and its tests path exists), and a Decision, Test and Verify in every task. Name any gap in your report, then relay the planner's report (Save, below). If the planner fails or stops partway, say so: a rerun resumes from the partial file.
+Check the saved plan against this contract before you relay it: a Lanes table with full paths and no file in two lanes, no builder→builder chain link and at most 3 overlapping builder lanes, every builder lane's Model is `sonnet` or `opus · <reason>` with one of the four reasons and every inline lane's `—`, Review Focus lines pinned to a task, every `Like:` target resolves (the Grep tool finds the symbol in the path, and its tests path exists), and a Decision, Test and Verify in every task. Name any gap in your report, then relay the planner's report (Save, below). If the planner fails or stops partway, say so: a rerun resumes from the partial file.
 
-**No agent here:** if the Agent tool is missing, or `turbocharge:planner` is not registered (some surfaces load skills without agents), write the plan in this session to the contract below. Follow the Save section yourself, and run the Spec Self-Review (spec coverage, completeness, lane disjointness (no builder→builder chain link, at most 3 overlapping builder lanes), type consistency, Review Focus, `Like:` targets resolve) before you remove the in-progress marker. Say so in one line.
+**No agent here:** if the Agent tool is missing, or `turbocharge:planner` is not registered (some surfaces load skills without agents), write the plan in this session to the contract below. Follow the Save section yourself, and run the Spec Self-Review (spec coverage, completeness, lane disjointness (no builder→builder chain link, at most 3 overlapping builder lanes, every builder lane's Model is `sonnet` or `opus · <reason>` with one of the four reasons, every inline lane's `—`), type consistency, Review Focus, `Like:` targets resolve) before you remove the in-progress marker. Say so in one line.
 
 ## Plan Document Header
 
@@ -28,10 +28,10 @@ Every plan MUST start with:
 **Tech Stack:** [Key technologies]
 
 ## Lanes
-| Lane | Owns files | Tasks | After | Executor | Effort |
-|------|-----------|-------|-------|----------|--------|
-| [name] | `src/full/path.py`, `tests/full/test_path.py` | 1–3 | — | inline | — |
-| [name] | `src/other/module.py`, `tests/other/test_module.py` | 4–6 | [lane] | builder | medium |
+| Lane | Owns files | Tasks | After | Executor | Effort | Model |
+|------|-----------|-------|-------|----------|--------|-------|
+| [name] | `src/full/path.py`, `tests/full/test_path.py` | 1–3 | — | inline | — | — |
+| [name] | `src/other/module.py`, `tests/other/test_module.py` | 4–6 | [lane] | builder | medium | sonnet |
 
 ## Review Focus
 - [input or condition the spec implies but never names] → [what a reasonable user expects] (pinned: Task N)
@@ -42,10 +42,11 @@ Every plan MUST start with:
 - Tasks inside a lane run in order. `After` names lanes that must finish first; lanes with no `After` path between them may overlap.
 - **Executor** is a hint: `inline` for mechanical lanes (content edits, exact text given, ≤3 tasks) that the main session applies directly; `builder` for real logic or lanes with judgment calls, run by one builder for the whole lane.
 - **Effort** (`low`/`medium`/`high`) applies to builder lanes; use `—` for inline.
+- **Model** applies to builder lanes: `sonnet` by default; `opus · <reason>` when the lane holds one of four things, each a fixed word: `concurrency` (concurrency or async ordering), `security` (auth, permissions, crypto, parsing untrusted input), `irreversible` (migrations, data deletion), `edge-cases` (an algorithm with dense edge cases named in Review Focus). Use `—` for inline. A six-column table (a plan written before 3.8.0) still builds: build reads every builder lane as `sonnet`.
 
 **Lane shape:** the task shape decides the lanes.
 1. **One lane is the default.** Split only independent work: disjoint files, and no need for another lane's result.
-2. **Chain → one lane.** Builder lane B merges into builder lane A when B's only `After` is A and no other lane names A in `After`. Merging costs no time: B's tasks start after A's either way, and a spawn and a hand-off go away. The merged lane gets one lane-end mutation and one budget of 2 fix rounds, and a lane whose `After` named B now names A. Repeat until no such pair is left, so A→B→C becomes one lane. The merged lane keeps A's name, owns both file sets, runs A's tasks then B's, and takes the higher Effort.
+2. **Chain → one lane.** Builder lane B merges into builder lane A when B's only `After` is A and no other lane names A in `After`. Merging costs no time: B's tasks start after A's either way, and a spawn and a hand-off go away. The merged lane gets one lane-end mutation and one budget of 2 fix rounds, and a lane whose `After` named B now names A. Repeat until no such pair is left, so A→B→C becomes one lane. The merged lane keeps A's name, owns both file sets, runs A's tasks then B's, and takes the higher Effort and the higher Model: one `opus` lane in the chain puts the merged lane on Opus, with the first `opus` lane's reason.
 3. **Inline lanes stay separate**, before or after a builder lane: they cost no spawn. A chain through an inline lane doesn't merge: the builder lane after it names the inline lane in `After`, not a builder lane.
 4. **At most 3 builder lanes overlap** (no `After` path between any two). With more independent pieces, merge the smallest into one lane, which owns the union of their files. Inline lanes don't count.
 
