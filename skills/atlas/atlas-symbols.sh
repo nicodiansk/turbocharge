@@ -181,10 +181,47 @@ cmd_top() {
     ranked_rows "$defs_file" | LC_ALL=C sort -t "$(printf '\t')" -k1,1nr -k2,2 -k4,4 | awk -v n="$limit" 'NR <= n'
 }
 
+cmd_where() {
+    local name="$1" defs_file callers
+    defs_file="$(mktemp)" || exit 2
+    trap "rm -f '$defs_file'" EXIT
+    definitions | awk -F'\t' -v n="$name" '$3 == n' > "$defs_file"
+    callers="$(grep_in -nIw "$name" . | awk -F'\t' '
+        FNR == NR { isdef[$1 SUBSEP $2] = 1; next }
+        {
+            i = index($0, ":"); file = substr($0, 1, i - 1); rest = substr($0, i + 1)
+            i = index(rest, ":"); ln = substr(rest, 1, i - 1); text = substr(rest, i + 1)
+            if ((file SUBSEP ln) in isdef) next
+            sub(/^[[:space:]]+/, "", text)
+            if (file != last) { out = out file "\n"; files++; last = file }
+            out = out "  " ln ": " text "\n"; total++
+        }
+        END { if (total > 0) printf "callers (%d in %d files):\n%s", total, files, out }' "$defs_file" -)"
+    if [ -s "$defs_file" ]; then
+        echo "defined in:"
+        awk -F'\t' '{ print "  " $1 ":" $2 " (" $4 ")" }' "$defs_file"
+    else
+        echo "defined in: none found"
+    fi
+    if [ -n "$callers" ]; then
+        printf '%s\n' "$callers"
+    else
+        echo "callers: none found"
+    fi
+    [ -s "$defs_file" ] || [ -n "$callers" ]
+}
+
 [ "$#" -ge 1 ] || usage
 case "$1" in
     top) CMD=top ;;
-    where) CMD=where ;;
+    where)
+        CMD=where
+        [ "$#" -eq 2 ] || usage
+        case "$2" in
+            ''|[!A-Za-z_]*|*[!A-Za-z0-9_]*)
+                echo "atlas-symbols: not a symbol name: $2" >&2
+                exit 2 ;;
+        esac ;;
     *) usage ;;
 esac
 
@@ -197,5 +234,5 @@ cd "$(git rev-parse --show-toplevel)" || exit 2
 shift
 case "$CMD" in
     top) cmd_top "$@" ;;
-    where) usage ;;
+    where) cmd_where "$@" ;;
 esac

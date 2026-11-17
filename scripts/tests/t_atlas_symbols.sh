@@ -75,6 +75,19 @@ ERR="$(cd "$TMP/plain" && bash "$S" top 2>&1 >/dev/null)"; RC=$?
 [ "$RC" = 2 ] || { echo "    non-git dir should exit 2, got $RC"; exit 1; }
 printf '%s' "$ERR" | grep -q 'git repository' || { echo "    stderr lacks 'git repository': $ERR"; exit 1; }
 
+# where NAME
+where() { (cd "$F" && ATLAS_SYMBOLS_NO_PYTHON=1 bash "$S" where "$@" 2>&1); }
+W="$(where helper)"; RC=$?
+[ "$RC" = 0 ] || { echo "    where helper exited $RC"; exit 1; }
+printf '%s\n' "$W" | grep -qF '  src/a.py:1 (function)' || { echo "    where helper lacks src/a.py: $W"; exit 1; }
+printf '%s\n' "$W" | grep -qF '  lib/b.py:1 (function)' || { echo "    where helper lacks lib/b.py: $W"; exit 1; }
+where nosuch >/dev/null; [ $? = 1 ] || { echo "    where nosuch should exit 1"; exit 1; }
+for bad in 'a.b' 'foo|bar' '--output=x' ''; do
+    where "$bad" >/dev/null; [ $? = 2 ] || { echo "    where '$bad' should exit 2"; exit 1; }
+done
+[ ! -e "$F/x" ] || { echo "    where --output=x wrote a file"; exit 1; }
+(cd "$F" && bash "$S" where >/dev/null 2>&1); [ $? = 2 ] || { echo "    where with no name should exit 2"; exit 1; }
+
 # Python definitions: ast when python3 exists, regex otherwise
 if ! command -v python3 >/dev/null 2>&1; then
     echo "    python3 not installed, skipping ast cases"
