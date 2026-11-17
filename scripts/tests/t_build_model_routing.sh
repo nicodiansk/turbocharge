@@ -23,4 +23,8 @@ STEP2=$(sec "$S" '## Step 2' '## Step 3')
 need "$STEP2" 'Step 2' 'builder (high · opus · security)' 'reason in the routing announcement' 'loses its model' \
     'ignores the Model column' 'lane that was inline (`—`) gets `sonnet`' 'promotes to a builder'
 lack "$STEP2" 'Step 2' 'One Sonnet builder'
+need "$STEP2" 'Step 2' 'Opus lanes count toward the cap'
+STEP3=$(sec "$S" '## Step 3' '## Step 4')
+need "$STEP3" 'Step 3' '`model: opus` on the Agent call' 'passes no `model`' 'opus unavailable — lane <name> on sonnet' \
+    'for the rest of the run' 'older Opus'
 exit $rc

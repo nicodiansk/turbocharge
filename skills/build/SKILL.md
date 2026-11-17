@@ -44,7 +44,7 @@ Start from the plan's Executor hint, then override:
 
 **No agents here:** if the Agent tool is missing, or a dispatch fails because `turbocharge:builder` is not registered (some surfaces load skills without agents), run every builder lane inline (Step 4), one lane at a time, and say once: `agents unavailable — running lanes inline`.
 
-**Overlap:** lanes with no `After` path between them run at the same time — builder lanes in the background while the main session works the inline lanes. A lane with `After` starts only when every lane it names has finished (Step 5). At most 3 builder lanes run at once: a fourth that is ready waits for a slot (Step 5). The cap covers plans written before 3.7.0 or by hand, and `--delegate`, which makes every lane a builder lane. Inline lanes don't count.
+**Overlap:** lanes with no `After` path between them run at the same time — builder lanes in the background while the main session works the inline lanes. A lane with `After` starts only when every lane it names has finished (Step 5). At most 3 builder lanes run at once: a fourth that is ready waits for a slot (Step 5). The cap covers plans written before 3.7.0 or by hand, and `--delegate`, which makes every lane a builder lane. Inline lanes don't count. Opus lanes count toward the cap.
 
 **No overlap with stashing commit hooks:** if the project's commit hooks stash unstaged changes, run lanes one at a time. Check for the `pre-commit` framework (`.pre-commit-config.yaml`) and lint-staged — `.lintstagedrc*`, `lint-staged.config.*`, a `lint-staged` key in `package.json`, or a `.husky/` hook that runs it. A pathspec commit leaves every other lane's in-flight edits unstaged, and the hook would stash them out from under that lane.
 
@@ -60,6 +60,7 @@ lanes: 3 (inline 1 · builder 2)
 
 For each builder lane that is ready (its `After` lanes are done) and has a slot (Step 2), spawn one builder — subagent type `turbocharge:builder` — with:
 - **`effort`** set on the Agent call from the lane's Effort column (default `medium`). The per-spawn value overrides the agent definition.
+- **`model`**: an `opus` lane spawns with `model: opus` on the Agent call; a `sonnet` lane passes no `model`, so the builder file's `model: sonnet` applies. If that spawn fails because Opus isn't available (account or provider), spawn the same lane with no `model` and say `opus unavailable — lane <name> on sonnet`. Build remembers it for the rest of the run: later `opus` lanes spawn on Sonnet directly, each named once by the same line. An `opus` alias that resolves to an older Opus on another provider spawns fine and is not a failure.
 - Plan file path, lane name, and its task line ranges — do NOT paste plan content; the builder reads the file directly
 - Working directory
 - Prefix: `@CLAUDE.md` (conventions) — or `@AGENTS.md` if the project has no CLAUDE.md. `.claude/CLAUDE.md` counts as a CLAUDE.md: if the project keeps it there, use `@.claude/CLAUDE.md`. Do NOT inject `@ATLAS.md` — builders read the spec and diff, not the navigation index.
