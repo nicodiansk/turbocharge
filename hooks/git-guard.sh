@@ -34,11 +34,15 @@ deny() {
 # first 80 characters of a segment, for the reason
 excerpt() { printf '%s' "${1:0:80}"; }
 
+# The deny_* functions deny, unless the user turned that guard off with its variable: then they return and the checks go on.
+
 deny_staging() {
+    is_off "${TURBOCHARGE_GIT_GUARD_STAGING:-}" && return 0
     deny "turbocharge git-guard: \`$(excerpt "$1")\` stages files in bulk. Stage explicit paths after \`git status\`: git add <paths>, then git commit -m \"<message>\" -- <paths>. To turn this check off, the user sets TURBOCHARGE_GIT_GUARD_STAGING=off."
 }
 
 deny_noverify() {
+    is_off "${TURBOCHARGE_GIT_GUARD_NOVERIFY:-}" && return 0
     deny "turbocharge git-guard: \`$(excerpt "$1")\` skips the repository's git hooks. Run them: when one fails, fix what it reports, or ask the user. To turn this check off, the user sets TURBOCHARGE_GIT_GUARD_NOVERIFY=off."
 }
 
@@ -372,6 +376,7 @@ check_links() {
 # check_operand <operand as written>: both link checks for one path a recursive delete names
 check_operand() {
     local base path
+    is_off "${TURBOCHARGE_GIT_GUARD_SYMLINKS:-}" && return 0
     check_through "$1"
     base="$(strip_trailing "$1")"
     [ -n "$base" ] || return 0

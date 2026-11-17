@@ -174,5 +174,43 @@ check_win block 'git worktree remove linked' 'up'
 check_win allow 'git worktree remove plain'
 check_win allow 'git worktree list'
 
+# --- Task 10: per-guard opt-outs and the builder's allowed table
+check TURBOCHARGE_GIT_GUARD_STAGING=off allow 'git add -A'
+check TURBOCHARGE_GIT_GUARD_STAGING=off allow 'git commit -am x'
+check TURBOCHARGE_GIT_GUARD_STAGING=off block 'git commit --no-verify -m x' "skips the repository's git hooks"
+check TURBOCHARGE_GIT_GUARD_STAGING=off block 'git commit -an -m x' "skips the repository's git hooks"
+check TURBOCHARGE_GIT_GUARD_NOVERIFY=Off allow 'git push --no-verify'
+check TURBOCHARGE_GIT_GUARD_NOVERIFY=Off allow 'git -c core.hooksPath=x status'
+check TURBOCHARGE_GIT_GUARD_NOVERIFY=Off block 'git add .' 'stages files in bulk'
+check TURBOCHARGE_GIT_GUARD_SYMLINKS=off allow 'rm -rf linkdir/'
+check_win TURBOCHARGE_GIT_GUARD_SYMLINKS=off allow 'rm -rf linked'
+check_win TURBOCHARGE_GIT_GUARD_SYMLINKS=off allow 'git worktree remove linked'
+check TURBOCHARGE_GIT_GUARD_SYMLINKS=off block 'git add -A'
+check TURBOCHARGE_GIT_GUARD=on block 'git add -A'
+check TURBOCHARGE_GIT_GUARD_STAGING=on block 'git add -A'
+check TURBOCHARGE_GIT_GUARD_STAGING=0 block 'git add -A'
+# with the symlink guard off, find never runs (a spy find and a Windows uname)
+mkdir -p "$ROOT/stub-spy"
+printf '#!/bin/sh\necho MINGW64_NT-10.0\n' > "$ROOT/stub-spy/uname"
+printf '#!/bin/sh\ntouch "%s"\nexit 0\n' "$ROOT/find-ran" > "$ROOT/stub-spy/find"
+chmod +x "$ROOT/stub-spy/uname" "$ROOT/stub-spy/find"
+check_on spy TURBOCHARGE_GIT_GUARD_SYMLINKS=off allow 'rm -rf linked'
+[ ! -e "$ROOT/find-ran" ] || bad 'rm -rf linked' 'find ran with the symlink guard off'
+check_on spy allow 'rm -rf linked'
+[ -e "$ROOT/find-ran" ] || bad 'rm -rf linked' 'the spy find never ran with the guard on: the test has no teeth'
+# the builder's pathspec commits and its read-only git calls are never blocked
+for c in 'git add hooks/git-guard.sh scripts/tests/t_git_guard.sh' \
+    'git commit -m "feat: x" -- hooks/git-guard.sh scripts/tests/t_git_guard.sh' \
+    'git add new.txt; git commit -m "test: pin" -- new.txt a.txt' \
+    'git checkout -- a.txt' 'git status --porcelain -- a.txt b.txt' 'LANE_SHA=$(git rev-parse HEAD)' \
+    'git rev-list --count abc123..HEAD -- a.txt' \
+    "git diff abc123..HEAD -- a.txt | grep -E '^[+]' | grep -vE '^[+]{3} '" \
+    'git diff --diff-filter=D --name-only abc123..HEAD -- a.txt'; do check allow "$c"; done
+COMMIT_FORM='`git commit -m "<message>" -- <this task'"'"'s files>`'
+for f in agents/builder.md skills/build/SKILL.md; do
+    grep -qF -- "$COMMIT_FORM" "$PLUGIN_DIR/$f" \
+        || bad "$f" "the builder's commit form changed: update the allowed table in t_git_guard.sh"
+done
+
 [ "$FAILS" = 0 ] || { echo "    $FAILS check(s) failed"; exit 1; }
 exit 0
