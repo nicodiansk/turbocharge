@@ -96,5 +96,14 @@ for c in 'git add -- -A' 'git add -n .' 'git add --dry-run -A' 'git add -nA' 'gi
 for c in 'git commit -m -a' 'git commit -ma' 'git commit --message --all' 'git commit --allow-empty -m x' "git commit --allow-empty-message -m ''" \
     'git commit --amend --no-edit' 'git commit -uno -m x' 'git commit -m x -- -a' 'git commit --author -a -m x' 'git commit -qF -a'; do check allow "$c"; done
 
+# --- Task 5: skipped git hooks
+for c in 'git commit --no-verify -m x' 'git commit -n -m x' 'git commit -nm x' 'git push --no-verify' 'git push origin main --no-verify' \
+    'git -c core.hooksPath=/dev/null commit -m x' 'git -c CORE.HOOKSPATH= push' 'git --config-env=core.hooksPath=X status' \
+    'git --config-env core.hooksPath=X status' 'git -qn commit --no-verify'; do
+    check block "$c" "skips the repository's git hooks"
+done
+for c in 'git push -n' 'git push --dry-run' 'git commit -m "--no-verify is banned"' 'git commit -mn' 'git -c core.editor=vim commit' \
+    'git commit -m x -- --no-verify' 'git -c core.hooksPathX=1 status' 'git push -- --no-verify'; do check allow "$c"; done
+
 [ "$FAILS" = 0 ] || { echo "    $FAILS check(s) failed"; exit 1; }
 exit 0

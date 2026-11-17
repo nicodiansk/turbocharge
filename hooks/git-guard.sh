@@ -2,6 +2,8 @@
 # ABOUTME: git-guard — refuses a Bash command (PreToolUse) that stages files in bulk, skips the repository's git hooks, or runs a recursive delete through a symlink.
 # ABOUTME: Reads hook JSON on stdin with jq; prints one JSON deny on stdout with the reason and what to do instead, exit 0. Fails open: anything unexpected exits 0 with no output.
 # ABOUTME: Read-only — writes nothing, no network, runs only jq, awk, find and uname, never git.
+# ABOUTME: Known limit — it lets a command through whenever it can't tell: an unbalanced quote, a dynamic word ($var, a glob), an abbreviated long option (git commit --al), text past 16384 bytes.
+# ABOUTME: Known limit — a $((1<<2)) arithmetic shift reads as a heredoc and hides the lines after it.
 set -u
 export LC_ALL=C
 
@@ -31,6 +33,10 @@ excerpt() { printf '%s' "${1:0:80}"; }
 
 deny_staging() {
     deny "turbocharge git-guard: \`$(excerpt "$1")\` stages files in bulk. Stage explicit paths after \`git status\`: git add <paths>, then git commit -m \"<message>\" -- <paths>. To turn this check off, the user sets TURBOCHARGE_GIT_GUARD_STAGING=off."
+}
+
+deny_noverify() {
+    deny "turbocharge git-guard: \`$(excerpt "$1")\` skips the repository's git hooks. Run them: when one fails, fix what it reports, or ask the user. To turn this check off, the user sets TURBOCHARGE_GIT_GUARD_NOVERIFY=off."
 }
 
 # The tokenizer reads the command on stdin and prints one segment per line (one per simple command), words joined by
@@ -205,7 +211,7 @@ check_git_add_args() {
     return 0
 }
 
-# check_git_commit_args <first index>: -a / --all, before `--`
+# check_git_commit_args <first index>: -a / --all and -n / --no-verify, before `--`
 check_git_commit_args() {
     local i=$1 n=${#WV[@]} w rest ch k
     while [ "$i" -lt "$n" ]; do
@@ -214,6 +220,7 @@ check_git_commit_args() {
         case "$w" in
             --) return 0 ;;
             --all) deny_staging "$SEG_TEXT" ;;
+            --no-verify) deny_noverify "$SEG_TEXT" ;;
             --*) case "$COMMIT_LONG_VALUE" in *" $w "*) i=$((i + 1)) ;; esac ;;
             -?*)
                 rest="${w:1}"
@@ -221,6 +228,7 @@ check_git_commit_args() {
                     ch="${rest:k:1}"
                     case "$ch" in
                         a) deny_staging "$SEG_TEXT" ;;
+                        n) deny_noverify "$SEG_TEXT" ;;
                         [$COMMIT_SHORT_VALUE]) [ "$k" -eq $((${#rest} - 1)) ] && i=$((i + 1)); break ;;
                         [$COMMIT_SHORT_ATTACHED]) break ;;
                     esac
@@ -228,6 +236,25 @@ check_git_commit_args() {
         esac
         i=$((i + 1))
     done
+}
+
+# check_git_push_args <first index>: --no-verify, before `--` (-n is --dry-run)
+check_git_push_args() {
+    local i w
+    for ((i = $1; i < ${#WV[@]}; i++)); do
+        [ "${WK[i]}" = L ] || continue
+        w="${WV[i]}"
+        [ "$w" = -- ] && return 0
+        [ "$w" = --no-verify ] && deny_noverify "$SEG_TEXT"
+    done
+    return 0
+}
+
+# check_git_config <value>: a -c or --config-env value that sets core.hooksPath
+check_git_config() {
+    case "$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')" in
+        core.hookspath=*) deny_noverify "$SEG_TEXT" ;;
+    esac
 }
 
 # check_git <index of the git word>: skip git's global options, then dispatch on the subcommand
@@ -239,7 +266,9 @@ check_git() {
         [ "${WK[i]}" = L ] || return 0
         case "$w" in
             -C) GIT_C[${#GIT_C[@]}]="${WV[i+1]:-}"; i=$((i + 2)) ;;
-            -c|--git-dir|--work-tree|--namespace|--config-env) i=$((i + 2)) ;;
+            -c|--config-env) check_git_config "${WV[i+1]:-}"; i=$((i + 2)) ;;
+            --config-env=*) check_git_config "${w#--config-env=}"; i=$((i + 1)) ;;
+            --git-dir|--work-tree|--namespace) i=$((i + 2)) ;;
             -*) i=$((i + 1)) ;;
             *) break ;;
         esac
@@ -248,6 +277,7 @@ check_git() {
     case "${WV[i]}" in
         add|stage) check_git_add_args $((i + 1)) ;;
         commit) check_git_commit_args $((i + 1)) ;;
+        push) check_git_push_args $((i + 1)) ;;
     esac
 }
 
