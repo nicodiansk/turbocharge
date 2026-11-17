@@ -23,3 +23,13 @@ done
 ROW="$(awk '/\| Symbol \| File \| Kind \| Refs \|/ {f=1; next} f && /^\|[-|]+\|$/ {next} f {print; exit}' "$F")"
 [ -n "$ROW" ] || { echo "    no Key Symbols example row"; exit 1; }
 ! printf '%s' "$ROW" | grep -q ':[0-9]' || { echo "    Key Symbols example row has a line number: $ROW"; exit 1; }
+
+# After Generation validates before it commits; callers are asked at the time
+for p in 'Commit ATLAS.md only when every check passes' 'Who calls whom' '`git grep -nw <name>`'; do
+    grep -qF -- "$p" "$F" || { echo "    atlas skill lacks: $p"; exit 1; }
+    printf '%s' "$FILTERED" | grep -qF -- "$p" || { echo "    directory copy lost: $p"; exit 1; }
+done
+assert_grep "$F" 'skills/atlas/validate-atlas.sh" ATLAS.md' || exit 1
+assert_grep "$F" 'skills/atlas/atlas-symbols.sh" where' || exit 1
+case "$FILTERED" in *validate-atlas*|*atlas-symbols*) echo "    directory copy names an atlas script"; exit 1;; esac
+assert_grep "$F" 'Line numbers in Key Symbols' || exit 1

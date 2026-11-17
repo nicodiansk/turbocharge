@@ -127,14 +127,22 @@ ATLAS.md contains **facts about the project**. Do not include:
 - Rules or instructions for Claude → CLAUDE.md
 - Exhaustive symbol indexes (every class/function) → Key Symbols is a counted top-30, not a full index
 - Full code snippets → reference by `file:line` path
+- Who calls whom → ask at the time with `` `git grep -nw <name>` ``, or a code intelligence (LSP) plugin when one is installed
+<!-- repo-only -->
+  (`bash "${CLAUDE_PLUGIN_ROOT}/skills/atlas/atlas-symbols.sh" where <name>` lists the definition and its callers by file)
+<!-- /repo-only -->
 - Git history → `git log`
 - Dependency version lists → `package.json` / `requirements.txt`
 
 ## After Generation
 
 1. Show the user a summary of what was mapped (section counts)
-2. Commit ATLAS.md
-3. Offer to continue: "Ready to work? What's next?"
+2. Commit ATLAS.md only when every check passes: cited paths exist, each Key Symbol is still in its file, Key Flows has 5 or fewer, the footer commit exists.
+<!-- repo-only -->
+   `bash "${CLAUDE_PLUGIN_ROOT}/skills/atlas/validate-atlas.sh" ATLAS.md` runs the checks: commit on exit 0; on failure fix the lines it names and rerun, never commit a failing one.
+<!-- /repo-only -->
+3. Commit ATLAS.md by itself, so the next staleness check sees no unrelated change
+4. Offer to continue: "Ready to work? What's next?"
 
 ## Red Flags — STOP
 
@@ -146,6 +154,7 @@ ATLAS.md contains **facts about the project**. Do not include:
 | Skipping modules or directories | Cover the ENTIRE project structure |
 | Writing prose paragraphs | Use tables, lists, flow arrows — structured data only |
 | Not checking for existing ATLAS.md | Always detect mode first |
+| Line numbers in Key Symbols | They go stale: name and file only |
 
 ## Workflow Position
 
