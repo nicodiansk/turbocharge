@@ -33,4 +33,8 @@ has "$(printf '%s\n' "$RD" | grep -F '| **build** |')" 'at most 3 builders at on
 hasnt "$RD" 'one Sonnet builder' "README"
 has "$(printf '%s\n' "$RD" | grep -F 'build-review-chain.svg')" 'Opus when the plan marks the lane' "README build-review-chain img"
 for p in 'no Model column' 'plan: done YYYY-MM-DD' 'docs/plans/archive/' 'rerunning a done plan asks first'; do has "$FILT" "$p" "filtered README"; done
+TS=$(cat "$TIER")
+for p in 'in two places' 'marked lane' 'stuck Sonnet lane' '&lt;reason&gt;' 'YOU DECIDE' 'NEVER HAIKU'; do has "$TS" "$p" "model-tiering.svg"; done
+hasnt "$TS" 'in one place only' "model-tiering.svg"
+hasnt "$TS" 'one place only' "model-tiering.svg"
 exit $rc
