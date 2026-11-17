@@ -4,6 +4,7 @@
 # ABOUTME: Read-only — writes nothing, no network, runs only jq, awk, find and uname, never git.
 # ABOUTME: Known limit — it lets a command through whenever it can't tell: an unbalanced quote, a dynamic word ($var, a glob), an abbreviated long option (git commit --al), text past 16384 bytes.
 # ABOUTME: Known limit — an option's own argument isn't skipped after a wrapper, so `sudo -u bob git add -A` passes; recursion into `bash -c` and `eval` stops at 3 levels.
+# ABOUTME: Known limit — on Windows shells whether find reports NTFS junctions as links is unverified, and uname is found through PATH.
 # ABOUTME: Known limit — a $((1<<2)) arithmetic shift reads as a heredoc and hides the lines after it.
 set -u
 export LC_ALL=C
@@ -11,6 +12,7 @@ export LC_ALL=C
 command -v jq >/dev/null 2>&1 || exit 0
 
 MAX_COMMAND_BYTES=16384
+MAX_LISTED_LINKS=10
 
 is_off() { [ "$(printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]')" = off ]; }
 
@@ -324,6 +326,45 @@ check_through() {
     return 0
 }
 
+deny_links() {
+    deny "turbocharge git-guard: \`$(excerpt "$1")\` holds links, and on Windows a recursive delete can follow one out of the folder (a junction once emptied a checkout, .git included): $2. Remove the links first (rm <link>, without -r), then retry. To turn this check off, the user sets TURBOCHARGE_GIT_GUARD_SYMLINKS=off."
+}
+
+# is_windows_shell: uname -s (found through PATH) names Git Bash, MSYS2 or Cygwin; read once
+OS_KIND=""
+is_windows_shell() {
+    if [ -z "$OS_KIND" ]; then
+        case "$(uname -s 2>/dev/null)" in MINGW*|MSYS*|CYGWIN*) OS_KIND=win ;; *) OS_KIND=other ;; esac
+    fi
+    [ "$OS_KIND" = win ]
+}
+
+# check_links <operand as written> <resolved path>: on Windows shells, a folder holding links (depth 2) is refused
+check_links() {
+    local op="$1" dir="$2" links line k=0 list=""
+    [ -d "$dir" ] && [ ! -L "$dir" ] || return 0
+    is_windows_shell || return 0
+    links="$(find "$dir" -maxdepth 2 -type l 2>/dev/null)"
+    [ -n "$links" ] || return 0
+    while IFS= read -r line; do
+        k=$((k + 1))
+        [ "$k" -le "$MAX_LISTED_LINKS" ] && list="${list:+$list, }${line#"$dir"/}"
+    done <<< "$links"
+    [ "$k" -le "$MAX_LISTED_LINKS" ] || list="$list (+$((k - MAX_LISTED_LINKS)) more)"
+    deny_links "$op" "$list"
+}
+
+# check_operand <operand as written>: both link checks for one path a recursive delete names
+check_operand() {
+    local base path
+    check_through "$1"
+    base="$(strip_trailing "$1")"
+    [ -n "$base" ] || return 0
+    path="$(resolve_path "$base")"
+    [ -n "$path" ] || return 0
+    check_links "$1" "$path"
+}
+
 # check_rm <index of the rm word>: the operands of a recursive rm
 check_rm() {
     local i n=${#WV[@]} past=0 rec=0 w ops=()
@@ -340,7 +381,7 @@ check_rm() {
         esac
     done
     [ "$rec" = 1 ] || return 0
-    for w in ${ops[@]+"${ops[@]}"}; do check_through "$w"; done
+    for w in ${ops[@]+"${ops[@]}"}; do check_operand "$w"; done
 }
 
 # track_cwd <index of the cd word>: cd moves the tracked cwd; an unknown target makes it unknown

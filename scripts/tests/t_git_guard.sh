@@ -136,5 +136,30 @@ for c in 'rm -rf linked' 'rm -rf deep' 'rm -rf node_modules' 'rm -rf linkonly' '
 CHECK_CWD=/ check allow 'rm -rf linkdir/'
 CHECK_CWD=/ check allow "cd \"$WORK/plain\" && rm -rf linkdir/"
 
+# --- Task 8: Windows shells, a folder holding links
+mkdir -p "$WORK/deeper/a/b" "$WORK/many" "$ROOT/stub-darwin" "$ROOT/stub-win" "$ROOT/stub-msys" "$ROOT/stub-cygwin"
+ln -s ../../../plain "$WORK/deeper/a/b/l"
+for k in 01 02 03 04 05 06 07 08 09 10 11 12; do ln -s ../plain "$WORK/many/l$k"; done
+stub() { printf '#!/bin/sh\necho %s\n' "$2" > "$ROOT/stub-$1/uname"; chmod +x "$ROOT/stub-$1/uname"; }
+stub darwin Darwin; stub win MINGW64_NT-10.0-19045; stub msys MSYS_NT-10.0; stub cygwin CYGWIN_NT-10.0
+# check_on <stub name> <check args...>: check with that stub's uname first on PATH
+check_on() { local PREPATH="$ROOT/stub-$1"; shift; check "$@"; }
+check_win() { check_on win "$@"; }
+reason_on() {
+    jq -nc --arg c "$2" --arg d "$CHECK_CWD" '{tool_name:"Bash",tool_input:{command:$c},cwd:$d}' \
+        | PATH="$ROOT/stub-$1:$PATH" bash "$GUARD" | jq -r '.hookSpecificOutput.permissionDecisionReason // empty'
+}
+
+check_win block 'rm -rf linked' 'up'
+check_win block 'rm -rf linked' 'holds links'
+for c in 'rm -r deep' 'rm -rf node_modules' "/bin/rm -rf \"$WORK/linked\"" 'rm -rf linked/'; do check_win block "$c" 'holds links'; done
+check_on msys block 'rm -rf linked' 'holds links'
+check_on cygwin block 'rm -rf linked' 'holds links'
+for c in 'rm -rf plain' 'rm -rf deeper' 'rm -rf linkonly' 'rm -f linked' 'rm -rf missing'; do check_win allow "$c"; done
+check_win block 'rm -rf many' '(+2 more)'
+MANY="$(reason_on win 'rm -rf many')"
+[ "$(printf '%s' "$MANY" | grep -o 'l[0-9][0-9]' | wc -l | tr -d ' ')" = 10 ] || bad 'rm -rf many' "reason doesn't list exactly 10 links: $MANY"
+for s in linux darwin; do for c in 'rm -rf linked' 'rm -rf node_modules' 'rm -rf many'; do check_on "$s" allow "$c"; done; done
+
 [ "$FAILS" = 0 ] || { echo "    $FAILS check(s) failed"; exit 1; }
 exit 0
