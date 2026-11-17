@@ -175,20 +175,86 @@ parse_segment() {
     done
 }
 
-# check_git_add <first word index>: the words after `git add`
-check_git_add() {
-    local i
+BULK_PATHSPEC_RE='^\./*$'
+# Long `git commit` options that take the next word, and the short letters that take the rest of the cluster or the next word.
+COMMIT_LONG_VALUE=" --message --file --reuse-message --reedit-message --template --author --date --fixup --squash --cleanup --trailer --pathspec-from-file "
+COMMIT_SHORT_VALUE="mFcCt"
+# Short letters that take only an attached optional value (-uno, -Skeyid): the rest of the cluster is theirs.
+COMMIT_SHORT_ATTACHED="uS"
+
+# check_git_add_args <first index>: bulk staging unless a dry run. Flags count before `--`; a pathspec counts anywhere.
+check_git_add_args() {
+    local i past=0 bulk=0 dry=0 w
     for ((i = $1; i < ${#WV[@]}; i++)); do
-        case "${WV[i]}" in
-            -A|--all|-u|--update|.|./|:/) deny_staging "$SEG_TEXT" ;;
+        [ "${WK[i]}" = L ] || continue
+        w="${WV[i]}"
+        if [ "$past" = 0 ] && [ "$w" = -- ]; then past=1; continue; fi
+        if [ "$past" = 0 ]; then
+            case "$w" in
+                --all|--update) bulk=1; continue ;;
+                --dry-run) dry=1; continue ;;
+                --*) continue ;;
+                -?*) case "$w" in *[Au]*) bulk=1 ;; esac
+                     case "$w" in *n*) dry=1 ;; esac
+                     continue ;;
+            esac
+        fi
+        if [ "$w" = ':/' ] || [[ $w =~ $BULK_PATHSPEC_RE ]]; then bulk=1; fi
+    done
+    [ "$bulk" = 1 ] && [ "$dry" = 0 ] && deny_staging "$SEG_TEXT"
+    return 0
+}
+
+# check_git_commit_args <first index>: -a / --all, before `--`
+check_git_commit_args() {
+    local i=$1 n=${#WV[@]} w rest ch k
+    while [ "$i" -lt "$n" ]; do
+        w="${WV[i]}"
+        [ "${WK[i]}" = L ] || { i=$((i + 1)); continue; }
+        case "$w" in
+            --) return 0 ;;
+            --all) deny_staging "$SEG_TEXT" ;;
+            --*) case "$COMMIT_LONG_VALUE" in *" $w "*) i=$((i + 1)) ;; esac ;;
+            -?*)
+                rest="${w:1}"
+                for ((k = 0; k < ${#rest}; k++)); do
+                    ch="${rest:k:1}"
+                    case "$ch" in
+                        a) deny_staging "$SEG_TEXT" ;;
+                        [$COMMIT_SHORT_VALUE]) [ "$k" -eq $((${#rest} - 1)) ] && i=$((i + 1)); break ;;
+                        [$COMMIT_SHORT_ATTACHED]) break ;;
+                    esac
+                done ;;
+        esac
+        i=$((i + 1))
+    done
+}
+
+# check_git <index of the git word>: skip git's global options, then dispatch on the subcommand
+check_git() {
+    local i=$(($1 + 1)) n=${#WV[@]} w
+    GIT_C=()
+    while [ "$i" -lt "$n" ]; do
+        w="${WV[i]}"
+        [ "${WK[i]}" = L ] || return 0
+        case "$w" in
+            -C) GIT_C[${#GIT_C[@]}]="${WV[i+1]:-}"; i=$((i + 2)) ;;
+            -c|--git-dir|--work-tree|--namespace|--config-env) i=$((i + 2)) ;;
+            -*) i=$((i + 1)) ;;
+            *) break ;;
         esac
     done
+    [ "$i" -lt "$n" ] || return 0
+    case "${WV[i]}" in
+        add|stage) check_git_add_args $((i + 1)) ;;
+        commit) check_git_commit_args $((i + 1)) ;;
+    esac
 }
 
 check_segment() {
     parse_segment "$1"
-    [ "${#WV[@]}" -ge 2 ] && [ "${WV[0]}" = git ] || return 0
-    if [ "${WV[1]}" = add ]; then check_git_add 2; fi
+    [ "${#WV[@]}" -ge 1 ] && [ "${WV[0]}" = git ] || return 0
+    check_git 0
 }
 
 # check_command <text>: tokenize, then check each segment; a command the tokenizer can't read passes

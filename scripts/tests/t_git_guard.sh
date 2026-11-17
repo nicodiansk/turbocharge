@@ -85,5 +85,16 @@ check block 'echo $(echo $(echo $(echo $(git add -A))))'
 check allow 'echo $(echo $(echo $(echo $(echo $(git add -A)))))'
 check block 'echo "a $(echo "b $(git add -A)") c"'
 
+# --- Task 4: git global options, add/stage, commit -a
+for c in 'git -C "../other repo" add -A' 'git --git-dir=.git --work-tree=. add .' 'git -c color.ui=never add -- .' 'git stage -A' 'git add -Av' 'git add -vu' 'git add x -A' 'git add -- ./'; do
+    check block "$c" 'Stage explicit paths after `git status`'
+done
+for c in 'git commit -a -m x' 'git commit --all' 'git commit -am "x"' 'git commit -qam x' 'git commit -m x -a'; do
+    check block "$c" 'Stage explicit paths after `git status`'
+done
+for c in 'git add -- -A' 'git add -n .' 'git add --dry-run -A' 'git add -nA' 'git add --chmod=+x a.sh'; do check allow "$c"; done
+for c in 'git commit -m -a' 'git commit -ma' 'git commit --message --all' 'git commit --allow-empty -m x' "git commit --allow-empty-message -m ''" \
+    'git commit --amend --no-edit' 'git commit -uno -m x' 'git commit -m x -- -a' 'git commit --author -a -m x' 'git commit -qF -a'; do check allow "$c"; done
+
 [ "$FAILS" = 0 ] || { echo "    $FAILS check(s) failed"; exit 1; }
 exit 0
