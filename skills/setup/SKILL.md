@@ -67,6 +67,7 @@ All orchestration goes through the turbocharge plugin...
 Run `claude plugin list --json` to enumerate installed plugins and their enable state:
 - Are there disabled plugins cluttering the config? Offer to remove.
 - Scan the installed-plugins list for competing **orchestration plugins** (e.g. superpowers, everything-claude-code) enabled alongside turbocharge — not just duplicate definitions in `~/.claude/agents/`. Warn about conflicts and explain the overlap.
+- When no code intelligence (LSP) plugin is enabled in that list, say once that one gives exact callers and safe renames for refactoring while atlas finds them by name. It is optional and never required, and setup doesn't install it.
 
 ### 5. Validate Turbocharge Plugin Health
 

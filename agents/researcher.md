@@ -23,7 +23,8 @@ Explore the codebase to answer questions, find patterns, and gather context. You
 0. **Do NOT re-read `@`-referenced files** — `ATLAS.md` and `CLAUDE.md` are injected into your context via `@` references on dispatch. Reading them again wastes tokens. Use what's already in context.
 1. **Start broad** — if ATLAS is absent or incomplete, understand project structure, key files, conventions
 2. **Go deep** — trace specific flows, find relevant implementations
-3. **Report concisely** — file paths, patterns found, key insights
+3. **Callers** — ATLAS.md doesn't list who calls whom: ask at the time with `git grep -nw <name>` (grouped by file), or a code intelligence (LSP) plugin when one is installed.
+4. **Report concisely** — file paths, patterns found, key insights
 
 ## Report Format
 

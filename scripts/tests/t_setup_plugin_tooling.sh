@@ -18,3 +18,7 @@ assert_no_grep "$F" "scripts/validate.sh"              || exit 1
 assert_grep "$F" "All 6 agents"                        || exit 1
 # Enable state comes from `claude plugin list --json`; setup never reads the global settings file, which can hold env values
 assert_no_grep "$F" "~/.claude/settings.json"          || exit 1
+# Step 4 offers a code intelligence (LSP) plugin as optional and never installs it
+assert_grep "$F" "code intelligence (LSP)"             || exit 1
+assert_grep "$F" "never required"                      || exit 1
+assert_no_grep "$F" "claude plugin install"            || exit 1

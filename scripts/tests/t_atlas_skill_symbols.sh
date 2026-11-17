@@ -33,3 +33,8 @@ assert_grep "$F" 'skills/atlas/validate-atlas.sh" ATLAS.md' || exit 1
 assert_grep "$F" 'skills/atlas/atlas-symbols.sh" where' || exit 1
 case "$FILTERED" in *validate-atlas*|*atlas-symbols*) echo "    directory copy names an atlas script"; exit 1;; esac
 assert_grep "$F" 'Line numbers in Key Symbols' || exit 1
+
+# The researcher asks for callers at the time
+R="$PLUGIN_DIR/agents/researcher.md"
+assert_grep "$R" '`git grep -nw <name>`' || exit 1
+assert_grep "$R" 'code intelligence (LSP)' || exit 1
