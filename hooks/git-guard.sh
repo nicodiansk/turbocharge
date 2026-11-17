@@ -262,6 +262,20 @@ check_git_config() {
     esac
 }
 
+# check_git_worktree <first index>: `git worktree remove [-f] <path>` goes through the same two checks as rm -r
+check_git_worktree() {
+    local i=$1 n=${#WV[@]} c
+    local CWD="$CWD"
+    [ "$i" -lt "$n" ] && [ "${WV[i]}" = remove ] || return 0
+    for c in ${GIT_C[@]+"${GIT_C[@]}"}; do
+        if [ "$c" = "$DYN" ]; then CWD=""; else CWD="$(resolve_path "$c")"; fi
+    done
+    for ((i = i + 1; i < n; i++)); do
+        [ "${WK[i]}" = L ] || return 0
+        case "${WV[i]}" in -*) ;; *) check_operand "${WV[i]}"; return 0 ;; esac
+    done
+}
+
 # check_git <index of the git word>: skip git's global options, then dispatch on the subcommand
 check_git() {
     local i=$(($1 + 1)) n=${#WV[@]} w
@@ -283,6 +297,7 @@ check_git() {
         add|stage) check_git_add_args $((i + 1)) ;;
         commit) check_git_commit_args $((i + 1)) ;;
         push) check_git_push_args $((i + 1)) ;;
+        worktree) check_git_worktree $((i + 1)) ;;
     esac
 }
 

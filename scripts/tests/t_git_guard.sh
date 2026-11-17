@@ -161,5 +161,18 @@ MANY="$(reason_on win 'rm -rf many')"
 [ "$(printf '%s' "$MANY" | grep -o 'l[0-9][0-9]' | wc -l | tr -d ' ')" = 10 ] || bad 'rm -rf many' "reason doesn't list exactly 10 links: $MANY"
 for s in linux darwin; do for c in 'rm -rf linked' 'rm -rf node_modules' 'rm -rf many'; do check_on "$s" allow "$c"; done; done
 
+# --- Task 9: git worktree remove
+for c in 'git worktree remove linkdir/' 'git worktree remove --force linkdir/' 'git worktree remove -f -f linkonly/.'; do check block "$c" 'goes through the symlink'; done
+CHECK_CWD=/ check block "git -C \"$WORK\" worktree remove linkdir/" 'linkdir'
+CHECK_CWD=/ check block "cd \"$ROOT\" && git -C 'work dir' worktree remove linkdir/" 'linkdir'
+for c in 'git worktree remove linked' 'git worktree remove -f -f deep' 'git worktree remove plain' 'git worktree list' 'git worktree add ../x' 'git worktree prune' \
+    'git worktree remove' 'git worktree' 'git worktree remove $W' 'git worktree remove -f'; do check allow "$c"; done
+CHECK_CWD=/ check allow "git worktree remove linkdir/"
+CHECK_CWD=/ check allow "git -C \"\$D\" worktree remove linkdir/"
+for c in 'git worktree remove linked' 'git worktree remove -f -f deep'; do check_win block "$c" 'holds links'; done
+check_win block 'git worktree remove linked' 'up'
+check_win allow 'git worktree remove plain'
+check_win allow 'git worktree list'
+
 [ "$FAILS" = 0 ] || { echo "    $FAILS check(s) failed"; exit 1; }
 exit 0
