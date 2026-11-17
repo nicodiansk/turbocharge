@@ -28,4 +28,9 @@ for p in 'skills/wrap/write-snapshot.sh"' '--allow <field>'; do
 done
 printf '%s\n' "$FILTERED" | grep -qF 'write-snapshot' && { echo "    filtered wrap names write-snapshot"; rc=1; }
 printf '%s\n' "$FILTERED" | grep -qF 'looks like a key' || { echo "    filtered wrap lost: looks like a key"; rc=1; }
+# The 25 KB bound, topic files read on demand, both agent scopes named (Task 18).
+for p in 'nears 200 lines or 25 KB' "opens a topic file when it's relevant" '.claude/agent-memory-local/<name>/'; do
+    grep -qF -- "$p" "$F" || { echo "    wrap missing: $p"; rc=1; }
+done
+printf '%s\n' "$FILTERED" | grep -qi 'agent memory' && { echo "    filtered wrap says agent memory"; rc=1; }
 exit $rc
