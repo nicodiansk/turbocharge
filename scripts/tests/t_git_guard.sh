@@ -105,5 +105,15 @@ done
 for c in 'git push -n' 'git push --dry-run' 'git commit -m "--no-verify is banned"' 'git commit -mn' 'git -c core.editor=vim commit' \
     'git commit -m x -- --no-verify' 'git -c core.hooksPathX=1 status' 'git push -- --no-verify'; do check allow "$c"; done
 
+# --- Task 6: wrappers and nested shells
+for c in "bash -c 'git add -A'" 'sh -lc "cd x && git commit -am wip"' "zsh -c 'bash -c \"git push --no-verify\"'" "eval 'git add .'" 'eval git add -A' \
+    'sudo git add -A' 'env GIT_DIR=.git git add -A' 'FOO=1 /usr/bin/git add --all' 'command git add -u' '\git add -A' 'FOO=$X git add -A' \
+    'nohup nice git add -A' "bash -x -c 'git add -A'" 'if git add -A; then echo ok; fi' 'for f in a b; do git add -A; done' '! git add -A'; do check block "$c"; done
+for c in 'bash -c "$SCRIPT"' 'bash script.sh' 'sudo -u bob git add -A' "echo bash -c 'git add -A'" 'eval "$CMD"' 'eval git add $x' 'bash -c' 'sudo' 'env'; do check allow "$c"; done
+
+wrap() { printf 'bash -c %q' "$1"; }
+check block "$(wrap "$(wrap "$(wrap 'git add -A')")")"
+check allow "$(wrap "$(wrap "$(wrap "$(wrap 'git add -A')")")")"
+
 [ "$FAILS" = 0 ] || { echo "    $FAILS check(s) failed"; exit 1; }
 exit 0

@@ -3,6 +3,7 @@
 # ABOUTME: Reads hook JSON on stdin with jq; prints one JSON deny on stdout with the reason and what to do instead, exit 0. Fails open: anything unexpected exits 0 with no output.
 # ABOUTME: Read-only — writes nothing, no network, runs only jq, awk, find and uname, never git.
 # ABOUTME: Known limit — it lets a command through whenever it can't tell: an unbalanced quote, a dynamic word ($var, a glob), an abbreviated long option (git commit --al), text past 16384 bytes.
+# ABOUTME: Known limit — an option's own argument isn't skipped after a wrapper, so `sudo -u bob git add -A` passes; recursion into `bash -c` and `eval` stops at 3 levels.
 # ABOUTME: Known limit — a $((1<<2)) arithmetic shift reads as a heredoc and hides the lines after it.
 set -u
 export LC_ALL=C
@@ -167,15 +168,17 @@ END {
     if (bad) print "!"; else printf "%s", out
 }'
 
-# parse_segment <segment line>: SEG_TEXT (the words joined by blanks), WK (L or D per word), WV (the word; a dynamic
+# parse_segment <segment line>: SEG_TEXT (the words joined by blanks), WT (each word as written), WK (L or D per word), WV (the word; a dynamic
 # word holds DYN, which never matches a flag or a path)
 DYN=$'\001'
+ASSIGN_RE='^[A-Za-z_][A-Za-z0-9_]*='
 parse_segment() {
     local raw w
-    SEG_TEXT=""; WK=(); WV=()
+    SEG_TEXT=""; WK=(); WV=(); WT=()
     IFS=$'\037' read -r -a raw <<< "$1"
     for w in ${raw[@]+"${raw[@]}"}; do
         SEG_TEXT="${SEG_TEXT:+$SEG_TEXT }${w:1}"
+        WT[${#WT[@]}]="${w:1}"
         WK[${#WK[@]}]="${w:0:1}"
         if [ "${w:0:1}" = L ]; then WV[${#WV[@]}]="${w:1}"; else WV[${#WV[@]}]="$DYN"; fi
     done
@@ -281,10 +284,76 @@ check_git() {
     esac
 }
 
+# Words skipped before a segment's command word: wrappers (their own -options too) and shell keywords.
+WRAPPERS=" sudo env command builtin exec nohup time nice "
+KEYWORDS=" ! { if then else elif do while until "
+SHELLS=" bash sh zsh dash ksh "
+MAX_NEST=3
+NEST=0
+
+# find_command: sets CMD_I to the index of the command word (skipping NAME=value, wrappers and keywords), or -1
+find_command() {
+    local i=0 n=${#WV[@]} base
+    while [ "$i" -lt "$n" ]; do
+        if [[ ${WT[i]} =~ $ASSIGN_RE ]]; then i=$((i + 1)); continue; fi
+        [ "${WK[i]}" = L ] || break
+        base="${WV[i]##*/}"
+        case "$WRAPPERS" in
+            *" $base "*)
+                i=$((i + 1))
+                while [ "$i" -lt "$n" ] && [ "${WK[i]}" = L ] && [ "${WV[i]#-}" != "${WV[i]}" ]; do i=$((i + 1)); done
+                continue ;;
+        esac
+        case "$KEYWORDS" in *" ${WV[i]} "*) i=$((i + 1)); continue ;; esac
+        break
+    done
+    if [ "$i" -lt "$n" ] && [ "${WK[i]}" = L ]; then CMD_I=$i; else CMD_I=-1; fi
+}
+
+# check_nested <text>: check a command string held in another command, down to MAX_NEST levels
+check_nested() {
+    [ "$NEST" -lt "$MAX_NEST" ] || return 0
+    NEST=$((NEST + 1))
+    check_command "$1"
+    NEST=$((NEST - 1))
+}
+
+# check_shell <index of the shell word>: `bash -c '<script>'`, with the script a literal word
+check_shell() {
+    local i=$(($1 + 1)) n=${#WV[@]} w
+    while [ "$i" -lt "$n" ] && [ "${WK[i]}" = L ]; do
+        w="${WV[i]}"
+        case "$w" in
+            --|[!-]*) return 0 ;;
+            -c|-[!-]*c)
+                [ "$((i + 1))" -lt "$n" ] && [ "${WK[i+1]}" = L ] && check_nested "${WV[i+1]}"
+                return 0 ;;
+        esac
+        i=$((i + 1))
+    done
+}
+
+# check_eval <index of the eval word>: `eval` followed only by literal words
+check_eval() {
+    local i text=""
+    for ((i = $1 + 1; i < ${#WV[@]}; i++)); do
+        [ "${WK[i]}" = L ] || return 0
+        text="${text:+$text }${WV[i]}"
+    done
+    [ -z "$text" ] || check_nested "$text"
+}
+
 check_segment() {
+    local base
     parse_segment "$1"
-    [ "${#WV[@]}" -ge 1 ] && [ "${WV[0]}" = git ] || return 0
-    check_git 0
+    find_command
+    [ "$CMD_I" -ge 0 ] || return 0
+    base="${WV[CMD_I]##*/}"
+    case "$base" in
+        git) check_git "$CMD_I" ;;
+        eval) check_eval "$CMD_I" ;;
+        *) case "$SHELLS" in *" $base "*) check_shell "$CMD_I" ;; esac ;;
+    esac
 }
 
 # check_command <text>: tokenize, then check each segment; a command the tokenizer can't read passes
