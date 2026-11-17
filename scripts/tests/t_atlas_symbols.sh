@@ -74,4 +74,37 @@ mkdir -p "$TMP/plain"
 ERR="$(cd "$TMP/plain" && bash "$S" top 2>&1 >/dev/null)"; RC=$?
 [ "$RC" = 2 ] || { echo "    non-git dir should exit 2, got $RC"; exit 1; }
 printf '%s' "$ERR" | grep -q 'git repository' || { echo "    stderr lacks 'git repository': $ERR"; exit 1; }
+
+# Python definitions: ast when python3 exists, regex otherwise
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "    python3 not installed, skipping ast cases"
+    exit 0
+fi
+G="$TMP/pyrepo"
+git init -q "$G"
+git -C "$G" config user.name Fixture
+git -C "$G" config user.email fixture@example.com
+mkdir -p "$G/src"
+printf '%s\n' '"""def fake_in_docstring():"""' > "$G/src/doc.py"
+printf '%s\n' 'class OrderBook:' '    def total(self):' '        return 1' > "$G/src/book.py"
+printf '%s\n' 'def (:' '' 'def still_found():' '    pass' > "$G/src/broken.py"
+printf '%s\n' 'def outer():' '    def inner_helper():' '        pass' '    return inner_helper' > "$G/src/nested.py"
+git -C "$G" add -A && git -C "$G" commit -q -m py
+py_top() { (cd "$G" && env "$@" bash "$S" top 50 2>&1); }
+AST="$(py_top ATLAS_SYMBOLS_UNUSED=1)"
+RE="$(py_top ATLAS_SYMBOLS_NO_PYTHON=1)"
+printf '%s\n' "$AST" | grep -q "${TAB}fake_in_docstring${TAB}" && { echo "    ast mode listed a def inside a docstring"; exit 1; }
+printf '%s\n' "$RE" | grep -q "${TAB}fake_in_docstring${TAB}function${TAB}src/doc.py\$" || { echo "    regex mode should list the docstring def: $RE"; exit 1; }
+printf '%s\n' "$AST" | grep -q "${TAB}total${TAB}method${TAB}src/book.py\$" || { echo "    ast mode: total isn't a method: $AST"; exit 1; }
+printf '%s\n' "$RE" | grep -q "${TAB}total${TAB}function${TAB}src/book.py\$" || { echo "    regex mode: total isn't a function: $RE"; exit 1; }
+printf '%s\n' "$AST" | grep -q "${TAB}inner_helper${TAB}function${TAB}src/nested.py\$" || { echo "    ast mode missed a nested def: $AST"; exit 1; }
+for mode in "$AST" "$RE"; do
+    printf '%s\n' "$mode" | grep -q "${TAB}still_found${TAB}function${TAB}src/broken.py\$" || { echo "    a syntax error file lost its def: $mode"; exit 1; }
+done
+# Task 1's cases hold in ast mode too
+OUT="$(cd "$F" && bash "$S" top 2>&1)"
+has "4${TAB}parse_order${TAB}function${TAB}src/orders.py" || exit 1
+printf '%s\n' "$OUT" | grep -qE "${TAB}OrderBook${TAB}class${TAB}src/orders.py\$" || { echo "    ast mode: OrderBook isn't a class row"; exit 1; }
+printf '%s\n' "$OUT" | grep -qE "${TAB}(ab|__init__)${TAB}" && { echo "    ast mode listed a short or dunder name"; exit 1; }
+[ "$(printf '%s\n' "$OUT" | grep -c "${TAB}helper${TAB}")" = 2 ] || { echo "    ast mode: helper should have two rows"; exit 1; }
 exit 0

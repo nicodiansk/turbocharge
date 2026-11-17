@@ -6,6 +6,7 @@ set -uo pipefail
 DEFAULT_TOP=30
 MIN_NAME_LENGTH=3
 CODE_GLOBS_NON_SHELL=('*.py' '*.js' '*.jsx' '*.mjs' '*.cjs' '*.ts' '*.tsx' '*.go' '*.rs' '*.rb' '*.java' '*.kt' '*.cs')
+CODE_GLOBS_NO_PY=('*.js' '*.jsx' '*.mjs' '*.cjs' '*.ts' '*.tsx' '*.go' '*.rs' '*.rb' '*.java' '*.kt' '*.cs')
 SHELL_GLOBS=('*.sh' '*.bash')
 # Keywords that can open a definition outside the shell family.
 KEYWORD_PATTERN='(def|class|function|interface|type|const|let|var|func|fn|struct|enum|trait|module|record)[[:space:]]'
@@ -83,10 +84,71 @@ extract_definitions() {
     }'
 }
 
+# Python definitions from ast (never imports or runs the file): reads the file list on stdin and prints
+# `file<TAB>line<TAB>name<TAB>kind`. A file ast can't parse falls back to the regex used for the other languages.
+PYTHON_AST_SCRIPT='
+import ast, re, sys
+MIN = int(sys.argv[1])
+RX = ((re.compile(r"(?:^|[^A-Za-z0-9_.$])def\s+([A-Za-z_][A-Za-z0-9_]*)"), "function"),
+      (re.compile(r"(?:^|[^A-Za-z0-9_.$])class\s+([A-Za-z_][A-Za-z0-9_]*)"), "class"))
+def emit(path, line, name, kind):
+    if len(name) >= MIN and not (name.startswith("__") and name.endswith("__")):
+        print("%s\t%d\t%s\t%s" % (path, line, name, kind))
+def by_regex(path, data):
+    for n, text in enumerate(data.decode("utf-8", "replace").splitlines(), 1):
+        for rx, kind in RX:
+            m = rx.search(text)
+            if m:
+                emit(path, n, m.group(1), kind)
+def by_ast(path, tree):
+    stack = [(tree, False)]
+    while stack:
+        node, in_class = stack.pop()
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, ast.ClassDef):
+                emit(path, child.lineno, child.name, "class")
+                stack.append((child, True))
+            elif isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                emit(path, child.lineno, child.name, "method" if in_class else "function")
+                stack.append((child, False))
+            else:
+                stack.append((child, in_class))
+for path in sys.stdin.read().split("\n"):
+    if not path:
+        continue
+    try:
+        with open(path, "rb") as fh:
+            data = fh.read()
+    except OSError:
+        continue
+    try:
+        tree = ast.parse(data, filename=path)
+    except (SyntaxError, UnicodeDecodeError, ValueError, RecursionError, MemoryError):
+        by_regex(path, data)
+        continue
+    by_ast(path, tree)
+'
+
+python_available() {
+    [ -z "${ATLAS_SYMBOLS_NO_PYTHON:-}" ] && command -v python3 >/dev/null 2>&1 && python3 -I -c 'import ast' >/dev/null 2>&1
+}
+
+# Python rows from ast. Returns 1 when ast mode is off or python3 fails, so the caller uses the regex step.
+python_definitions() {
+    python_available || return 1
+    git ls-files -- '*.py' | python3 -I -c "$PYTHON_AST_SCRIPT" "$MIN_NAME_LENGTH"
+}
+
 # All definitions as `file<TAB>line<TAB>name<TAB>kind`, one row per file, line and name.
 definitions() {
+    local py_rows
     {
-        grep_in -nIE "$KEYWORD_PATTERN" "${CODE_GLOBS_NON_SHELL[@]}" | extract_definitions
+        if py_rows="$(python_definitions)"; then
+            [ -z "$py_rows" ] || printf '%s\n' "$py_rows"
+            grep_in -nIE "$KEYWORD_PATTERN" "${CODE_GLOBS_NO_PY[@]}" | extract_definitions
+        else
+            grep_in -nIE "$KEYWORD_PATTERN" "${CODE_GLOBS_NON_SHELL[@]}" | extract_definitions
+        fi
         grep_in -nIE "$SHELL_PATTERN" "${SHELL_GLOBS[@]}" | extract_definitions
     } | LC_ALL=C sort -u
 }
