@@ -12,6 +12,9 @@ SHIPPED_LIST="$(printf '%s' "$SHIPPED_LINE" | sed 's/^SHIPPED=(//; s/)[[:space:]
 # shellcheck disable=SC2086
 set -- $SHIPPED_LIST
 SHIPPED=("$@")
+# The fixture's description carries release.sh's own hook count, so the copy's strip matches it whatever the count is.
+HOOKS_REPO="$(sed -n "s/^HOOKS_REPO='\(.*\)'\$/\1/p" "$REL")"
+[ -n "$HOOKS_REPO" ] || { echo "    release.sh has no one-line HOOKS_REPO='N hooks'"; exit 1; }
 DROP_LINE="$(grep '^DIRECTORY_DROP=(' "$REL")"
 [ -n "$DROP_LINE" ] || { echo "    release.sh has no one-line DIRECTORY_DROP=(...)"; exit 1; }
 printf '%s' "$DROP_LINE" | grep -qE '[(][[:space:]]*hooks[[:space:]]|[[:space:]]hooks[[:space:])]' \
@@ -37,7 +40,7 @@ git -C "$F" config user.email "fixture@example.com"
 git -C "$F" remote add origin "$TMP/origin.git"
 
 put() { mkdir -p "$F/$(dirname "$1")"; printf '%s\n' "$2" > "$F/$1"; }
-PLUGIN_DESC='3 skills, 2 hooks, 1 workflow'
+PLUGIN_DESC="3 skills, $HOOKS_REPO, 1 workflow"
 PLUGIN_EXTRA=''
 set_version() { put .claude-plugin/plugin.json "{ \"name\": \"x\", \"description\": \"$PLUGIN_DESC\", \"version\": \"$1\"$PLUGIN_EXTRA }"; }
 HOOKS_JSON='{ "hooks": {
@@ -197,7 +200,7 @@ put templates/t.md 'Ships 1 hook'
 refuse_release 'counts them' "text counting 1 hook"
 put templates/t.md t; PLUGIN_DESC='2 hooks and 3 skills'
 refuse_release 'counts them' "a description counting hooks with no leading comma"
-PLUGIN_DESC='3 skills, 2 hooks, 1 workflow'; put templates/t.md 'Ships 1 workflow'
+PLUGIN_DESC="3 skills, $HOOKS_REPO, 1 workflow"; put templates/t.md 'Ships 1 workflow'
 refuse_release 'still says 1 workflow' "text still counting the left-out workflow"
 put templates/t.md t
 # A hooks.json or command hook outside hooks/ is refused, even though hooks/ itself is left out.
