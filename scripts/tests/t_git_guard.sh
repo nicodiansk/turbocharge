@@ -52,5 +52,19 @@ check allow ''
 check TURBOCHARGE_GIT_GUARD=off allow 'git add -A'
 check TURBOCHARGE_GIT_GUARD=OFF allow 'git add -A'
 
+# --- Task 2: quotes and command chains
+for c in 'git status && git add -A' 'git diff; git add .' 'cd sub && git add --all' 'git log | cat || git add -u' '(git add -A)' 'git status&&git add -A' 'git add "."'; do check block "$c"; done
+check allow 'echo "git add -A"'
+check allow "printf '%s' 'git add .'"
+check allow 'git commit -m "use git add -A" -- a.txt'
+check allow "git add \"my file.txt\" 'other file'"
+check allow 'git add "unterminated'
+check allow ';;'
+check allow '&&'
+check allow 'git'
+check block 'git status # note
+git add -A'
+check allow 'git status # git add -A'
+
 [ "$FAILS" = 0 ] || { echo "    $FAILS check(s) failed"; exit 1; }
 exit 0
