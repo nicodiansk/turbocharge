@@ -3,7 +3,8 @@
 # ABOUTME: Reads hook JSON on stdin with jq; prints one JSON deny on stdout with the reason and what to do instead, exit 0. Fails open: anything unexpected exits 0 with no output.
 # ABOUTME: Read-only — writes nothing, no network, runs only jq, awk, find and uname, never git.
 # ABOUTME: Known limit — it lets a command through whenever it can't tell: an unbalanced quote, a dynamic word ($var, a glob), an abbreviated long option (git commit --al), text past 16384 bytes.
-# ABOUTME: Known limit — an option's own argument isn't skipped after a wrapper, so `sudo -u bob git add -A` passes; recursion into `bash -c` and `eval` stops at 3 levels.
+# ABOUTME: Known limit — an option's own argument isn't skipped after a wrapper, so `sudo -u bob git add -A` passes; recursion into `bash -c` and `eval` stops at 3 levels, and a command nested more than 4 levels deep in $(…) or backticks is skipped.
+# ABOUTME: Known limit — a cd inside a subshell, $(…), backticks or `bash -c` stays inside it, but a cd in one stage of a pipeline still moves the tracked cwd.
 # ABOUTME: Known limit — on Windows shells whether find reports NTFS junctions as links is unverified, and uname is found through PATH.
 # ABOUTME: Known limit — a $((1<<2)) arithmetic shift reads as a heredoc and hides the lines after it.
 set -u
@@ -49,8 +50,10 @@ deny_noverify() {
 # The tokenizer reads the command on stdin and prints one segment per line (one per simple command), words joined by
 # \037 and each prefixed L (literal) or D (dynamic: an unquoted or double-quoted $, a backtick, an unquoted * ? [).
 # It scans $(...) and backticks recursively (emitting their segments, to depth 4) and skips heredoc bodies.
+# A line `(` comes before and a line `)` after each subshell, $(...) and backtick, so a cd inside one stays inside it.
 # It prints the single line `!` when a quote, $( or backtick is unbalanced.
 TOKENIZER='
+function mark(s) { out = out s "\n" }
 function endword(d) {
     if (INW[d]) SEG[d] = SEG[d] (SEG[d] == "" ? "" : SEP) (DYN[d] ? "D" : "L") CUR[d]
     INW[d] = 0; CUR[d] = ""; DYN[d] = 0
@@ -104,9 +107,9 @@ function dquote(i, d,    c, e) {
             if (e == "$" || e == "`" || e == "\"" || e == "\\") { CUR[d] = CUR[d] e; i += 2; continue }
             if (e == "\n") { i += 2; continue }
         } else if (c == "$" && substr(text, i + 1, 1) == "(") {
-            i = scan(i + 2, ")", d + 1); DYN[d] = 1; CUR[d] = CUR[d] "$()"; i++; continue
+            mark("("); i = scan(i + 2, ")", d + 1); mark(")"); DYN[d] = 1; CUR[d] = CUR[d] "$()"; i++; continue
         } else if (c == "`") {
-            i = scan(i + 1, "`", d + 1); DYN[d] = 1; CUR[d] = CUR[d] "`"; i++; continue
+            mark("("); i = scan(i + 1, "`", d + 1); mark(")"); DYN[d] = 1; CUR[d] = CUR[d] "`"; i++; continue
         } else if (c == "$") DYN[d] = 1
         CUR[d] = CUR[d] flat(c); i++
     }
@@ -130,10 +133,10 @@ function scan(start, closer, d,    i, c, e, j, par, tab) {
             e = substr(text, i + 1, 1); i++
             if (e != "\n") { CUR[d] = CUR[d] e; INW[d] = 1 }
         } else if (c == "$" && substr(text, i + 1, 1) == "(") {
-            i = scan(i + 2, ")", d + 1); DYN[d] = 1; INW[d] = 1; CUR[d] = CUR[d] "$()"
+            mark("("); i = scan(i + 2, ")", d + 1); mark(")"); DYN[d] = 1; INW[d] = 1; CUR[d] = CUR[d] "$()"
         } else if (c == "`") {
             if (closer == "`") { endseg(d); return i }
-            i = scan(i + 1, "`", d + 1); DYN[d] = 1; INW[d] = 1; CUR[d] = CUR[d] "`"
+            mark("("); i = scan(i + 1, "`", d + 1); mark(")"); DYN[d] = 1; INW[d] = 1; CUR[d] = CUR[d] "`"
         } else if (c == "$" || c == "*" || c == "?" || c == "[") {
             CUR[d] = CUR[d] c; INW[d] = 1; DYN[d] = 1
         } else if (c == " " || c == "\t") {
@@ -151,10 +154,10 @@ function scan(start, closer, d,    i, c, e, j, par, tab) {
             endseg(d)
             if (NH > 0) i = skipbodies(i)
         } else if (c == "(") {
-            endseg(d); par++
+            endseg(d); par++; mark("(")
         } else if (c == ")") {
             endseg(d)
-            if (par > 0) par--
+            if (par > 0) { par--; mark(")") }
             else if (closer == ")") return i
         } else if (c == "&" || c == "|" || c == ";") {
             endseg(d)
@@ -449,15 +452,17 @@ check_nested() {
     NEST=$((NEST - 1))
 }
 
-# check_shell <index of the shell word>: `bash -c '<script>'`, with the script a literal word
+# check_shell <index of the shell word>: `bash -c '<script>'`, with the script a literal word. A cd in the child shell
+# doesn't move this one, so the tracked cwd comes back afterwards.
 check_shell() {
-    local i=$(($1 + 1)) n=${#WV[@]} w
+    local i=$(($1 + 1)) n=${#WV[@]} w saved="$CWD"
     while [ "$i" -lt "$n" ] && [ "${WK[i]}" = L ]; do
         w="${WV[i]}"
         case "$w" in
             --|[!-]*) return 0 ;;
             -c|-[!-]*c)
                 [ "$((i + 1))" -lt "$n" ] && [ "${WK[i+1]}" = L ] && check_nested "${WV[i+1]}"
+                CWD="$saved"
                 return 0 ;;
         esac
         i=$((i + 1))
@@ -490,17 +495,24 @@ check_segment() {
     esac
 }
 
-# check_command <text>: tokenize, then check each segment; a command the tokenizer can't read passes
+# check_command <text>: tokenize, then check each segment; a command the tokenizer can't read passes.
+# The `(` and `)` lines save and restore the tracked cwd, never below the level this call started at.
 check_command() {
-    local segs line
+    local segs line base_sp=$CWD_SP
     segs="$(printf '%s' "$1" | awk "$TOKENIZER")"
     [ "$segs" = '!' ] && return 0
     while IFS= read -r line; do
-        [ -n "$line" ] || continue
-        check_segment "$line"
+        case "$line" in
+            '') ;;
+            '(') CWD_STACK[CWD_SP]="$CWD"; CWD_SP=$((CWD_SP + 1)) ;;
+            ')') if [ "$CWD_SP" -gt "$base_sp" ]; then CWD_SP=$((CWD_SP - 1)); CWD="${CWD_STACK[CWD_SP]}"; fi ;;
+            *) check_segment "$line" ;;
+        esac
     done <<< "$segs"
+    CWD_SP=$base_sp
 }
 
+CWD_STACK=(); CWD_SP=0
 CWD="$(field .cwd)"; CWD="${CWD//\\//}"
 check_command "$COMMAND"
 exit 0

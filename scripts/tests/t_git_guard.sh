@@ -136,12 +136,27 @@ PREPATH="$ROOT/stub-linux"
 check block 'rm -rf linkdir/' 'linkdir'
 for c in 'rm -r linkonly/.' 'rm -fr linkonly//' 'rm -R linkdir/' 'rm --recursive linkdir/' 'rm -r -f -- linkdir/' "/bin/rm -rf \"$WORK/linkdir/\"" \
     'sudo rm -rf linkdir/' 'rm -rf plain linkdir/'; do check block "$c" 'goes through the symlink'; done
+check block "/bin/rm -rf \"$WORK/linkdir/\"" "rm $WORK/linkdir (no trailing slash)"
 CHECK_CWD=/ check block "cd \"$WORK\" && rm -rf linkdir/" 'linkdir'
 CHECK_CWD=/ check block "cd '$ROOT' && cd 'work dir' && rm -rf linkdir/"
 for c in 'rm -rf linked' 'rm -rf deep' 'rm -rf node_modules' 'rm -rf linkonly' 'rm -rf plain/' 'rm -rf missing/' 'rm -f linkdir/' 'rm -rf linked/*' \
     'cd "$X" && rm -rf linkdir/' 'cd - && rm -rf linkdir/' 'rm -rf' 'rm' 'rm -rf -- ' 'rm -rf /' 'rm -rf linkdir'; do check allow "$c"; done
 CHECK_CWD=/ check allow 'rm -rf linkdir/'
 CHECK_CWD=/ check allow "cd \"$WORK/plain\" && rm -rf linkdir/"
+# a cd inside a subshell, $(…), backticks or bash -c stays there; a plain cd and eval move the tracked cwd
+for c in '(cd plain; true); rm -rf linkdir/' '(cd plain && true) && rm -rf linkdir/' 'x=$(cd plain); rm -rf linkdir/' \
+    'echo `cd plain`; rm -rf linkdir/' "bash -c 'cd plain'; rm -rf linkdir/" '( (cd plain); rm -rf linkdir/ )' \
+    '(cd linked && rm -rf up/)' 'echo $((1+2)); rm -rf linkdir/'; do check block "$c" 'goes through the symlink'; done
+for c in '(cd linked; true); rm -rf up/' '(cd plain; (true); rm -rf linkdir/)' 'cd plain && (true) && rm -rf linkdir/' \
+    'eval cd plain; rm -rf linkdir/'; do check allow "$c"; done
+# ~ and ~/x resolve to HOME, a Windows cwd's backslashes become slashes, a drive path is never joined to the cwd
+CHECK_CWD=/ check HOME="$WORK" block 'rm -rf ~/linkdir/' 'linkdir'
+CHECK_CWD=/ check HOME="$WORK" block 'cd ~ && rm -rf linkdir/' 'linkdir'
+CHECK_CWD=/ check HOME="$WORK" block 'cd && rm -rf linkdir/' 'linkdir'
+CHECK_CWD="$(printf '%s' "$WORK" | tr / '\\')" check block 'rm -rf linkdir/' 'linkdir'
+mkdir -p "$WORK/C:"; ln -s ../plain "$WORK/C:/lnk"
+check allow 'rm -rf C:/lnk/'
+check block 'rm -rf ./C:/lnk/' 'goes through the symlink'
 
 # --- Task 8: Windows shells, a folder holding links
 mkdir -p "$WORK/deeper/a/b" "$WORK/many" "$ROOT/stub-darwin" "$ROOT/stub-win" "$ROOT/stub-msys" "$ROOT/stub-cygwin"
@@ -159,6 +174,7 @@ reason_on() {
 
 check_win block 'rm -rf linked' 'up'
 check_win block 'rm -rf linked' 'holds links'
+check_win block "/bin/rm -rf \"$WORK/linked\"" '): up.'
 for c in 'rm -r deep' 'rm -rf node_modules' "/bin/rm -rf \"$WORK/linked\"" 'rm -rf linked/'; do check_win block "$c" 'holds links'; done
 check_on msys block 'rm -rf linked' 'holds links'
 check_on cygwin block 'rm -rf linked' 'holds links'
@@ -176,6 +192,10 @@ for c in 'git worktree remove linked' 'git worktree remove -f -f deep' 'git work
     'git worktree remove' 'git worktree' 'git worktree remove $W' 'git worktree remove -f'; do check allow "$c"; done
 CHECK_CWD=/ check allow "git worktree remove linkdir/"
 CHECK_CWD=/ check allow "git -C \"\$D\" worktree remove linkdir/"
+# several -C: each resolves against the one before, and a dynamic one makes the path unknown until a later absolute one
+CHECK_CWD=/ check block "git -C \"$ROOT\" -C 'work dir' worktree remove linkdir/" 'linkdir'
+CHECK_CWD=/ check block "git -C \"\$D\" -C \"$WORK\" worktree remove linkdir/" 'linkdir'
+CHECK_CWD=/ check allow "git -C \"$WORK\" -C \"\$D\" worktree remove linkdir/"
 for c in 'git worktree remove linked' 'git worktree remove -f -f deep'; do check_win block "$c" 'holds links'; done
 check_win block 'git worktree remove linked' 'up'
 check_win allow 'git worktree remove plain'
