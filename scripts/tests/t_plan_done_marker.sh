@@ -21,4 +21,13 @@ LOOK=$(printf '%s\n' "$STEP1" | grep -nF 'plan found in archive/' | head -1 | cu
 if [ -z "$FLAGS" ] || [ -z "$LOOK" ] || [ "$LOOK" -le "$FLAGS" ]; then
     echo "    build Step 1: the archive lookup must come after Parse flags from \$ARGUMENTS"; rc=1
 fi
+STEP7=$(sec "$S" '## Step 7' '## Red Flags')
+need "$STEP7" 'build Step 7' '<!-- plan: done YYYY-MM-DD -->' 'ls-files --error-unmatch' 'git -C' 'docs: mark plan done' \
+    'default branch, ask first' '`Not done:`' 'no marker' 'line endings'
+GREEN=$(printf '%s\n' "$STEP7" | grep -nF 'After the full gate is green' | head -1 | cut -d: -f1)
+MARK=$(printf '%s\n' "$STEP7" | grep -nF 'plan: done YYYY-MM-DD' | head -1 | cut -d: -f1)
+OFFER=$(printf '%s\n' "$STEP7" | grep -nF 'Offer:' | head -1 | cut -d: -f1)
+if [ -z "$GREEN" ] || [ -z "$MARK" ] || [ -z "$OFFER" ] || [ "$MARK" -le "$GREEN" ] || [ "$MARK" -ge "$OFFER" ]; then
+    echo "    build Step 7: the marker bullet must sit after 'After the full gate is green' and before 'Offer:'"; rc=1
+fi
 exit $rc

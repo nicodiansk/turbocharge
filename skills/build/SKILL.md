@@ -179,6 +179,7 @@ For security-sensitive code, unfamiliar codebases, or complex integrations: one 
 After the full gate is green:
 - Report a completion summary, including any carried 🟡/🟢 review findings, and every lane's **Rulings**, concerns and `Not done:` line, each `shortcut check:` note and each check 2 concern (inline lanes too, where the main session lists its calls and states its own `Not done:`) so the user can check the decisions taken on their behalf
 - Print the final visibility line: `lanes: L (inline I · builder B, opus O) · spawns: S · tasks: Y/Y`; O counts builder lanes that ran on Opus at any point (marked, raised, or the stuck retry), always printed, `opus 0` included
+- Mark the plan done, only when no lane stopped BLOCKED and every lane's `Not done:` is `none` (`not reported` counts as an item): insert `<!-- plan: done YYYY-MM-DD -->` (today) as a new line 1, in the file's line endings. Otherwise write no marker and say why in one line. Run the tracked test in the plan's own folder: `git -C "<plan's folder>" ls-files --error-unmatch "<plan file name>"` succeeds → commit that file alone, in that repo: `git -C "<plan's folder>" commit -m "docs: mark plan done" -- "<plan file name>"`; on that repo's default branch, ask first. It fails (untracked, ignored, outside a repo) → write the line only, no commit.
 - Offer: "Ready for holistic code review?" → chains to `/turbocharge:review`
 
 > Visibility note: the orchestrator cannot read exact token counts. This line is the lane/spawn/task summary (the measurable proxy), NOT a fabricated token number.
