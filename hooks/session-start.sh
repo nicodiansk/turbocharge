@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ABOUTME: SessionStart hook — bootstrap cat, pre-load ATLAS.md + session snapshot.
-# ABOUTME: Pre-loading ATLAS means zero tool calls for "where is X" lookups.
+# ABOUTME: Pre-loads the Where to Look table and flags ATLAS.md lines whose cited files changed.
 # ABOUTME: Read-only — emits text to stdout only; creates/modifies/deletes nothing, no network.
 # ABOUTME: Per-section byte caps keep total output under Claude Code's 10,000-char inline limit.
 HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -8,8 +8,12 @@ HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Per-section byte caps. Claude Code saves hook output over 10,000 chars to disk
 # and injects only a 2,000-char preview, so the sum of these plus the fixed
 # prose must stay under 10,000 (guarded by scripts/tests/t_session_start_output_cap.sh).
-ATLAS_CAP=3500
-CODEMAP_CAP=1200
+# ATLAS_CAP fits validate-atlas's limits: 25 rows of ~140 characters, a few multibyte arrows, plus the table header.
+# Known limit: it counts bytes and the validator counts characters, so rows written mostly in a multibyte script
+# (Japanese takes 3 bytes a character) are cut before row 25.
+ATLAS_CAP=4000
+# The list of ATLAS.md lines at risk gets a 1200-byte budget, so TOTAL_BUDGET stays 9500.
+ATLAS_STALE_CAP=1200
 # Everything the hook prints stays under TOTAL_BUDGET; the snapshot gets what the
 # other sections leave over (minus SNAPSHOT_OVERHEAD for its header/footer/marker).
 TOTAL_BUDGET=9500
@@ -29,7 +33,48 @@ cap_section() {
     '
 }
 
-# emit_head — bootstrap, ATLAS, staleness, CodeMap: everything printed before the snapshot.
+# atlas_stale_lines — print what is at risk in ATLAS.md since the commit in its footer.
+# Writes nothing and prints nothing to stderr. Only hex can match the footer, so a
+# hand-edited one never reaches git as an option.
+atlas_stale_lines() {
+    local sha sha7 changed list
+    git rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
+    sha=$(sed -n 's/.*<!-- atlas-sha:\([0-9a-f]\{7,40\}\) -->.*/\1/p' ATLAS.md 2>/dev/null | tail -n 1)
+    if [ -z "$sha" ]; then
+        if grep -q '<!-- atlas-hash:' ATLAS.md 2>/dev/null; then
+            echo "ATLAS.md has a pre-3.8 atlas-hash footer, which can't tell what changed: run /turbocharge:atlas to record its commit."
+        fi
+        return 0
+    fi
+    sha7=$(printf '%s' "$sha" | cut -c1-7)
+    if ! git cat-file -e "$sha^{commit}" 2>/dev/null; then
+        echo "ATLAS.md was written at $sha7, a commit this clone doesn't have: run /turbocharge:atlas to refresh it."
+        return 0
+    fi
+    changed=$(git -c core.quotepath=off diff --name-only --no-renames --relative "$sha" HEAD -- 2>/dev/null | grep -vxF "ATLAS.md")
+    [ -n "$changed" ] || return 0
+    list=$(printf '%s\n' "$changed" | awk '
+        NR == FNR { ch[++n] = $0; next }
+        {
+            sub(/\r$/, ""); line = $0
+            while (match(line, /`[^`]+`/)) {
+                tok = substr(line, RSTART + 1, RLENGTH - 2); line = substr(line, RSTART + RLENGTH)
+                sub(/^\.\//, "", tok); sub(/:[0-9]+(-[0-9]+)?$/, "", tok)
+                if (tok == "" || ((FNR SUBSEP tok) in seen)) continue
+                pre = (substr(tok, length(tok)) == "/") ? tok : tok "/"
+                for (i = 1; i <= n; i++) {
+                    if (ch[i] == tok || index(ch[i], pre) == 1) { seen[FNR SUBSEP tok] = 1; print "  line " FNR ": " tok; break }
+                }
+            }
+        }
+    ' - ATLAS.md)
+    [ -n "$list" ] || return 0
+    echo "ATLAS.md may be stale: files it cites changed since $sha7."
+    printf '%s\n' "$list" | cap_section "$ATLAS_STALE_CAP" "Run \`git diff --name-only --no-renames $sha7 HEAD\`"
+    echo "Run /turbocharge:atlas to update those lines."
+}
+
+# emit_head — bootstrap, ATLAS, staleness: everything printed before the snapshot.
 emit_head() {
     cat "$HOOK_DIR/session-bootstrap.md"
 
@@ -46,29 +91,10 @@ emit_head() {
         cat "$HOOK_DIR/missing-atlasmd-nudge.md"
     fi
 
-    # Staleness check
+    # Staleness check: which cited files changed since the commit ATLAS.md maps
     if [ -f "ATLAS.md" ]; then
-        STORED=$(sed -n 's/.*<!-- atlas-hash:\([a-f0-9]*\) -->.*/\1/p' "ATLAS.md" 2>/dev/null || true)
-        if [ -n "$STORED" ]; then
-            CURRENT=""
-            if command -v md5sum >/dev/null 2>&1; then
-                CURRENT=$(ls -1 2>/dev/null | grep -v -e '^\.' -e '^node_modules$' -e '^__pycache__$' -e '^venv$' -e '^dist$' -e '^build$' | sort | md5sum | cut -c1-12 || true)
-            elif command -v md5 >/dev/null 2>&1; then
-                CURRENT=$(ls -1 2>/dev/null | grep -v -e '^\.' -e '^node_modules$' -e '^__pycache__$' -e '^venv$' -e '^dist$' -e '^build$' | sort | md5 -r | cut -c1-12 || true)
-            fi
-            if [ -n "$CURRENT" ] && [ "$STORED" != "$CURRENT" ]; then
-                echo ""
-                echo "ATLAS.md may be stale — project structure changed since last generation. Consider running /turbocharge:atlas to update."
-            fi
-        fi
-    fi
-
-    if [ -d ".codemap" ] && command -v codemap >/dev/null 2>&1; then
-        echo ""
-        echo "--- CodeMap index available ---"
-        codemap stats | cap_section "$CODEMAP_CAP" "Run \`codemap stats\`"
-        echo "Use: codemap find 'SymbolName' | codemap show path/to/file"
-        echo "--- end CodeMap ---"
+        STALE_OUT="$(atlas_stale_lines)"
+        [ -n "$STALE_OUT" ] && printf '\n%s\n' "$STALE_OUT"
     fi
 }
 

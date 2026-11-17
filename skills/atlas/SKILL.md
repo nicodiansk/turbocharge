@@ -1,6 +1,6 @@
 ---
 name: atlas
-description: Generate or update a semantic domain map (ATLAS.md) for the project. Maps where to look, entry points, module purposes, key symbols, and integration points. Complements codemap's structural index with the domain knowledge layer.
+description: Generate or update a semantic domain map (ATLAS.md) for the project. Maps where to look, entry points, module purposes, key symbols, and integration points. Counts Key Symbols from the code and records the commit it maps.
 ---
 
 # Atlas — Project Domain Map
@@ -31,18 +31,14 @@ Regardless of mode:
 4. Read domain models (data classes, schemas, database models)
 5. Scan integration configs (env files, connection strings, external service clients)
 
-### Step 2b: Read Codemap Index (if available)
+### Step 2b: Count Key Symbols
 
-If `.codemap/.codemap.json` exists in the project root:
+Find the definitions with `git grep -nE` (one pattern per language: `def`, `class`, `function`, `func`, `fn`, `struct`, `interface`), then rank them by `git grep -cw <name>`, which prints one count per file, so add them up: the 20-30 most cited become Key Symbols, each with its count.
+<!-- repo-only -->
+`bash "${CLAUDE_PLUGIN_ROOT}/skills/atlas/atlas-symbols.sh" top 30` does this in one pass (Python through ast when python3 is there).
+<!-- /repo-only -->
 
-1. Read `.codemap/.codemap.json` — it contains a manifest with `directories` (list of indexed paths) and `stats` (total files, total symbols).
-2. For each directory in the manifest, read `.codemap/<dir>/.codemap.json` — each contains `files` with symbol entries (name, type, lines, language).
-3. Use this data to pre-populate:
-   - **Module Map** — each directory with its file count and key files
-   - **Key Symbols** — pick the 20-30 most important symbols (classes, exported functions) with their `file:line-range`
-4. You still need to fill in the semantic layer manually: **Where to Look** (intent→file mapping), **Entry Points** (which files boot the app), **Integration Points** (external services), **Conventions & Gotchas**.
-
-This shortcut reduces atlas generation from ~20 tool calls to ~5. If `.codemap/` does not exist, skip this step entirely — fall through to the standard codebase scan in Step 2.
+The semantic layer stays manual: **Where to Look** (intent→file), **Entry Points**, **Integration Points**, **Conventions & Gotchas**.
 
 ## Step 3: Generate or Update
 
@@ -55,8 +51,11 @@ Create `ATLAS.md` in the project root following the format in Step 4.
 1. Read existing ATLAS.md
 2. Compare each section against current codebase state
 3. Update stale sections — preserve any manually-added notes (lines starting with `📌`)
-4. Update the `Last updated` date
-5. Report what changed: "Updated: Module Directory (2 new modules), Integration Points (added Redis)"
+4. Trim Where to Look to the limits: merge or move rows, keep the 25 most useful
+5. Keep ATLAS.md's line endings: a CRLF file stays CRLF
+6. Update the `Last updated` date
+7. Run `` `git diff --name-only --no-renames <atlas-sha> HEAD` `` (the commit in the footer) and recheck the rows citing those files
+8. Report what changed: "Updated: Module Directory (2 new modules), Integration Points (added Redis)"
 
 ## Step 4: ATLAS.md Format
 
@@ -77,19 +76,23 @@ Last updated: YYYY-MM-DD
 |------|------|--------|
 | `path/to/main` | CLI / API / Job / Hook | What it boots |
 
+## Key Flows
+
+- [Flow name]: `entry` → `path/to/file` → `path/to/other`
+
 ## Module Map
 
 | Directory | One-line purpose | Key files |
 |-----------|------------------|-----------|
-| `src/module/` | What this module does | `important.ext`, `other.ext` |
+| `src/module/` | What this module does | `src/module/important.ext`, `src/module/other.ext` |
 
 ## Key Symbols
 
-(20-30 most-referenced; heuristic, not AST-exhaustive.)
+(20-30 most-cited, counted from the code. Name and file only: line numbers go stale.)
 
-| Symbol | File:line-range | Kind |
-|--------|-----------------|------|
-| `SymbolName` | `path/to/file:10-42` | class / function / const |
+| Symbol | File | Kind | Refs |
+|--------|------|------|------|
+| `SymbolName` | `path/to/file` | class / function / const | 12 |
 
 ## Integration Points
 
@@ -103,43 +106,57 @@ Last updated: YYYY-MM-DD
 - [Intentional-looking-wrong pattern]
 
 <!-- 📌-prefixed lines are manual notes, preserved across atlas updates -->
-<!-- atlas-hash:XXXXXXXXXXXX -->
+<!-- atlas-sha:<commit> -->
 ````
 
-**Constraint:** every section above is a table or bullet list. No prose paragraphs.
+**Constraint:** every section above is a table or bullet list. No prose paragraphs. Every path in backticks is repo-relative. Key Flows is optional: 3-5 bullets, `` - <flow>: `entry` → `file` → `file` ``.
+
+**Size limits:**
+- Where to Look: one row per intent (intent, file, why) within ~140 characters. At most 25 rows, most useful first. No history in cells (MR or PR numbers, dates, "since !76", decision ids): that's `git log`'s. Detail goes in Module Map or Conventions & Gotchas.
+- 📌 notes stay within 2 lines; the detail goes in a design doc.
+- The whole ATLAS.md: aim for 15–20 KB.
+<!-- repo-only -->
+- SessionStart pre-loads the table only up to its byte cap, so rows past the first 25 short ones never reach the session.
+<!-- /repo-only -->
 
 **Removed from prior format:** Data Flows (prose arrows), Domain Model (→ CLAUDE.md), Active Work & Known Issues.
-**Added:** Where to Look (intent→file), Key Symbols (heuristic).
+**Added:** Where to Look (intent→file), Key Symbols (counted).
 
-## Step 5: Write Staleness Hash
+## Step 5: Record the Commit
 
-After writing ATLAS.md, compute a directory-listing hash and append it as an HTML comment on the very last line:
+After writing ATLAS.md, make the last line `<!-- atlas-sha:<commit> -->` with `git rev-parse HEAD`, replacing any atlas-sha or atlas-hash line. Outside a git repository, write no footer.
 
-```bash
-HASH=$(ls -1 | grep -v -e '^\.codemap$' -e '^node_modules$' -e '^\.git$' -e '^__pycache__$' -e '^\.venv$' -e '^venv$' -e '^dist$' -e '^build$' | sort | md5sum | cut -c1-12)
-echo "<!-- atlas-hash:$HASH -->" >> ATLAS.md
-```
-
-If the user adds or removes top-level files or directories, the hash stops matching: rerun `/turbocharge:atlas` to refresh the map.
+Update mode and wrap diff from that commit to find what changed, so rerun `/turbocharge:atlas` when files the map cites change.
 <!-- repo-only -->
-The SessionStart hook compares it at every session start and nudges a re-run when it stops matching.
+SessionStart lists the lines at risk.
 <!-- /repo-only -->
 
 ## What NOT to Include
 
 ATLAS.md contains **facts about the project**. Do not include:
 - Rules or instructions for Claude → CLAUDE.md
-- Exhaustive symbol indexes (every class/function) → codemap; Key Symbols is a curated top-30 heuristic, not a full AST dump
+- Exhaustive symbol indexes (every class/function) → Key Symbols is a counted top-30, not a full index
 - Full code snippets → reference by `file:line` path
+- Who calls whom → ask at the time with `` `git grep -nw <name>` ``, or a code intelligence (LSP) plugin when one is installed
+<!-- repo-only -->
+  (`bash "${CLAUDE_PLUGIN_ROOT}/skills/atlas/atlas-symbols.sh" where <name>` lists the definition and its callers by file)
+<!-- /repo-only -->
 - Git history → `git log`
 - Dependency version lists → `package.json` / `requirements.txt`
 
 ## After Generation
 
 1. Show the user a summary of what was mapped (section counts)
-2. Commit ATLAS.md
-3. If codemap is not installed, mention: "Consider installing codemap for structural indexing alongside this domain map"
-4. Offer to continue: "Ready to work? What's next?"
+2. Before committing, shorten what's over a limit.
+<!-- repo-only -->
+   `validate-atlas.sh` prints a `warning:` line for each; a warning doesn't block the commit.
+<!-- /repo-only -->
+3. Commit ATLAS.md only when every check passes: cited paths exist, each Key Symbol is still in its file, Key Flows has 5 or fewer, the footer commit exists.
+<!-- repo-only -->
+   `bash "${CLAUDE_PLUGIN_ROOT}/skills/atlas/validate-atlas.sh" ATLAS.md` runs the checks: commit on exit 0; on failure fix the lines it names and rerun, never commit a failing one.
+<!-- /repo-only -->
+4. Commit ATLAS.md by itself, so the next staleness check sees no unrelated change
+5. Offer to continue: "Ready to work? What's next?"
 
 ## Red Flags — STOP
 
@@ -151,6 +168,8 @@ ATLAS.md contains **facts about the project**. Do not include:
 | Skipping modules or directories | Cover the ENTIRE project structure |
 | Writing prose paragraphs | Use tables, lists, flow arrows — structured data only |
 | Not checking for existing ATLAS.md | Always detect mode first |
+| A long Where to Look row, or history in a cell | Only the first rows reach every session: one intent, one file, one why |
+| Line numbers in Key Symbols | They go stale: name and file only |
 
 ## Workflow Position
 

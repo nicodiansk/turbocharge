@@ -58,6 +58,12 @@ put CHANGELOG.md c; put LICENSE l; put .claude-plugin/icon.png p
 # NOTICE that lists them with a file the copy keeps.
 put skills/debug/find-polluter.sh "$(printf '#!/usr/bin/env bash\necho bisect')"
 put skills/debug/condition-based-waiting-example.ts 'export {}'
+# The atlas and wrap skills' scripts, which the directory copy leaves out (they start with #!), and an atlas skill that
+# names one only inside a repo-only block.
+for s in skills/atlas/atlas-symbols.sh skills/atlas/validate-atlas.sh skills/wrap/write-snapshot.sh; do
+    put "$s" "$(printf '#!/usr/bin/env bash\necho x')"
+done
+put skills/atlas/SKILL.md "$(printf 'Atlas\n<!-- repo-only -->\nRun atlas-symbols.sh top 30\n<!-- /repo-only -->\nRank them by git grep')"
 NOTICE_REPO="$(printf 'Copied:\n- skills/s/SKILL.md\n- skills/debug/condition-based-waiting-example.ts\n- skills/debug/find-polluter.sh\n\nMIT License')"
 put NOTICE "$NOTICE_REPO"
 # Frontmatter keys the directory copy drops (LOCAL_CODE_FRONTMATTER_KEY), with an indented value and a body line that stays.
@@ -96,6 +102,11 @@ git -C "$F" cat-file -e "$SHA:workflows/w.md" 2>/dev/null || { echo "    release
 for f in skills/debug/find-polluter.sh skills/debug/condition-based-waiting-example.ts; do
     git -C "$F" cat-file -e "$SHA:$f" 2>/dev/null && { echo "    release still ships $f"; exit 1; }
 done
+for f in skills/atlas/atlas-symbols.sh skills/atlas/validate-atlas.sh skills/wrap/write-snapshot.sh; do
+    git -C "$F" cat-file -e "$SHA:$f" 2>/dev/null && { echo "    release still ships $f"; exit 1; }
+done
+git -C "$F" show "$SHA:skills/atlas/SKILL.md" | grep -qF 'atlas-symbols' \
+    && { echo "    release skills/atlas/SKILL.md still names atlas-symbols: $(git -C "$F" show "$SHA:skills/atlas/SKILL.md")"; exit 1; }
 [ "$(git -C "$F" show "$SHA:NOTICE")" = "$(printf 'Copied:\n- skills/s/SKILL.md\n\nMIT License')" ] \
     || { echo "    release NOTICE still lists left-out files: $(git -C "$F" show "$SHA:NOTICE")"; exit 1; }
 [ "$(git -C "$F" show "$SHA:agents/k.md")" = "$K_DIRECTORY" ] \
@@ -187,6 +198,9 @@ put README.md 'The ${CLAUDE_PLUGIN_ROOT}/hooks/ holds the scripts'
 refuse_release 'still names it' "a README naming the left-out hooks/ directory"
 put README.md 'late-nudge prints a hint'
 refuse_release 'still names it' "a README naming a hook file no list names"
+put README.md r; put skills/s/SKILL.md 'Wrap writes the snapshot through write-snapshot first'
+refuse_release 'leaves out skills/wrap/write-snapshot.sh' "a skill naming the left-out write-snapshot script"
+put skills/s/SKILL.md s
 put README.md r; put skills/s/SKILL.md "If the project's commit hooks stash, run lanes one at a time"
 VER=$((VER + 1)); set_version "9.9.$VER"
 git -C "$F" add -A && git -C "$F" commit -q -m "v$VER" && git -C "$F" tag -a "v9.9.$VER" -m "v9.9.$VER"

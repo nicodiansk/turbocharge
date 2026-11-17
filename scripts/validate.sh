@@ -147,7 +147,7 @@ echo ""
 
 # 5b. Validate ATLAS.md format IF one exists (not expected in plugin repo)
 if [ -f "$PLUGIN_DIR/ATLAS.md" ]; then
-    if bash "$PLUGIN_DIR/scripts/validate-atlas.sh" "$PLUGIN_DIR/ATLAS.md"; then
+    if bash "$PLUGIN_DIR/skills/atlas/validate-atlas.sh" "$PLUGIN_DIR/ATLAS.md"; then
         pass "ATLAS.md format valid"
     else
         error "ATLAS.md format invalid"

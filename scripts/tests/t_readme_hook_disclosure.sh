@@ -13,8 +13,8 @@ for p in \
     "becomes part of the session context" \
     ".claude/turbocharge-session.json" \
     ".claude/CLAUDE.md" \
-    "md5sum" \
-    "codemap stats" \
+    "atlas-sha" \
+    "git diff --name-only --no-renames" \
     ".github/workflows" \
     "never run on your machine" \
     "SubagentStop" \

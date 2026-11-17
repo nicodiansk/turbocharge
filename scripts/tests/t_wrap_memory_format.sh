@@ -16,4 +16,21 @@ grep -qF -- '(`websearch`, `user`, `codebase`, `testrun`)' "$F" && { echo "    w
 for p in 'confidence asc' 'until under 180' 'lossy by design'; do
     grep -qF -- "$p" "$F" && { echo "    wrap still says: $p"; exit 1; }
 done
-exit 0
+# Keys appear as name + file + fingerprint, and the snapshot goes through a code check (3.8.0).
+rc=0
+FILTERED=$(bash "$PLUGIN_DIR/scripts/directory-filter.sh" < "$F")
+for p in 'sha256:<first 12 hex>' 'looks like a key' 'name the field' 'prints only its name, length and fingerprint'; do
+    grep -qF -- "$p" "$F" || { echo "    wrap missing: $p"; rc=1; }
+done
+for p in 'skills/wrap/write-snapshot.sh"' '--allow <field>'; do
+    grep -qF -- "$p" "$F" || { echo "    wrap repo copy missing: $p"; rc=1; }
+    printf '%s\n' "$FILTERED" | grep -qF -- "$p" && { echo "    filtered wrap keeps: $p"; rc=1; }
+done
+printf '%s\n' "$FILTERED" | grep -qF 'write-snapshot' && { echo "    filtered wrap names write-snapshot"; rc=1; }
+printf '%s\n' "$FILTERED" | grep -qF 'looks like a key' || { echo "    filtered wrap lost: looks like a key"; rc=1; }
+# The 25 KB bound, topic files read on demand, both agent scopes named (Task 18).
+for p in 'nears 200 lines or 25 KB' "opens a topic file when it's relevant" '.claude/agent-memory-local/<name>/'; do
+    grep -qF -- "$p" "$F" || { echo "    wrap missing: $p"; rc=1; }
+done
+printf '%s\n' "$FILTERED" | grep -qi 'agent memory' && { echo "    filtered wrap says agent memory"; rc=1; }
+exit $rc

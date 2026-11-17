@@ -134,9 +134,11 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 
 **`wrap`** stands alone — run it any time to capture session state, decisions, and a resume prompt for your next session.
 
-**`atlas`** stands alone — generates `ATLAS.md` domain map from the actual codebase. The planner, researcher and code-reviewer get it on every dispatch, so they navigate without searching.
+**`atlas`** stands alone — generates `ATLAS.md` from the actual codebase: where to look, entry points, the most cited symbols (counted, not picked) and the commit it maps. The planner, researcher and code-reviewer get it on every dispatch as a map of where to look. Nothing has measured yet whether that saves them work.
+
+**Atlas's limits:** it finds definitions and callers by name (`git grep -w`). Names shared by different modules, aliases and dynamic calls fool it. That's fine for finding your way. For a refactoring, use a code intelligence (LSP) plugin.
 <!-- repo-only -->
-The SessionStart hook also pre-loads its Where to Look table at every session start.
+The SessionStart hook also pre-loads its Where to Look table at every session start. `skills/atlas/atlas-symbols.sh` counts the symbols (Python through `ast` when `python3` is installed), and `skills/atlas/validate-atlas.sh` blocks an `ATLAS.md` commit whose paths or symbols are gone and warns when Where to Look passes 25 rows of ~140 characters.
 <!-- /repo-only -->
 
 | Skill | Command | What it does |
@@ -250,7 +252,7 @@ All agents except the verifier have `memory: project` for persistent codebase kn
 
 | Hook | When | What |
 |:-----|:-----|:-----|
-| **SessionStart** | Start of session | Loads `ATLAS.md` Where to Look table, injects CodeMap stats when `.codemap/` present, restores session snapshot, flags a missing CLAUDE.md (AGENTS.md-aware, including an AGENTS.md that `CLAUDE.local.md` may keep from loading) or ATLAS.md, checks ATLAS staleness. Each section is capped so the output stays under Claude Code's 10,000-char inline limit |
+| **SessionStart** | Start of session | Loads `ATLAS.md` Where to Look table, restores session snapshot, flags a missing CLAUDE.md (AGENTS.md-aware, including an AGENTS.md that `CLAUDE.local.md` may keep from loading) or ATLAS.md, lists the `ATLAS.md` lines whose cited files changed since the commit in its `atlas-sha` footer. Each section is capped so the output stays under Claude Code's 10,000-char inline limit |
 | **SubagentStop**, **PreToolUse** on `SubagentHandback` | A `turbocharge:builder` stops, or (auto mode) is about to hand back its report | Builder exit gate: keeps the builder going once while files it edited are uncommitted |
 | **PreToolUse** on `Bash` | Before each Bash command Claude runs | git-guard: refuses bulk staging, skipped git hooks, and a recursive delete through a symlink (on Windows shells, also of a folder holding links) |
 
@@ -263,14 +265,15 @@ Installs from this repo's marketplace (`turbocharge@turbocharge`) run all three 
 | It reads | Why |
 |:---------|:----|
 | The plugin's own `hooks/*.md` | Bootstrap text and setup nudges |
-| `ATLAS.md` | Its Where to Look table and its `atlas-hash` footer |
+| `ATLAS.md` | Its Where to Look table, its `atlas-sha` footer and the paths it cites |
 | `.claude/turbocharge-session.json` | The snapshot your last `/turbocharge:wrap` wrote, or the 3.0–3.1 `.claude/turboflow-session.json` when that one is newer |
 | Whether `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md` or `AGENTS.md` exist | To pick a setup nudge. Their contents are never read |
-| Top-level file and folder names | Hashed with `md5sum` (or `md5` on macOS) to spot a stale `ATLAS.md` |
 
 | It runs | When |
 |:--------|:-----|
-| `codemap stats` | Only when the project has a `.codemap/` index and the `codemap` CLI is installed |
+| `git rev-parse --is-inside-work-tree` | When `ATLAS.md` exists |
+| `git cat-file -e` and `git diff --name-only --no-renames --relative <sha> HEAD` | In a git repository, when `ATLAS.md` has an `atlas-sha` footer |
+| `git rev-parse --abbrev-ref HEAD` | When a session snapshot exists, to compare its branch |
 
 `hooks/builder-exit-gate.sh` runs when a `turbocharge:builder` subagent stops (`SubagentStop`), and in auto mode just before such a builder hands back its report (`PreToolUse` on `SubagentHandback`). For any other agent or tool it returns at once. It reads the hook input on stdin and that builder's transcript, lists the files the builder edited with Edit or Write, and runs `git status --porcelain` on those files only. If any are uncommitted, it keeps the builder going with "commit these by pathspec … or say why they must stay uncommitted". It does this once per instruction: it looks for its own earlier denial after the builder's latest prompt, so a builder resumed for a fix round is checked again. Each file is checked in its own repository, so edits in another worktree count too. It writes no files, changes no settings, and sends nothing over the network. It needs `jq`, and does nothing without it. Inline lanes, which run in your main session, aren't covered.
 
@@ -311,8 +314,11 @@ Ship runs neither until you pick the option. Triaging review comments changes th
 
 The other skills stay on your machine:
 - **setup** runs `claude plugin list --json` and `claude plugin details turbocharge`, and reads `~/.claude/agents/` and `~/.claude/rules/common/` to find overlaps. It changes those files only after you agree, and shows the diff before it writes your CLAUDE.md.
-- **wrap** writes `.claude/turbocharge-session.json` in the project and adds notes under `~/.claude/projects/<project>/memory/`. With a `.codemap/` index it runs `codemap update`.
-- **atlas** writes `ATLAS.md`. **build** and its builders commit to your local branch.
+- **wrap** writes `.claude/turbocharge-session.json` in the project and adds notes under `~/.claude/projects/<project>/memory/`. It moves finished plans from `docs/plans/` to `docs/plans/archive/` (`git mv` where git tracks them, committed by pathspec, asking first on the default branch), and reruns atlas only when `git diff` shows files changed since the commit `ATLAS.md` maps.
+- **atlas** writes `ATLAS.md` and runs `git grep`, `git rev-parse` and `git diff` to count symbols and check what it cites. **build** and its builders commit to your local branch.
+<!-- repo-only -->
+In repo installs wrap writes the snapshot through `skills/wrap/write-snapshot.sh`, which refuses a field that looks like a secret.
+<!-- /repo-only -->
 
 Nothing else sends or fetches anything: no skill or agent tells Claude to use the web, and the plugin sends no telemetry.
 
@@ -351,7 +357,7 @@ turbocharge/
 │   ├── plugin.json              # Plugin manifest
 │   ├── icon.png                 # Plugin icon
 │   └── marketplace.json         # Distribution config
-├── skills/                      # 10 skill definitions
+├── skills/                      # 10 skill definitions (atlas and wrap also hold their scripts)
 │   └── <skill-name>/SKILL.md
 ├── agents/                      # 6 agent definitions
 │   └── <agent-name>.md

@@ -9,7 +9,7 @@ S="$(awk '/^## What the skills run and send/{f=1; next} f && /^## /{exit} f' "$F
 [ -n "$S" ] || { echo "    README has no '## What the skills run and send' section"; exit 1; }
 for p in '`git pull`' '`git push`' '`gh pr create`' 'Option 1' 'Option 2' 'never pushes' '`claude plugin list --json`' \
     '`claude plugin details turbocharge`' '`~/.claude/agents/`' '`~/.claude/rules/common/`' '`.claude/turbocharge-session.json`' \
-    '`~/.claude/projects/<project>/memory/`' '`codemap' 'Nothing else'; do
+    '`~/.claude/projects/<project>/memory/`' '`git grep`' 'docs/plans/archive/' 'Nothing else'; do
     printf '%s' "$S" | grep -qF -- "$p" || { echo "    the section doesn't say: $p"; rc=1; }
 done
 # What the section claims ship runs, ship runs.

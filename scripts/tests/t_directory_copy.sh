@@ -93,6 +93,33 @@ for f in $(git ls-files -- "$@"); do
     [ "$(awk 'NR == 1 { print substr($0, 1, 2) }' "$f")" = '#!' ] \
         && { echo "    the directory copy ships $f, which starts with #!"; rc=1; }
 done
+# No shipped markdown file, as the directory gets it, names a file the copy leaves out: release.sh refuses the release
+# otherwise. A name is searched by its stem when the stem has a dash (atlas-symbols), else by its full name (hooks.json).
+DROPPED="$(for e in $DROP_LIST; do git ls-files -- "$e"; done)"
+for f in $(git ls-files -- "$@" | grep '\.md$'); do
+    dropped=0
+    for e in $DROP_LIST; do case "$f" in "$e" | "$e"/*) dropped=1 ;; esac; done
+    [ "$dropped" = 1 ] && continue
+    OUT="$(bash "$FILTER" < "$f")" || { echo "    filter refused $f"; rc=1; continue; }
+    for d in $DROPPED; do
+        name="${d##*/}"; stem="${name%.*}"
+        case "$stem" in *-*) needle="$stem" ;; *) needle="$name" ;; esac
+        printf '%s' "$OUT" | grep -qF -- "$needle" && { echo "    directory copy of $f names left-out $needle"; rc=1; }
+    done
+done
+# The repo copies keep the script names; the directory copies keep the checks they run instead.
+for p in atlas-symbols.sh validate-atlas.sh; do
+    grep -qF "$p" skills/atlas/SKILL.md || { echo "    repo atlas skill lost $p"; rc=1; }
+done
+grep -qF write-snapshot.sh skills/wrap/SKILL.md || { echo "    repo wrap skill lost write-snapshot.sh"; rc=1; }
+A_DIR="$(bash "$FILTER" < skills/atlas/SKILL.md)"
+for p in 'rank them by `git grep -cw <name>`' 'Commit ATLAS.md only when every check passes'; do
+    printf '%s' "$A_DIR" | grep -qF -- "$p" || { echo "    directory atlas skill lost: $p"; rc=1; }
+done
+W_DIR="$(bash "$FILTER" < skills/wrap/SKILL.md)"
+for p in 'looks like a key' 'map not rerun'; do
+    printf '%s' "$W_DIR" | grep -qF -- "$p" || { echo "    directory wrap skill lost: $p"; rc=1; }
+done
 # The directory copy drops the agents' memory key (LOCAL_CODE_FRONTMATTER_KEY), so no shipped markdown file, as the
 # directory gets it, says the agents have it outside the frontmatter (release.sh drops the key itself; t_release_tree.sh).
 # Repo installs keep the key and the text.
