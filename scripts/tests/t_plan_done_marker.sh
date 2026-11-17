@@ -14,7 +14,7 @@ need() { # need <section text> <label> <phrase>...
     done
 }
 STEP1=$(sec "$S" '## Step 1' '## Step 2')
-need "$STEP1" 'build Step 1' '<!-- plan: done YYYY-MM-DD -->' 'ask before running it again' 'before the first lane starts' \
+need "$STEP1" 'build Step 1' '<!-- plan: done YYYY-MM-DD -->' 'ask before running it again' 'before the first lane starts' 'after items 3–5' \
     'docs/plans/archive/' 'plan found in archive/' '`\r` stripped' 'An archived plan gets the same check'
 FLAGS=$(printf '%s\n' "$STEP1" | grep -nF 'Parse flags from $ARGUMENTS' | head -1 | cut -d: -f1)
 LOOK=$(printf '%s\n' "$STEP1" | grep -nF 'plan found in archive/' | head -1 | cut -d: -f1)
@@ -23,7 +23,7 @@ if [ -z "$FLAGS" ] || [ -z "$LOOK" ] || [ "$LOOK" -le "$FLAGS" ]; then
 fi
 STEP7=$(sec "$S" '## Step 7' '## Red Flags')
 need "$STEP7" 'build Step 7' '<!-- plan: done YYYY-MM-DD -->' 'ls-files --error-unmatch' 'git -C' 'docs: mark plan done' \
-    'default branch, ask first' '`Not done:`' 'no marker' 'line endings'
+    'default branch, ask first' '`Not done:`' 'no marker' 'line endings' 'no lane ended BLOCKED'
 GREEN=$(printf '%s\n' "$STEP7" | grep -nF 'After the full gate is green' | head -1 | cut -d: -f1)
 MARK=$(printf '%s\n' "$STEP7" | grep -nF 'plan: done YYYY-MM-DD' | head -1 | cut -d: -f1)
 OFFER=$(printf '%s\n' "$STEP7" | grep -nF 'Offer:' | head -1 | cut -d: -f1)

@@ -186,7 +186,7 @@ Independent lanes **overlap**, at most 3 builder lanes at once: builders work in
 
 Plans written before 3.1 have no Lanes table; build runs them as one lane. Plans written before 3.8 have no Model column; their builder lanes run on Sonnet.
 
-When the gate is green and no lane left work undone, build writes `<!-- plan: done YYYY-MM-DD -->` as the plan's first line, committed only where git tracks the plan (asking first on the default branch). For a done plan, rerunning a done plan asks first, before any lane starts. A plan moved to `docs/plans/archive/` is still found by build, review and ship.
+When the gate is green and no lane left work undone, build writes `<!-- plan: done YYYY-MM-DD -->` as the plan's first line, committed only where git tracks the plan (asking first on the default branch). Before any lane starts, rerunning a done plan asks first. A plan moved to `docs/plans/archive/` is still found by build, review and ship.
 
 ## Measured
 
