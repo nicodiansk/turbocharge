@@ -51,9 +51,11 @@ Create `ATLAS.md` in the project root following the format in Step 4.
 1. Read existing ATLAS.md
 2. Compare each section against current codebase state
 3. Update stale sections — preserve any manually-added notes (lines starting with `📌`)
-4. Update the `Last updated` date
-5. Run `` `git diff --name-only --no-renames <atlas-sha> HEAD` `` (the commit in the footer) and recheck the rows citing those files
-6. Report what changed: "Updated: Module Directory (2 new modules), Integration Points (added Redis)"
+4. Trim Where to Look to the limits: merge or move rows, keep the 25 most useful
+5. Keep ATLAS.md's line endings: a CRLF file stays CRLF
+6. Update the `Last updated` date
+7. Run `` `git diff --name-only --no-renames <atlas-sha> HEAD` `` (the commit in the footer) and recheck the rows citing those files
+8. Report what changed: "Updated: Module Directory (2 new modules), Integration Points (added Redis)"
 
 ## Step 4: ATLAS.md Format
 
@@ -109,6 +111,14 @@ Last updated: YYYY-MM-DD
 
 **Constraint:** every section above is a table or bullet list. No prose paragraphs. Every path in backticks is repo-relative. Key Flows is optional: 3-5 bullets, `` - <flow>: `entry` → `file` → `file` ``.
 
+**Size limits:**
+- Where to Look: one row per intent (intent, file, why) within ~140 characters. At most 25 rows, most useful first. No history in cells (MR or PR numbers, dates, "since !76", decision ids): that's `git log`'s. Detail goes in Module Map or Conventions & Gotchas.
+- 📌 notes stay within 2 lines; the detail goes in a design doc.
+- The whole ATLAS.md: aim for 15–20 KB.
+<!-- repo-only -->
+- SessionStart pre-loads the table only up to its byte cap, so rows past the first 25 short ones never reach the session.
+<!-- /repo-only -->
+
 **Removed from prior format:** Data Flows (prose arrows), Domain Model (→ CLAUDE.md), Active Work & Known Issues.
 **Added:** Where to Look (intent→file), Key Symbols (counted).
 
@@ -137,12 +147,16 @@ ATLAS.md contains **facts about the project**. Do not include:
 ## After Generation
 
 1. Show the user a summary of what was mapped (section counts)
-2. Commit ATLAS.md only when every check passes: cited paths exist, each Key Symbol is still in its file, Key Flows has 5 or fewer, the footer commit exists.
+2. Before committing, shorten what's over a limit.
+<!-- repo-only -->
+   `validate-atlas.sh` prints a `warning:` line for each; a warning doesn't block the commit.
+<!-- /repo-only -->
+3. Commit ATLAS.md only when every check passes: cited paths exist, each Key Symbol is still in its file, Key Flows has 5 or fewer, the footer commit exists.
 <!-- repo-only -->
    `bash "${CLAUDE_PLUGIN_ROOT}/skills/atlas/validate-atlas.sh" ATLAS.md` runs the checks: commit on exit 0; on failure fix the lines it names and rerun, never commit a failing one.
 <!-- /repo-only -->
-3. Commit ATLAS.md by itself, so the next staleness check sees no unrelated change
-4. Offer to continue: "Ready to work? What's next?"
+4. Commit ATLAS.md by itself, so the next staleness check sees no unrelated change
+5. Offer to continue: "Ready to work? What's next?"
 
 ## Red Flags — STOP
 
@@ -154,6 +168,7 @@ ATLAS.md contains **facts about the project**. Do not include:
 | Skipping modules or directories | Cover the ENTIRE project structure |
 | Writing prose paragraphs | Use tables, lists, flow arrows — structured data only |
 | Not checking for existing ATLAS.md | Always detect mode first |
+| A long Where to Look row, or history in a cell | Only the first rows reach every session: one intent, one file, one why |
 | Line numbers in Key Symbols | They go stale: name and file only |
 
 ## Workflow Position
