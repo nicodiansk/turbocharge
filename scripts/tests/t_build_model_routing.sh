@@ -27,4 +27,8 @@ need "$STEP2" 'Step 2' 'Opus lanes count toward the cap'
 STEP3=$(sec "$S" '## Step 3' '## Step 4')
 need "$STEP3" 'Step 3' '`model: opus` on the Agent call' 'passes no `model`' 'opus unavailable — lane <name> on sonnet' \
     'for the rest of the run' 'older Opus'
+STEP5=$(sec "$S" '## Step 5' '## Step 6')
+need "$STEP5" 'Step 5' 'started on Opus' 'no retry' 'Opus is unavailable' 'raised in Step 2' 'whatever its model' \
+    'model: opus' "keeps the lane's \`LANE_SHA\`" 'the same `Mutation:` line'
+grep -qF 'on Opus lanes too' "$PLUGIN_DIR/skills/build/references/reviewed-mode.md" || { echo "    reviewed-mode.md missing: on Opus lanes too"; rc=1; }
 exit $rc

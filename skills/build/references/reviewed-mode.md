@@ -5,7 +5,7 @@ Build Step 1 reads this file when `--reviewed` is set, before any lane starts. S
 For security-sensitive code, unfamiliar codebases, or complex integrations. Reviews run **per lane**, not per task:
 
 1. **Before the lane starts:** a builder lane's `BEFORE_SHA` is its `LANE_SHA` (Step 3); an inline lane records `BEFORE_SHA=$(git rev-parse HEAD)` before its first task.
-2. **After the lane finishes** and its builder's completion notification has arrived, dispatch one task-reviewer (Sonnet) with:
+2. **After the lane finishes** and its builder's completion notification has arrived, dispatch one task-reviewer (Sonnet, on Opus lanes too: it reviews a diff against a plan) with:
    - Plan file path + the lane's task line ranges (the reviewer reads the plan directly — do NOT paste requirements)
    - The lane's diff: `git diff $BEFORE_SHA..HEAD -- <lane paths>`. Lanes own disjoint files, so the pathspec isolates this lane even though other lanes' commits interleave in the range. Run it as the join checks say (Step 5): in `bash`, with the SHA and the paths written out.
    - Working directory. Do NOT send the builder's narrative report — the reviewer reads the diff, not claims.
