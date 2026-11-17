@@ -28,7 +28,7 @@ COMPONENT_DIRS=(agents skills commands output-styles)
 # accepts tools and disable-model-invocation. What was left was plan's context and agent: since 3.5.11 plan dispatches
 # the planner from the main session in both copies, and the copy refuses a skill that forks.
 GUARD_KEYS=("${DIRECTORY_STRIP_KEYS[@]}" context agent)
-HOOKS_REPO='2 hooks'
+HOOKS_REPO='3 hooks'
 HOOK_COUNT_RE='(^|[^[:alnum:]])[0-9]+ hooks?([^[:alnum:]]|$)'
 WORKFLOWS_REPO='1 workflow'
 # The directory copy keeps these skills user-only: only the user starts them, Claude can't. Ship pushes and opens PRs with
