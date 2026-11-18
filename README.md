@@ -66,7 +66,7 @@ Every skill announces itself, does one job well, and hands you the next step.
 
 <!-- repo-only -->
 <p align="center">
-  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/brainstorm-session.svg" alt="A /turbocharge:brainstorm session in six steps: it sizes the request (quick gets done now, small agrees the approach in chat, project goes on to a design doc); asks one question per message, multiple choice when it can; offers 2–3 approaches, the recommended one first; presents the design in 200–300 word sections, asking 'Does this look right?' after each; runs a builder check, where a researcher reads the doc as the developer who will build it and its questions become answers in the doc, calls marked 'Ruled in brainstorm:' or one message for you; then commits the design to docs/plans/ and offers /turbocharge:story or /turbocharge:plan" width="92%">
+  <img src="https://raw.githubusercontent.com/nicodiansk/turbocharge/master/images/brainstorm-session.svg" alt="A /turbocharge:brainstorm session in six steps: it sizes the request (quick gets done now, small agrees the approach in chat, project goes on to a design doc); asks one question per message, multiple choice when it can; offers 2–3 approaches, the recommended one first; presents the design one section at a time, asking 'Does this look right?' after each; runs a builder check, where a researcher reads the doc as the developer who will build it and its questions become answers in the doc, calls marked 'Ruled while designing:' or one message for you; then commits the design to docs/plans/ and offers /turbocharge:story or /turbocharge:plan" width="92%">
 </p>
 
 <details>

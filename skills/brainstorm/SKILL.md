@@ -43,7 +43,7 @@ Name the size in one plain line, with the reason. The user can override it.
 - Be ready to combine or discard
 
 ### 5. Present Design
-- Break into sections of **200-300 words**
+- Present it one section at a time, each short enough to check in one read
 - Ask after each section: "Does this look right?"
 - Cover: architecture, components, data flow, error handling, testing
 - Apply YAGNI — remove unnecessary features
@@ -55,13 +55,13 @@ Name the size in one plain line, with the reason. The user can override it.
   2. Wait for the researcher to finish: when it runs in the background, that is its completion notification.
   3. Sort its questions into three piles:
      - **answered already** by the conversation or the codebase → put the answer in the doc;
-     - **minor** (a sensible builder could settle it without changing what gets built) → settle it and mark it in the doc as `Ruled in brainstorm: <call>`;
+     - **minor** (a sensible builder could settle it without changing what gets built) → settle it and mark it in the doc as `Ruled while designing: <call>`;
      - **theirs** (only the user can answer, and the answer changes what gets built).
   4. Bring the "theirs" pile to the user in one message, most important first. This is the single batched exception to one question at a time.
   5. Update the doc with their answers.
 
   With no Agent tool, or `turbocharge:researcher` not registered (some surfaces load skills without agents), read the doc as that builder yourself.
-- Commit the design document if git tracks its folder (a repo, not ignored); on the default branch, ask first: commit there or on a new branch. Then hand it over with the list of `Ruled in brainstorm:` calls for the user to check while reading
+- Commit the design document if git tracks its folder (a repo, not ignored); on the default branch, ask first: commit there or on a new branch. Then hand it over with the list of `Ruled while designing:` calls for the user to check while reading
 - Offer: "Ready for story breakdown?" → chains to `/turbocharge:story`
 - Or: "Ready for implementation planning?" → chains to `/turbocharge:plan`
 
@@ -71,7 +71,7 @@ Name the size in one plain line, with the reason. The user can override it.
 |------|---------|
 | Jumping to code | Didn't explore requirements |
 | Single approach on a project | Didn't propose 2-3 alternatives (step 4) |
-| Wall of text | Present in 200-300 word sections |
+| Wall of text | Present one section at a time |
 | Unanswered questions | Don't design around unknowns |
 | No YAGNI review | Remove unnecessary features |
 | Design doc for a quick fix | Size it first |
