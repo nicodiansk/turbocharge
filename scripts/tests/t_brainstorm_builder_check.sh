@@ -20,4 +20,14 @@ for f in "$S" "$PLUGIN_DIR/README.md" "$PLUGIN_DIR/images/brainstorm-session.svg
         ! grep -qF -- "$p" "$f" || { echo "    $f still has: $p"; exit 1; }
     done
 done
+# 3.8.0 Task 10: the commit check, the recorded commit, and the rule with its reason.
+sec() { awk -v h="$2" -v e="$3" '{ sub(/\r$/, "") } index($0, h) == 1 { s=1; next } s && index($0, e) == 1 { s=0 } s' "$1"; }
+CTX=$(sec "$S" "### 1. Understand Context" "### ")
+for p in 'git status -sb' 'git merge-base --is-ancestor HEAD <base>' 'git show <base>:<path>' 'skip the check'; do
+    printf "%s\n" "$CTX" | grep -qF -- "$p" || { echo "    brainstorm step 1 missing: $p"; exit 1; }
+done
+for p in 'Code read at:' 'commit the doc names'; do
+    grep -qF -- "$p" "$S" || { echo "    brainstorm missing: $p"; exit 1; }
+done
+! grep -qF 'NO IMPLEMENTATION WITHOUT' "$S" || { echo "    brainstorm still has the capital-letter fence"; exit 1; }
 exit 0

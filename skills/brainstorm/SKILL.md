@@ -11,14 +11,13 @@ Turn ideas into fully formed designs through collaborative dialogue.
 
 ## The Iron Law
 
-```
-NO IMPLEMENTATION WITHOUT UNDERSTANDING REQUIREMENTS FIRST
-```
+Understand the requirements before implementing anything: code built on a guessed requirement gets rebuilt. A quick request (step 2) already states them, which is why it goes straight to the change.
 
 ## Process
 
 ### 1. Understand Context
 - Check project state (files, docs, recent commits)
+- Before citing code, run `git status -sb`. The checkout is stale when it's behind its upstream, or when HEAD is an ancestor of the base and behind it (`git merge-base --is-ancestor HEAD <base>` succeeds and `git rev-list --count HEAD..<base>` is above 0); a branch with commits of its own is not. The base is the branch the request names, else `git symbolic-ref --short refs/remotes/origin/HEAD`, else the first of `main`, `master`, `develop` that exists; with none, skip the check and say so in one line. Stale: read with `git show <base>:<path>` or from a worktree on the base, and say how far behind the checkout is. Name the commit you read (`git rev-parse --short <ref>`).
 - Read memory for relevant prior context
 
 ### 2. Size It
@@ -49,9 +48,9 @@ Name the size in one plain line, with the reason. The user can override it.
 - Apply YAGNI — remove unnecessary features
 
 ### 6. Save and Continue
-- Write design to `docs/plans/YYYY-MM-DD-<topic>-design.md`. When you say you're writing it up, tell the user a builder check reads it first and you may come back once with questions.
+- Write design to `docs/plans/YYYY-MM-DD-<topic>-design.md`. The doc records `Code read at: <sha7> (<ref>)` under its title. When you say you're writing it up, tell the user a builder check reads it first and you may come back once with questions.
 - **Builder check (projects only)** — before committing the doc:
-  1. Dispatch `turbocharge:researcher` with `effort: medium` on the Agent call, prefixed with `@ATLAS.md @CLAUDE.md` and the doc path. Omit a reference whose file doesn't exist; if CLAUDE.md is missing but `AGENTS.md` exists, use `@AGENTS.md` in its place; `.claude/CLAUDE.md` counts as a CLAUDE.md (`@.claude/CLAUDE.md`). Prompt: "Read this design as the developer who will build it. You can't talk to its author. Report only the questions where a wrong guess would change the plan, ranked, most consequential first, each with why the answer matters. Skip what the doc leaves to the builder, what you could reasonably decide yourself, and wording. If nothing important is left, say `nothing important left`."
+  1. Dispatch `turbocharge:researcher` with `effort: medium` on the Agent call, prefixed with `@ATLAS.md @CLAUDE.md` and the doc path. Omit a reference whose file doesn't exist; if CLAUDE.md is missing but `AGENTS.md` exists, use `@AGENTS.md` in its place; `.claude/CLAUDE.md` counts as a CLAUDE.md (`@.claude/CLAUDE.md`). Prompt: "Read this design as the developer who will build it. You can't talk to its author. Read the code at the commit the doc names. Report only the questions where a wrong guess would change the plan, ranked, most consequential first, each with why the answer matters. Skip what the doc leaves to the builder, what you could reasonably decide yourself, and wording. If nothing important is left, say `nothing important left`."
   2. Wait for the researcher to finish: when it runs in the background, that is its completion notification.
   3. Sort its questions into three piles:
      - **answered already** by the conversation or the codebase → put the answer in the doc;
