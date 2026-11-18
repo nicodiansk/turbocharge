@@ -25,6 +25,7 @@ Every plan MUST start with:
 
 **Goal:** [One sentence]
 **Architecture:** [2-3 sentences about approach]
+**Code read at:** <sha7> (<ref>)
 **Tech Stack:** [Key technologies]
 
 ## Lanes
