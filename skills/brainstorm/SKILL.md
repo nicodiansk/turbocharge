@@ -17,7 +17,7 @@ Understand the requirements before implementing anything: code built on a guesse
 
 ### 1. Understand Context
 - Check project state (files, docs, recent commits)
-- Before citing code, run `git status -sb`. The checkout is stale when it's behind its upstream, or when HEAD is an ancestor of the base and behind it (`git merge-base --is-ancestor HEAD <base>` succeeds and `git rev-list --count HEAD..<base>` is above 0); a branch with commits of its own is not. The base is the branch the request names, else `git symbolic-ref --short refs/remotes/origin/HEAD`, else the first of `main`, `master`, `develop` that exists; with none, skip the check and say so in one line. Stale: read with `git show <base>:<path>` or from a worktree on the base, and say how far behind the checkout is. Name the commit you read (`git rev-parse --short <ref>`).
+- Before citing code, run `git status -sb`. The checkout is stale when it's behind its upstream, or when HEAD is an ancestor of the base and behind it (`git merge-base --is-ancestor HEAD <base>` succeeds and `git rev-list --count HEAD..<base>` is above 0); a branch with commits of its own is not. The base is the branch the request names, else `git symbolic-ref --short refs/remotes/origin/HEAD`, else the first of `main`, `master`, `develop` that exists; with none, skip the check and say so in one line. Stale: read with `git show <base>:<path>` or from a worktree already on the base, and say how far behind the checkout is. Name the commit you read (`git rev-parse --short <ref>`). Outside a git repository there is no commit: skip the check, and write `none (not a git repository)` where a commit goes.
 - Read memory for relevant prior context
 
 ### 2. Size It

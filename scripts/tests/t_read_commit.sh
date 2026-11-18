@@ -10,7 +10,7 @@ has() { # has <label> <text> <phrase>
 S="$PLUGIN_DIR/skills/plan/SKILL.md"; P="$PLUGIN_DIR/agents/planner.md"; R="$PLUGIN_DIR/agents/researcher.md"
 for f in "$S" "$P" "$R"; do assert_file "$f" || exit 1; done
 
-RULE=('git status -sb' 'git merge-base --is-ancestor HEAD <base>' 'git rev-list --count HEAD..<base>' 'git show <base>:<path>' 'commits of its own' 'skip the check' 'git rev-parse --short <ref>')
+RULE=('git status -sb' 'git merge-base --is-ancestor HEAD <base>' 'git rev-list --count HEAD..<base>' 'git show <base>:<path>' 'commits of its own' 'skip the check' 'git rev-parse --short <ref>' 'Outside a git repository' 'a worktree already on the base')
 PVDU=$(sec "$P" '### Verify Domain Understanding First' '## ')
 RRC=$(sec "$R" '## Read the Right Commit' '## ')
 for p in "${RULE[@]}"; do
@@ -18,6 +18,10 @@ for p in "${RULE[@]}"; do
     has "researcher Read the Right Commit" "$RRC" "$p"
 done
 has "planner Verify Domain Understanding First" "$PVDU" 'commits behind'
+# The researcher is read-only: it reads from a worktree that exists, never adds one.
+for f in "$P" "$R"; do
+    ! grep -qF 'from a worktree on the base' "$f" || { echo "    $f still says: from a worktree on the base"; rc=1; }
+done
 
 # Both templates: Code read at sits between Architecture and Tech Stack
 order() { # order <label> <text>

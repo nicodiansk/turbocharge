@@ -27,7 +27,7 @@ hasnt "setup directory copy" "$DIR" 'workflows/'
 
 # Task 19: Step 8 finds stale references in every rule and skill file
 S8=$(sec "$S" '### 8. Check Rule and Skill Files for Stale Lines' '## ')
-for p in '~/.claude/rules/**/*.md' '~/.claude/skills/*/SKILL.md' 'built-in command' 'an enabled plugin' 'MAX_THINKING_TOKENS' 'effort' 'TodoWrite' 'Glob'; do
+for p in '~/.claude/rules/**/*.md' '~/.claude/skills/*/SKILL.md' 'built-in command' '`/init`' '`/doctor`' '`/config`' 'an enabled plugin' 'MAX_THINKING_TOKENS' 'effort' 'TodoWrite' 'Glob'; do
     has "setup Step 8" "$S8" "$p"
 done
 for p in 'Opus 5' 'Sonnet 5'; do
