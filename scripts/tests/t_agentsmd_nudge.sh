@@ -31,4 +31,12 @@ OUT="$(bash "$F" 2>&1 || true)"
 cleanup
 echo "$OUT" | grep -q "AGENTS.md Detected"    && { echo "    nudge shown although CLAUDE.md exists"; exit 1; }
 echo "$OUT" | grep -q "No CLAUDE.md Detected" && { echo "    nudge shown although CLAUDE.md exists"; exit 1; }
+# Both nudges say "by default" and the only-nudge names the setting and the version floor.
+for p in 'By default' 'claude-md-and-agents-md' 'v2.1.277'; do
+    assert_grep "$N" "$p" || exit 1
+done
+NL="$PLUGIN_DIR/hooks/agentsmd-not-loaded-nudge.md"
+assert_file "$NL" || exit 1
+LINE3=$(sed -n 3p "$NL" | tr -d '\r')
+case "$LINE3" in "By default"*) ;; *) echo "    not-loaded nudge line 3 must start with 'By default'"; exit 1 ;; esac
 exit 0
