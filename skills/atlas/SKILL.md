@@ -11,7 +11,7 @@ Generate or update the semantic domain map for this project.
 
 ## The Iron Law
 
-Read the codebase before writing the map, the code, configs and docs rather than memory: a row written from file names alone sends every later session to the wrong file.
+Read the codebase (code, configs and docs) before writing the map, not memory or file names: a row written from file names alone sends every later session to the wrong file.
 
 ## Step 1: Detect Mode
 
