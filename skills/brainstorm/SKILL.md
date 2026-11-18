@@ -11,7 +11,7 @@ Turn ideas into fully formed designs through collaborative dialogue.
 
 ## The Iron Law
 
-Understand the requirements before implementing anything: code built on a guessed requirement gets rebuilt. A quick request (step 2) already states them, which is why it goes straight to the change.
+Understand the requirements before implementing anything: code built on a guessed requirement gets rebuilt.
 
 ## Process
 

@@ -30,4 +30,6 @@ for p in 'Code read at:' 'commit the doc names'; do
     grep -qF -- "$p" "$S" || { echo "    brainstorm missing: $p"; exit 1; }
 done
 ! grep -qF 'NO IMPLEMENTATION WITHOUT' "$S" || { echo "    brainstorm still has the capital-letter fence"; exit 1; }
+# 3.8.0 eval: naming the quick path in the rule sent "add CSV export" straight to code (trigger-brainstorm 0/3 asked; 3/3 without the sentence).
+! grep -qF 'which is why it goes straight to the change' "$S" || { echo "    brainstorm's rule still points at the quick path"; exit 1; }
 exit 0

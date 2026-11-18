@@ -1,5 +1,60 @@
 # Changelog
 
+## [3.8.0] - 2026-11-18
+
+A guard on risky git commands, a map that knows which commit it describes, a model per build lane, and prompts that give reasons instead of shouting. git-guard refuses bulk staging, skipped git hooks and a recursive delete through a symlink. ATLAS.md records the commit it maps, so staleness comes from `git diff`, not a hash. The plan picks Sonnet or Opus per lane. The prompts state each rule once with its reason, stop pointing at tools a session may not have, and stop assuming an `@` path in a dispatch prompt attaches the file.
+
+### Added
+- **git-guard (PreToolUse on Bash):** refuses bulk staging (`git add -A`, `.`, `-u`, `git commit -a`), skipped git hooks (`--no-verify`, `git -c core.hooksPath=…`) and a recursive delete (`rm -r`, `git worktree remove`) through a symlink, which empties the folder the link points to; on Windows shells, also of a folder holding links. It reads quotes, command chains, heredocs, command substitutions, wrappers and `bash -c`, and never blocks the builder's pathspec commits. `TURBOCHARGE_GIT_GUARD=off` turns it off; `TURBOCHARGE_GIT_GUARD_STAGING`, `TURBOCHARGE_GIT_GUARD_NOVERIFY` and `TURBOCHARGE_GIT_GUARD_SYMLINKS` turn off one check each. Repo installs only.
+- **atlas:**
+  - counts Key Symbols from the code (`skills/atlas/atlas-symbols.sh`, Python through `ast` when `python3` is there) and ranks them by how often the code cites them;
+  - records the commit it maps in an `<!-- atlas-sha:<sha> -->` footer;
+  - `atlas-symbols.sh where <name>` lists a symbol's definition and its callers by file;
+  - `skills/atlas/validate-atlas.sh` (moved from `scripts/`) gates an ATLAS.md commit (every cited path and symbol exists, Key Flows has 5 or fewer, the footer commit exists), and warns past 25 Where to Look rows of ~140 characters or 20 KB.
+- **wrap:**
+  - step 10 moves finished plans to `docs/plans/archive/` (with `git mv` where git tracks them, asking first on the default branch);
+  - flags a CLAUDE.md over 200 lines and proposes path-scoped rules;
+  - follows auto memory's 25 KB bound;
+  - in repo installs, writes the snapshot through `skills/wrap/write-snapshot.sh`, which refuses a field that looks like a key.
+- **plan and build, Model column:** the Lanes table names each builder lane's model, `sonnet` or `opus · <reason>` (`concurrency`, `security`, `irreversible`, `edge-cases`). The planner checks every Opus reason. Build may lower a lane's model but never raises one to Opus. Without Opus, a lane runs on Sonnet and build says so. A stuck Opus lane goes to you.
+- **build:** marks a finished plan `<!-- plan: done YYYY-MM-DD -->` on its first line and asks before rerunning a done plan.
+- **build, review and ship:** find a plan that wrap moved to `docs/plans/archive/`.
+- **planner, researcher, brainstorm:** check which commit they read before citing code: a checkout behind its base reads from the base. Plans and design docs record it in a `Code read at:` line.
+- **builder, researcher, debug:** a note on zsh traps: an unquoted `$files` isn't split, and `path`, `status` and `argv` are special.
+- **setup:**
+  - rebuilds the agents table in agents.md from the plugin's agents, and stops calling plugin agents phantom;
+  - Step 8 checks every rule and skill file for uninstalled skills and agents, versioned model names, thinking budgets, and tools a session may lack (TodoWrite, the Grep and Glob tools);
+  - proposes `paths:` for language rules, softens a user rule that fights the project's CLAUDE.md, keeps CRLF files CRLF, and suggests `/doctor prompt-audit`.
+- New tests, among them `t_changelog_380.sh`, `t_read_commit.sh`, `t_at_refs.sh`, `t_setup_rule_checks.sh`, and the register tests for each skill whose rule was rewritten.
+
+### Changed
+- **Rules at normal volume:** brainstorm, story, review, debug, build and atlas state each rule once, with its reason, instead of a capital-letter fence. Red Flags tables stay. Wrap drops its rule: the body loads only once wrap runs, so the description and the bootstrap carry the offer. The session bootstrap keeps its capital-letter headings: it is routing text, and the evals showed the softened version routing fewer review requests to review (0 of 3 runs, against 2 of 3 with the old text). Brainstorm's rule names no shortcut: a version that pointed at the quick path sent "add CSV export" straight to code in 3 of 3 runs.
+- **`@` path in a dispatch prompt:** a probe on Claude Code 2.1.311 showed it names the file without attaching it. The planner, researcher and code-reviewer now read the `@` files unless they're already in context, and no text claims the prompt expands them.
+- **Grep tool:** Claude Code leaves it out by default on macOS, Linux and WSL, so the planner, plan and build search with `grep` through Bash.
+- **task-reviewer:** reviews the lane's diff and judges it directly, without a section on a builder report it never gets.
+- **review swarm:** the lenses report every defect for the verifiers to check, instead of filtering first. Repo installs only.
+- **SessionStart:** pre-loads a full 25-row Where to Look table, and lists the ATLAS.md lines whose cited files changed since its `atlas-sha`. Repo installs only.
+- **wrap:** reruns atlas only when files changed since the commit ATLAS.md maps.
+- **atlas:** commits ATLAS.md only where git tracks it, asking first on the default branch. Callers are left to `git grep` or a code intelligence (LSP) plugin.
+- **setup, AGENTS.md nudges:** say what loads by default, and name the Project instructions setting and the v2.1.277 floor.
+- Dev only: `.claude/CLAUDE.md` moves the directory release detail to the path-scoped `.claude/rules/directory-release.md`, which brings it under 200 lines.
+
+### Fixed
+- **brainstorm:** marks its calls `Ruled while designing:`, a name with no tool in it, and presents the design one section at a time, with no word count.
+- **debug:** drops another project's dated incident numbers.
+- **setup:** says when rules and AGENTS.md load, per the current docs.
+
+### Removed
+- **CodeMap:** SessionStart no longer reads `.codemap/`, which needed Python 3.10 and tree-sitter. ATLAS.md's Key Symbols and `git grep` cover what it was used for.
+
+### Directory copy and repo installs
+- **Directory copy:** gets the prompt changes, the Model column and setup's checks. The hooks (git-guard, SessionStart), the review swarm and the atlas and wrap scripts stay out of it, as before. There, atlas and wrap run the same checks as git commands. It isn't sent to the directory yet: 3.7.0 is waiting for a reviewer, and a push to `release` restarts that wait.
+- Repo installs (`turbocharge@turbocharge`) get all of it.
+- The evals were rerun (`evals/summary/3.8.0.md`, README **Measured**): every family holds against the 3.7.1 run, and every trigger prompt reached its skill (9/9). A run on the merged code (`evals/summary/3.8.0-merge.md`) caught the brainstorm and session-start drops described under Changed, fixed before release.
+
+### Upgrading
+After updating, run `/reload-plugins` or restart Claude Code. Plans written before 3.8 have no Model column, and their builder lanes run on Sonnet. An ATLAS.md written before 3.8 has no `atlas-sha` footer: wrap reruns atlas once to add it.
+
 ## [3.7.1] - 2026-11-17
 
 Build reads its arguments and the plan more carefully, and brainstorm and story ask before committing. Build parses its flags before taking the plan path, and won't build a plan the planner left unfinished. A full-gate failure in a file no lane owns now has somewhere to go. Brainstorm and story commit their doc only where git tracks it, and ask first on the default branch.
