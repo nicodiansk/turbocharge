@@ -4,6 +4,8 @@ paths:
   - "scripts/directory-filter.sh"
   - "scripts/tests/t_release_tree.sh"
   - "scripts/tests/t_directory_copy.sh"
+  - "scripts/tests/t_release_flow_docs.sh"
+  - "scripts/tests/t_claudemd_publishing_rule.sh"
   - "CHANGELOG.md"
   - ".claude-plugin/plugin.json"
 ---

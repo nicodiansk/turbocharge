@@ -10,14 +10,15 @@ A guard on risky git commands, a map that knows which commit it describes, a mod
   - counts Key Symbols from the code (`skills/atlas/atlas-symbols.sh`, Python through `ast` when `python3` is there) and ranks them by how often the code cites them;
   - records the commit it maps in an `<!-- atlas-sha:<sha> -->` footer;
   - `atlas-symbols.sh where <name>` lists a symbol's definition and its callers by file;
-  - `skills/atlas/validate-atlas.sh` gates an ATLAS.md commit (every cited path and symbol exists, Key Flows has 5 or fewer, the footer commit exists), and warns past 25 Where to Look rows of ~140 characters or 20 KB.
+  - `skills/atlas/validate-atlas.sh` (moved from `scripts/`) gates an ATLAS.md commit (every cited path and symbol exists, Key Flows has 5 or fewer, the footer commit exists), and warns past 25 Where to Look rows of ~140 characters or 20 KB.
 - **wrap:**
   - step 10 moves finished plans to `docs/plans/archive/` (with `git mv` where git tracks them, asking first on the default branch);
   - flags a CLAUDE.md over 200 lines and proposes path-scoped rules;
   - follows auto memory's 25 KB bound;
   - in repo installs, writes the snapshot through `skills/wrap/write-snapshot.sh`, which refuses a field that looks like a key.
 - **plan and build, Model column:** the Lanes table names each builder lane's model, `sonnet` or `opus · <reason>` (`concurrency`, `security`, `irreversible`, `edge-cases`). The planner checks every Opus reason. Build may lower a lane's model but never raises one to Opus. Without Opus, a lane runs on Sonnet and build says so. A stuck Opus lane goes to you.
-- **build:** marks a finished plan `<!-- plan: done YYYY-MM-DD -->` on its first line, asks before rerunning a done plan, and finds a plan in `docs/plans/archive/`, as review and ship do.
+- **build:** marks a finished plan `<!-- plan: done YYYY-MM-DD -->` on its first line and asks before rerunning a done plan.
+- **build, review and ship:** find a plan that wrap moved to `docs/plans/archive/`.
 - **planner, researcher, brainstorm:** check which commit they read before citing code: a checkout behind its base reads from the base. Plans and design docs record it in a `Code read at:` line.
 - **builder, researcher, debug:** a note on zsh traps: an unquoted `$files` isn't split, and `path`, `status` and `argv` are special.
 - **setup:**
