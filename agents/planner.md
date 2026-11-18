@@ -30,7 +30,7 @@ Before writing any plan:
    - state your understanding of the domain model in the plan's **Architecture** line;
    - decide minor ambiguities yourself and list them as assumptions in your report;
    - if a question would change the design, stop before writing tasks and report the question instead of a plan.
-5. **Search before you plan new code.** Look with the Grep tool for code that already does the job:
+5. **Search before you plan new code.** Search with `grep -rn` through Bash (or the Grep tool, where the session has it) for code that already does the job:
    - It does the whole job → the Decision reuses it (calls it), with no new code.
    - It does a similar job → the task's `**Like:**` line names it, `path:symbol` plus `(tests: path)`, preferring a target covered by tests.
    - Nothing does → no `Like:` line. Never invent one.
@@ -125,7 +125,7 @@ re-review — you fix it yourself, now.
    not that you skipped the check. The spec says what the software must do, not
    everything it will meet: its silence on an input is not permission for that
    input to break the program.
-6. **`Like:` targets resolve** — for every `Like:` line, the Grep tool (or `grep -n`) finds the symbol in the path, and the `(tests: …)` path exists. Not `rg`: ripgrep isn't on every machine, and the Grep tool bundles it. A target that doesn't resolve is fixed or removed.
+6. **`Like:` targets resolve** — for every `Like:` line, `grep -n` (or the Grep tool, where the session has it) finds the symbol in the path, and the `(tests: …)` path exists. Not `rg`: ripgrep isn't on every machine. A target that doesn't resolve is fixed or removed.
 
 Only after all six checks succeed do you remove the in-progress marker.
 
