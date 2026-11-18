@@ -121,6 +121,10 @@ Scan every `~/.claude/rules/**/*.md` and every `~/.claude/skills/*/SKILL.md`, no
 1. **Not installed:** a name used as a skill (`/name`, `name skill`, `plugin:name`) or as an agent (`name agent`, `subagent_type`) that is none of these: a built-in command (`/init`, `/doctor`, `/config`), a skill in `~/.claude/skills/` or `.claude/skills/`, a command in `.claude/commands/`, an agent in `~/.claude/agents/` or `.claude/agents/`, or anything an enabled plugin ships. Examples: `python-testing`, `security-reviewer`, `build-error-resolver`.
 2. **Retired model advice:** a model name with a version number (an older Opus, Sonnet or Haiku release) → suggest the alias (`opus`, `sonnet`, `haiku`) or no model at all. A thinking budget (`MAX_THINKING_TOKENS`, or a token count such as `31,999`) → current models always think, and depth follows the effort setting.
 3. **Tools a session may lack:** `TodoWrite` (off by default since v2.1.268, and the Task tools that replace it aren't on by default on the newest models) and the Grep or Glob tools (absent by default on macOS, Linux and WSL) → reword to "the task tools, where the session has them" and "grep or find through Bash".
+4. **Language rules without `paths:`:** a rule outside `common/` (for example `~/.claude/rules/python/`, `typescript/`) whose frontmatter has no `paths:` loads in every project. Propose `paths: ["**/*.py"]` for python, `paths: ["**/*.{ts,tsx,js,jsx}"]` for typescript, and the language's extensions for others. Before the user picks, state the trade-off: a `paths:` rule loads only when Claude reads, writes or edits a matching file, and after `/compact` it's gone until one is touched again.
+5. **Conflicts with this project:** a user rule that contradicts the project's CLAUDE.md (for example "80% coverage, TDD always" against "no new unit tests") → suggest the rule add "unless the project's CLAUDE.md says otherwise".
+
+Every check strips `\r` before it reads frontmatter or lines, because many rule files are CRLF and a naive read of `---\r` reports a `paths:` missing that is there. Every edit keeps the file's line endings: a CRLF file stays CRLF.
 
 ## CLAUDE.md Phase
 
@@ -207,6 +211,7 @@ Apply fixes? [list specific changes, ask for confirmation]
 Offer to chain:
 - `/turbocharge:brainstorm` if user has an idea to explore
 - `/turbocharge:plan` if user has requirements ready
+- `/doctor prompt-audit` (Claude Code v2.1.283 or later) checks instruction files for lines written for older models, references to things that don't exist, and contradictions. Worth rerunning after a model upgrade.
 - Nothing if user just wanted the audit
 
 ## Red Flags

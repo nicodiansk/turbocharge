@@ -33,4 +33,13 @@ done
 for p in 'Opus 5' 'Sonnet 5'; do
     hasnt "setup Step 8" "$S8" "$p"
 done
+
+# Task 20: language rules, project conflicts, CRLF, the prompt audit suggestion
+for p in '**/*.py' '**/*.{ts,tsx,js,jsx}' '/compact' "unless the project's CLAUDE.md says otherwise" 'strips `\r`' 'line endings'; do
+    has "setup Step 8" "$S8" "$p"
+done
+AFTER=$(sec "$S" '## After Setup' '## ')
+has "setup After Setup" "$AFTER" '/doctor prompt-audit'
+has "setup After Setup" "$AFTER" 'v2.1.283'
+hasnt "setup" "$(cat "$S")" 'Revisit after major model releases'
 exit $rc
