@@ -80,6 +80,9 @@ Other lanes may be running at the same time in the same working tree.
 - If git reports `index.lock`, another lane is committing: wait a moment and retry once.
 - **Fix rounds arrive by `SendMessage`.** After you report, the orchestrator may resume you with failing output from the full suite or a reviewer. Fix only what it names, rerun those tests, and commit the same way.
 
+## Shell
+The Bash tool runs zsh when `$SHELL` is zsh, macOS's default (`CLAUDE_CODE_SHELL` overrides it). zsh doesn't split an unquoted `$files` into words, so a list of paths in one variable reaches the command as one argument: use an array (`files=(a.py b.py)`, then `"${files[@]}"`) or write the paths out. Never name a variable `path` (zsh ties it to `PATH`, so the next `git` is "command not found"), `status` (read-only) or `argv` (the argument list).
+
 ## Never
 
 A green test must come from working code. Never:
