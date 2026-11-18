@@ -134,7 +134,7 @@ Enter at any step. Each skill gates the next. `debug` loops under `build` when b
 
 **`wrap`** stands alone — run it any time to capture session state, decisions, and a resume prompt for your next session.
 
-**`atlas`** stands alone — generates `ATLAS.md` from the actual codebase: where to look, entry points, the most cited symbols (counted, not picked) and the commit it maps. The planner, researcher and code-reviewer get it on every dispatch as a map of where to look. Nothing has measured yet whether that saves them work.
+**`atlas`** stands alone — generates `ATLAS.md` from the actual codebase: where to look, entry points, the most cited symbols (counted, not picked) and the commit it maps. The planner, researcher and code-reviewer are pointed to it on every dispatch and read it as a map of where to look. Nothing has measured yet whether that saves them work.
 
 **Atlas's limits:** it finds definitions and callers by name (`git grep -w`). Names shared by different modules, aliases and dynamic calls fool it. That's fine for finding your way. For a refactoring, use a code intelligence (LSP) plugin.
 <!-- repo-only -->
@@ -260,7 +260,7 @@ All agents except the verifier have `memory: project` for persistent codebase kn
 | **SubagentStop**, **PreToolUse** on `SubagentHandback` | A `turbocharge:builder` stops, or (auto mode) is about to hand back its report | Builder exit gate: keeps the builder going once while files it edited are uncommitted |
 | **PreToolUse** on `Bash` | Before each Bash command Claude runs | git-guard: refuses bulk staging, skipped git hooks, and a recursive delete through a symlink (on Windows shells, also of a folder holding links) |
 
-Installs from this repo's marketplace (`turbocharge@turbocharge`) run all three hooks. The directory copy ships none, because the directory accepts command hooks only from verified organizations. There, the planner, researcher and code-reviewer still get `ATLAS.md` on dispatch, and wrap's resume prompt loads your session snapshot.
+Installs from this repo's marketplace (`turbocharge@turbocharge`) run all three hooks. The directory copy ships none, because the directory accepts command hooks only from verified organizations. There, the planner, researcher and code-reviewer are still pointed to `ATLAS.md` on dispatch and read it, and wrap's resume prompt loads your session snapshot.
 
 ### What the hooks do
 
