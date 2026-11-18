@@ -194,10 +194,10 @@ Each eval case sends the same prompt to Claude in a fresh, empty workspace, once
 
 | Family | Cases | WITH | W/OUT | Δ | Fired |
 |---|---|---|---|---|---|
-| defects | 2 | 0.85 | 0.96 | -0.10 | 6/6 |
+| defects | 2 | 0.95 | 0.98 | -0.03 | 5/6 |
 | planning | 1 | 1.00 | 0.50 | +0.50 | 3/3 |
 | triage | 1 | 1.00 | 0.75 | +0.25 | 3/3 |
-| trigger | 4 | 1.00 | 0.83 | +0.17 | 6/9 |
+| trigger | 4 | 1.00 | 0.83 | +0.17 | 9/9 |
 
 Sample: 2 defects cases, 1 planning, 4 trigger, 1 triage; 3 runs per arm, 48 runs in all. A difference of one run in three is noise-sized.
 
@@ -206,19 +206,21 @@ Sample: 2 defects cases, 1 planning, 4 trigger, 1 triage; 3 runs per arm, 48 run
 - **Planning** (1 case): turn a CSV-export spec into a plan. Graded on whether the plan covers fields with commas or quotes (which the spec implies but never names) and whether every task names its files, a concrete expected result and a verify command.
 - **Triage** (1 case): three PR review comments handed over in a file (a real bug, a false positive, a style nit). Fix the bug, rebut the false positive, leave the nit to you, push nothing.
 
-What 3.4.0 shows: `brainstorm` now fires on "add CSV export to this tool" (3/3, was 0/3), lifting trigger to +0.17, while the typo fix still gets no ceremony. `review` fires on both defects prompts (6/6, was 0/3). Triage gains +0.25: without the plugin, every run changed `slugify`'s signature, which the style nit asked for and the plugin leaves to you. Planning holds at +0.50. Defects reads −0.10, and all of it is the false-alarm grader: with the plugin, the reviewer found every planted bug in every run (36 of 36) but rated extra findings Critical or Important. Some were real bugs the larger fixture held by accident, which the grader counted as false alarms; the fixtures were cleaned after this run and aren't re-measured yet. `debug` didn't fire (0/3), and Sonnet found the root cause anyway.
+What 3.8.0 shows, against the 3.7.1 run on the same suite and Claude Code version: every family holds within one run in three. Every trigger prompt reached its skill (9/9, `debug` now 3/3): `brainstorm` asks before building "add CSV export to this tool" (+0.67), and the typo fix still gets no ceremony. With the plugin, the reviewer found every planted bug in every defects run (36 of 36); the −0.03 is the false-alarm grader, failed in 2 of 6 runs. `review` fired in 5 of the 6. Planning holds at +0.50, and every plan named a model for each builder lane. Triage holds at +0.25: without the plugin, every run changed `slugify`'s signature, which the style nit asked for and the plugin leaves to you.
+
+A run on the merged code before release caught two drops, both from prompt text 3.8.0 had rewritten: `brainstorm` built the CSV export without asking (0/3), because its rule named the quick path, and `review` fired in 0 of 3 runs of one defects prompt after the session start text lost its capital-letter headings. Both were fixed before these numbers.
 
 <!-- repo-only -->
-Swarm against one reviewer (the same two defects cases, with the prompt `/turbocharge:review SPEC.md`, 3 runs each, with the plugin only): the swarm found 34 of 36 planted bugs and one reviewer 36 of 36. The swarm's false-alarm grader passed 3 of 6 runs, one reviewer's 0 of 6, at about 3–4× the cost ($0.9–1.3 a review against $0.25–0.45). So the swarm runs when you ask for it, and one reviewer runs otherwise.
+Swarm against one reviewer, measured on 3.4.0 (the same two defects cases, with the prompt `/turbocharge:review SPEC.md`, 3 runs each, with the plugin only): the swarm found 34 of 36 planted bugs and one reviewer 36 of 36. The swarm's false-alarm grader passed 3 of 6 runs, one reviewer's 0 of 6, at about 3–4× the cost ($0.9–1.3 a review against $0.25–0.45). So the swarm runs when you ask for it, and one reviewer runs otherwise.
 <!-- /repo-only -->
 
-Claude Code 2.1.296 · model `claude-sonnet-5-5`, judge `claude-sonnet-5-5` · 3 runs per arm · 2026-10-14 · $6.59 list-price estimate (run on a Max plan, so it drew plan usage, not billing). Measured on the plugin as released (`e5abd26`); only the eval fixtures changed after.
+Claude Code 2.1.311 · model `claude-sonnet-5-5`, judge `claude-sonnet-5-5` · 3 runs per arm · 2026-11-18 · $6.14 list-price estimate (run on a Max plan, so it drew plan usage, not billing). Measured on `7ab7970`; only docs, the changelog and the version changed after.
 
 <!-- repo-only -->
-These numbers are from 3.4.0, with both hooks. Since 3.5.8 the directory copy ships no hooks, and it hasn't been measured without them.
+These numbers are from 3.8.0, with all three hooks. The directory copy ships no hooks, and it hasn't been measured without them.
 <!-- /repo-only -->
 <!-- directory-only
-These numbers are from 3.4.0, whose copy added routing text at every session start. Since 3.5.8 this copy doesn't, and it hasn't been measured without it.
+These numbers are from 3.8.0 as installed from GitHub, which adds routing text at every session start. This copy doesn't, and it hasn't been measured without it.
 -->
 
 The suite runs on the maintainer's machine before a release, and never runs in your sessions.
