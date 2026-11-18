@@ -102,7 +102,7 @@ Scan `~/.claude/rules/common/` for files that duplicate what turbocharge skills 
 
 **Action:** For each overlap found, show the user what's duplicated and offer to trim. Don't delete files — trim the overlapping sections and keep unique content.
 
-**Why this matters:** Every global rule file is loaded into context on every turn (~4 bytes/token). Duplicate instructions between rules and turbocharge skills waste ~2,000 tokens per session and can cause conflicting guidance.
+**Why this matters:** A rule file without `paths:` frontmatter loads at every session start, with the same priority as CLAUDE.md, and loads again after compaction; one with `paths:` loads when Claude reads a matching file. Instructions duplicated between rules and turbocharge skills cost context in every session and can give conflicting guidance.
 
 ## CLAUDE.md Phase
 
@@ -141,10 +141,10 @@ Read `${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE-turbocharge.md`. Substitute answers
 
 CLAUDE.md here means `./CLAUDE.md`, or `./.claude/CLAUDE.md` when the project keeps it there — edit the one that exists, never create a second. Imports resolve relative to the file that contains them, so inside `.claude/CLAUDE.md` the import is `@../AGENTS.md`: write that form wherever the bullets below say `@AGENTS.md`, and treat either form as the import already being present.
 
-- If CLAUDE.md exists, `AGENTS.md` also exists, and CLAUDE.md has no `@AGENTS.md` line → offer to add `@AGENTS.md` as its first line. Claude Code ignores AGENTS.md whenever a CLAUDE.md exists, so without the import its instructions never load. Leave the file unchanged if the user declines.
+- If CLAUDE.md exists, `AGENTS.md` also exists, and CLAUDE.md has no `@AGENTS.md` line → offer to add `@AGENTS.md` as its first line. By default (the Project instructions setting in `/config`), Claude Code reads AGENTS.md only when no CLAUDE.md or CLAUDE.local.md exists, and before v2.1.277 it never reads AGENTS.md on its own, so without the import its instructions don't load; a user who set that option to `claude-md-and-agents-md` already loads both. Leave the file unchanged if the user declines.
 - If CLAUDE.md exists and contains a block with the same marker → replace between markers, leave surrounding content untouched.
 - If CLAUDE.md exists and does not contain that block → append to end of file.
-- If CLAUDE.md does not exist but `AGENTS.md` does → create CLAUDE.md with `@AGENTS.md` as its first line, then append the rendered blocks below it. Claude Code reads AGENTS.md only while no CLAUDE.md exists, so this import is what keeps AGENTS.md loading once CLAUDE.md is created.
+- If CLAUDE.md does not exist but `AGENTS.md` does → create CLAUDE.md with `@AGENTS.md` as its first line, then append the rendered blocks below it. Under the default setting AGENTS.md stops loading once a CLAUDE.md exists, so this import is what keeps it loading.
 - If neither CLAUDE.md nor AGENTS.md exists → suggest `/init` first, do not create a bare CLAUDE.md from the template alone.
 
 ### 4. Show Diff, Confirm, Write
