@@ -15,9 +15,7 @@ When the user opts in, five lens reviewers find defects instead, then verifier a
 
 ## The Iron Law
 
-```
-NO MERGE WITHOUT CODE REVIEW
-```
+Review a branch before it merges: passing tests show the code does what they check, and the review checks it against what the plan asked.
 
 ## Context
 
@@ -114,7 +112,7 @@ Offer: "Ready to ship?" → chains to `/turbocharge:ship`
 
 ## Red Flags — Rationalizations That Mean You're Doing a Shallow Review
 
-If you catch yourself thinking any of these, **STOP — you are about to deliver exactly the kind of review that wastes everyone's time:**
+If you catch yourself thinking any of these, stop: each one leads to a review that misses what it was run to find.
 
 | Thought | Why It's Wrong |
 |---------|----------------|

@@ -32,4 +32,10 @@ assert_file "$R" || exit 1
 for p in 'Declined to judge' 'reasonable user' 'not registered' 'inline'; do
     grep -qF "$p" "$R" || { echo "    review skill missing: $p"; exit 1; }
 done
+# review skill states its rule with the reason, at normal volume: no fence, no STOP line, Red Flags kept.
+grep -qF 'Review a branch before it merges' "$R" || { echo "    review skill missing: Review a branch before it merges"; exit 1; }
+for p in 'NO MERGE WITHOUT CODE REVIEW' 'STOP —'; do
+    grep -qF "$p" "$R" && { echo "    review skill must not have: $p"; exit 1; }
+done
+grep -qF '## Red Flags' "$R" || { echo "    review skill lost: ## Red Flags"; exit 1; }
 exit 0
