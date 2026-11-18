@@ -12,17 +12,7 @@ Transform requirements into INVEST-compliant user stories with testable acceptan
 
 ## The Iron Law
 
-```
-NO STORY WITHOUT ACCEPTANCE CRITERIA
-```
-
-Every story must have testable acceptance criteria before implementation.
-
-**No exceptions:**
-- Don't start work without criteria
-- Don't assume "obvious" criteria
-- Don't defer criteria to "later"
-- Later never comes
+Every story gets testable acceptance criteria before implementation starts, the obvious ones included: criteria left for later don't get written, and without them nobody can say the story is done.
 
 ## INVEST Criteria
 
