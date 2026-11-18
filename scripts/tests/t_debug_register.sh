@@ -15,4 +15,14 @@ done
 for p in 'leaves the cause in place' 'Phase 1 has found the root cause' '## Red Flags' 'If 3+ fixes failed'; do
     has "debug" "$BODY" "$p"
 done
+# F17: the reference files drop another project's dated incident stats.
+for f in root-cause-tracing.md condition-based-waiting.md; do
+    R=$(tr -d '\r' < "$D/$f")
+    for p in 'Real-World Impact' '2025-10-03'; do no "$f" "$R" "$p"; done
+done
+# C3: the zsh traps, worded as symptoms.
+for p in 'command not found' '"${files[@]}"' 'CLAUDE_CODE_SHELL' '`status`'; do has "debug" "$BODY" "$p"; done
+# t_directory_copy pins these in root-cause-tracing.md.
+RT=$(tr -d '\r' < "$D/root-cause-tracing.md")
+for p in 'find-polluter.sh' 'one at a time'; do has "root-cause-tracing.md" "$RT" "$p"; done
 exit $rc

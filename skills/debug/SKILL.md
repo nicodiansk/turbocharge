@@ -56,6 +56,12 @@ Complete each phase before moving to the next: each one supplies what the next o
    - Keep tracing up until you find the source
    - Fix at source, not at symptom
 
+6. **Shell traps (zsh)**
+   - The Bash tool runs zsh when `$SHELL` is zsh (`CLAUDE_CODE_SHELL` overrides it), and zsh breaks scripts that bash runs fine
+   - `command not found: git` right after a script set `path=…`: zsh ties `path` to `PATH`, so rename the variable
+   - A loop over `$files` that runs once with every path: zsh doesn't split unquoted variables. Use an array: `files=(a b)`, then `"${files[@]}"`
+   - `status` is read-only and `argv` is the argument list, so neither works as a variable name
+
 ### Phase 2: Pattern Analysis
 
 **Find the pattern before fixing:**
