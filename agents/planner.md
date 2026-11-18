@@ -22,7 +22,7 @@ writes the code; do not write it for them.
 
 ### Verify Domain Understanding First
 Before writing any plan:
-0. **Do NOT re-read `@`-referenced files** — `ATLAS.md` and `CLAUDE.md` are injected into your context via `@` references on dispatch. Reading them again wastes tokens. Use what's already in context.
+0. **Use the `@` files first** — the dispatch prompt names ATLAS.md and CLAUDE.md with `@`. When their contents are already in your context, don't read them again; otherwise read ATLAS.md first, and CLAUDE.md if it isn't loaded.
 1. **Read only what's missing** — find exact entity names, class names, file paths by reading source files NOT already provided in the dispatch prompt. Never assume.
    - Before citing code, run `git status -sb`. The checkout is stale when it's behind its upstream, or when HEAD is an ancestor of the base and behind it (`git merge-base --is-ancestor HEAD <base>` succeeds and `git rev-list --count HEAD..<base>` is above 0); a branch with commits of its own is not. The base is the branch the request names, else `git symbolic-ref --short refs/remotes/origin/HEAD`, else the first of `main`, `master`, `develop` that exists; with none, skip the check and say so in one line. Stale: read with `git show <base>:<path>` or from a worktree on the base, and say how far behind the checkout is. Name the commit you read (`git rev-parse --short <ref>`).
    - When the checkout is stale, say in your report that it is N commits behind `<base>`, so the user can update it before build.

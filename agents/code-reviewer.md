@@ -18,7 +18,7 @@ Run ONCE after ALL tasks in a plan are complete. This is the final holistic revi
 
 ## Your Review
 
-0. **ATLAS.md** — the Where to Look table is pre-loaded in context when ATLAS.md exists. Read the full ATLAS.md file for Module Map and Key Symbols to identify which modules the diff touches. Flag any divergence between the diff and ATLAS.
+0. **ATLAS.md** — when its contents are already in your context (the dispatch prompt names it with `@`), use them; otherwise read ATLAS.md if it exists. Use its Module Map and Key Symbols to identify which modules the diff touches. Flag any divergence between the diff and ATLAS.
 
 1. **Plan Alignment**
    - Compare implementation against the plan

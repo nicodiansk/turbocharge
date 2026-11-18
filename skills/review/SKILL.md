@@ -78,7 +78,7 @@ Then go to **After the review**.
 <!-- repo-only -->
 Reached on no opt-in (Step 2), when there is no Workflow tool (workflows are off), or when the swarm's launch was declined or failed (Step 3).
 <!-- /repo-only -->
-Dispatch `turbocharge:code-reviewer`, with this prefix so the subagent sees the navigation index (subagents do not inherit parent history):
+Dispatch `turbocharge:code-reviewer`, with this prefix, which names the files it uses first (subagents do not inherit parent history):
 
 ```
 @ATLAS.md (navigation index — use Module Map + Key Symbols to locate touched modules)
