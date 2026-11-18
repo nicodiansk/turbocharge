@@ -52,7 +52,7 @@ Scan `.claude/commands/` (project level) for commands that overlap with turbocha
 
 Read `~/.claude/rules/common/agents.md` (if exists):
 - Does it reference turbocharge as the primary system? **Good.**
-- Does it list phantom agents (agents not in `~/.claude/agents/`)? **Bad — offer to rewrite.**
+- Does it list phantom agents? An agent is phantom only when no source provides it: `~/.claude/agents/`, the project's `.claude/agents/`, or an enabled plugin's `agents/` (from `claude plugin list --json`). A plugin's agents, turbocharge's own included, are not phantom. **Phantom is bad — offer to rewrite.**
 - Does it reference both turbocharge AND other agent systems? **Bad — offer to consolidate.**
 
 **Action:** If agents.md doesn't point to turbocharge, offer to replace it with the turbocharge-aware version:
@@ -61,6 +61,16 @@ Read `~/.claude/rules/common/agents.md` (if exists):
 ## Primary System: Turbocharge Plugin
 All orchestration goes through the turbocharge plugin...
 ```
+
+When agents.md holds a table of turbocharge's agents, rebuild it with one row per `${CLAUDE_PLUGIN_ROOT}/agents/*.md`:
+- its `name`, from the frontmatter, read with `\r` stripped;
+- under "Dispatched by", the skills whose SKILL.md names `turbocharge:<name>`;
+- its role, from the description's first sentence.
+<!-- repo-only -->
+- Also add one row per file in `${CLAUDE_PLUGIN_ROOT}/workflows/` (the review swarm, which review launches on the user's opt-in).
+<!-- /repo-only -->
+
+Show the diff and write only on a yes. Keep the file's line endings: a CRLF file stays CRLF.
 
 ### 4. Check for Plugin Conflicts
 
