@@ -71,7 +71,7 @@ const PREAMBLE = [
   'Diff the range base..head over the listed files. Read each changed file in full, plus the callers of what changed.',
   'Report only defects the diff introduces or exposes, each with file:line at head.',
   'Rate severity by the effect on a reasonable user: critical (wrong results, data loss, security), important (a real gap a user will hit), minor (polish).',
-  'Evidence quotes the code. Do not pad: an empty findings list is a valid answer.',
+  'Evidence quotes the code. Report every defect you find, including ones you are unsure of or rate minor: a verifier then tries to refute each finding, so your job here is coverage, not filtering. An empty findings list is a valid answer when you find none.',
   'Anything that needs a product decision goes in declined: one line with the reason. Do not rule on it.',
   'The plan and context files are named below, not pasted: read them when your lens needs them.',
 ].join('\n')

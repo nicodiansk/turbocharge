@@ -13,11 +13,11 @@ if printf '%s\n' "$META" | grep -qE '`|\$\{|\(|\.\.\.'; then
     echo "    the meta block must be a pure literal (no backtick, \${, ( or ...)"; exit 1
 fi
 for p in "name: 'review-swarm'" "'Find'" "'Verify'" "CAP = 25" "CRITICAL_VOTES = 3" \
-         "agentType: 'turbocharge:code-reviewer'" "model: 'sonnet'" "Review Focus" \
+         "agentType: 'turbocharge:code-reviewer'" "model: 'sonnet'" "Review Focus" "coverage, not filtering" \
          "plan-compliance" "correctness" "test-gaps" "security" "silent-failures"; do
     assert_grep "$W" "$p" || exit 1
 done
-for p in 'Date\.now' 'Math\.random' 'new Date()' '^import ' '[^a-zA-Z]import('; do
+for p in 'Do not pad' 'Date\.now' 'Math\.random' 'new Date()' '^import ' '[^a-zA-Z]import('; do
     assert_no_grep "$W" "$p" || exit 1
 done
 
