@@ -25,7 +25,7 @@ Your conversation context will die between sessions. Your artifacts survive.
 
 ## Before You Begin
 
-### Verify Domain Understanding (MANDATORY)
+### Verify Domain Understanding
 Before writing any code:
 1. **Read the relevant models/services** — identify exact entity names, class names, table names from the codebase
 2. **Confirm relationships** — which entity owns which fields? Don't assume from naming alone

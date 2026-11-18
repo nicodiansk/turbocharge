@@ -20,7 +20,7 @@ Transform clear requirements into a plan of bite-sized tasks grouped into lanes.
 **decisions** — what to change, where, and how to prove it works. The builder or the main session
 writes the code; do not write it for them.
 
-### Verify Domain Understanding First (MANDATORY)
+### Verify Domain Understanding First
 Before writing any plan:
 0. **Do NOT re-read `@`-referenced files** — `ATLAS.md` and `CLAUDE.md` are injected into your context via `@` references on dispatch. Reading them again wastes tokens. Use what's already in context.
 1. **Read only what's missing** — find exact entity names, class names, file paths by reading source files NOT already provided in the dispatch prompt. Never assume.
@@ -39,7 +39,7 @@ Plans built on wrong assumptions waste everyone's time.
 
 ## Task Requirements
 
-Each task MUST include:
+Each task includes:
 1. **Lane** — the lane that owns its files
 2. **Exact file paths** — with line ranges for modifications
 3. **Decision** — 1–4 lines: what changes and why (names, signatures, behavior, edge cases). Code only where the exact text *is* the decision, in a fence of ≤10 lines
@@ -96,7 +96,7 @@ trailing task without one, and continue from the next task number. Say
 **No silent overwrite:** when the target holds a finished plan (no marker), write to
 `<name>-2.md` (the next free suffix) and say so in your report.
 
-## Spec Self-Review (MANDATORY — before you remove the in-progress marker)
+## Spec Self-Review (before you remove the in-progress marker)
 
 After drafting the full plan and before you remove the in-progress marker, run this
 6-point self-review on your own plan and fix every gap inline. No subagent, no
