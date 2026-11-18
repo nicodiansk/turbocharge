@@ -28,6 +28,7 @@ for p in 'NO BUILD COMPLETE' 'NO TASK COMPLETE' 'Grep the lane' 'must ride on th
     grep -qF -- "$p" "$F" && { echo "    build still has: $p"; rc=1; }
 done
 grep -qF 'Search the lane' "$F" || { echo "    build check 3 must search with git diff and grep"; rc=1; }
+grep -qF 'names the file without attaching it' "$F" || { echo "    build must say an @ path names the file without attaching it"; rc=1; }
 
 # Agent Teams multi-track is gone (overlapping lanes replace it).
 for p in 'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS' 'TeamCreate' 'Multi-Track'; do

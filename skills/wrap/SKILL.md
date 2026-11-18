@@ -192,7 +192,7 @@ Runs after step 9, since the exclusions use the new snapshot. Scope: `docs/plans
 
 ## How to Deliver
 
-**Output the resume prompt directly in chat** so the user can copy it. Do NOT write files, create directories, or modify `.gitignore` (except for CLAUDE.md and memory updates above, the rulings on pending proposals in `.claude/agent-memory*/*/MEMORY.md` (step 6.5), ATLAS.md when step 5.5 runs atlas, which writes and commits it, the session snapshot JSON and step 9's `.gitignore` line, and step 10's moves).
+**Output the resume prompt directly in chat** so the user can copy it. Do NOT write files, create directories, or modify `.gitignore` (except for CLAUDE.md and memory updates above, the rulings on pending proposals in `.claude/agent-memory*/*/MEMORY.md` (step 6.5), ATLAS.md when step 5.5 runs atlas, which writes it and commits it where git tracks it, the session snapshot JSON and step 9's `.gitignore` line, and step 10's moves).
 
 ## Workflow Position
 
