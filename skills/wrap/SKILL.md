@@ -9,14 +9,6 @@ Capture session state for seamless resumption.
 
 **Announce:** "Wrapping session — saving context for next time."
 
-## The Iron Law
-
-```
-NO SESSION END WITHOUT WRAP OFFER
-```
-
-When you detect a session is ending (goodbye, thanks, natural stopping point, context pressure), proactively offer to wrap.
-
 ## What to Capture
 
 ### 1. Progress
@@ -64,7 +56,7 @@ Start With:
 /turbocharge:[skill] [args]
 ```
 
-**MANDATORY:** `@.claude/turbocharge-session.json` MUST appear on the first line of every resume prompt — it is not optional context, it is the session state. Do not move it to "Context Files" or omit it. If the project keeps CLAUDE.md at `.claude/CLAUDE.md`, write `@.claude/CLAUDE.md` in place of `@CLAUDE.md`.
+Keep `@.claude/turbocharge-session.json` on the first line of every resume prompt, as in the template: it carries the session state, so it stays there rather than under Context Files. If the project keeps CLAUDE.md at `.claude/CLAUDE.md`, write `@.claude/CLAUDE.md` in place of `@CLAUDE.md`.
 
 ### 5.5. Atlas Freshness
 Before generating the resume prompt, decide whether the domain map needs a rerun:
@@ -184,7 +176,7 @@ The SessionStart hook also prints it when the next session starts, so resume tak
 It prints the snapshot within what is left of its output budget and cuts the rest, so `decisions` stays at 8 or fewer.
 <!-- /repo-only -->
 
-**Gitignore check (MANDATORY):** Before writing the snapshot, verify `.claude/turbocharge-session.json` is in the project `.gitignore`. If not, add exactly this line:
+**Gitignore check:** Before writing the snapshot, verify `.claude/turbocharge-session.json` is in the project `.gitignore`. If not, add exactly this line:
 ```
 .claude/turbocharge-session.json
 ```
@@ -200,11 +192,7 @@ Runs after step 9, since the exclusions use the new snapshot. Scope: `docs/plans
 
 ## How to Deliver
 
-**Output the resume prompt directly in chat** so the user can copy it. Do NOT write files, create directories, or modify `.gitignore` (except for CLAUDE.md and memory updates above, the rulings on pending proposals in `.claude/agent-memory*/*/MEMORY.md` (step 6.5), the session snapshot JSON, and step 10's moves).
-
-<!-- repo-only -->
-Agent memory (via `memory: project`) handles persistence automatically — no manual file saving needed for session state.
-<!-- /repo-only -->
+**Output the resume prompt directly in chat** so the user can copy it. Do NOT write files, create directories, or modify `.gitignore` (except for CLAUDE.md and memory updates above, the rulings on pending proposals in `.claude/agent-memory*/*/MEMORY.md` (step 6.5), ATLAS.md when step 5.5 runs atlas, which writes it and commits it where git tracks it, the session snapshot JSON and step 9's `.gitignore` line, and step 10's moves).
 
 ## Workflow Position
 

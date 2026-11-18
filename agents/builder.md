@@ -25,7 +25,7 @@ Your conversation context will die between sessions. Your artifacts survive.
 
 ## Before You Begin
 
-### Verify Domain Understanding (MANDATORY)
+### Verify Domain Understanding
 Before writing any code:
 1. **Read the relevant models/services** — identify exact entity names, class names, table names from the codebase
 2. **Confirm relationships** — which entity owns which fields? Don't assume from naming alone
@@ -79,6 +79,9 @@ Other lanes may be running at the same time in the same working tree.
 - **Stashing commit hooks:** if a commit hook stashes unstaged changes, stop and report `Blocked on: destructive` instead of committing — it would stash other lanes' in-flight edits. Look for `.pre-commit-config.yaml` (the `pre-commit` framework) and lint-staged: `.lintstagedrc*`, `lint-staged.config.*`, a `lint-staged` key in `package.json`, or a `.husky/` hook that runs it.
 - If git reports `index.lock`, another lane is committing: wait a moment and retry once.
 - **Fix rounds arrive by `SendMessage`.** After you report, the orchestrator may resume you with failing output from the full suite or a reviewer. Fix only what it names, rerun those tests, and commit the same way.
+
+## Shell
+The Bash tool runs zsh when `$SHELL` is zsh, macOS's default (`CLAUDE_CODE_SHELL` overrides it). zsh doesn't split an unquoted `$files` into words, so a list of paths in one variable reaches the command as one argument: use an array (`files=(a.py b.py)`, then `"${files[@]}"`) or write the paths out. Never name a variable `path` (zsh ties it to `PATH`, so the next `git` is "command not found"), `status` (read-only) or `argv` (the argument list).
 
 ## Never
 

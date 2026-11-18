@@ -35,7 +35,7 @@ RV="$(bash "$FILTER" < "$PLUGIN_DIR/skills/review/SKILL.md")" || { echo "    fil
 for p in 'swarm' 'workflow' 'opt-in' 'lens' 'verifier' 'Tip:' 'Step 3'; do
     printf '%s' "$RV" | grep -qiF -- "$p" && { echo "    directory review skill still has: $p"; rc=1; }
 done
-for p in 'NO MERGE WITHOUT CODE REVIEW' 'Nothing to review' 'Dispatch `turbocharge:code-reviewer`' 'Declined to judge' \
+for p in 'Review a branch before it merges' 'Nothing to review' 'Dispatch `turbocharge:code-reviewer`' 'Declined to judge' \
     'No agent here' 'Ready to ship?' '## Red Flags'; do
     printf '%s' "$RV" | grep -qF -- "$p" || { echo "    directory review skill lost: $p"; rc=1; }
 done

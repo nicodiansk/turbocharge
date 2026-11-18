@@ -11,11 +11,7 @@ Generate or update the semantic domain map for this project.
 
 ## The Iron Law
 
-```
-NO ATLAS WITHOUT READING THE CODEBASE FIRST
-```
-
-Do not generate from assumptions or memory. Read the actual code, configs, and docs.
+Read the codebase (code, configs and docs) before writing the map, not memory or file names: a row written from file names alone sends every later session to the wrong file.
 
 ## Step 1: Detect Mode
 
@@ -119,8 +115,7 @@ Last updated: YYYY-MM-DD
 - SessionStart pre-loads the table only up to its byte cap, so rows past the first 25 short ones never reach the session.
 <!-- /repo-only -->
 
-**Removed from prior format:** Data Flows (prose arrows), Domain Model (→ CLAUDE.md), Active Work & Known Issues.
-**Added:** Where to Look (intent→file), Key Symbols (counted).
+In Update mode, an older ATLAS.md can still hold Data Flows, Domain Model or Active Work & Known Issues sections: remove them (Domain Model content belongs in CLAUDE.md, not here).
 
 ## Step 5: Record the Commit
 
@@ -155,7 +150,7 @@ ATLAS.md contains **facts about the project**. Do not include:
 <!-- repo-only -->
    `bash "${CLAUDE_PLUGIN_ROOT}/skills/atlas/validate-atlas.sh" ATLAS.md` runs the checks: commit on exit 0; on failure fix the lines it names and rerun, never commit a failing one.
 <!-- /repo-only -->
-4. Commit ATLAS.md by itself, so the next staleness check sees no unrelated change
+4. Commit ATLAS.md if git tracks it (a repo, not ignored); on the default branch, ask first: commit there or on a new branch. Commit it by itself, so the next staleness check sees no unrelated change
 5. Offer to continue: "Ready to work? What's next?"
 
 ## Red Flags — STOP

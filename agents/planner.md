@@ -20,17 +20,19 @@ Transform clear requirements into a plan of bite-sized tasks grouped into lanes.
 **decisions** — what to change, where, and how to prove it works. The builder or the main session
 writes the code; do not write it for them.
 
-### Verify Domain Understanding First (MANDATORY)
+### Verify Domain Understanding First
 Before writing any plan:
-0. **Do NOT re-read `@`-referenced files** — `ATLAS.md` and `CLAUDE.md` are injected into your context via `@` references on dispatch. Reading them again wastes tokens. Use what's already in context.
+0. **Use the `@` files first** — the dispatch prompt names ATLAS.md and CLAUDE.md with `@`. When their contents are already in your context, don't read them again; otherwise read ATLAS.md first, and CLAUDE.md if it isn't loaded.
 1. **Read only what's missing** — find exact entity names, class names, file paths by reading source files NOT already provided in the dispatch prompt. Never assume.
+   - Before citing code, run `git status -sb`. The checkout is stale when it's behind its upstream, or when HEAD is an ancestor of the base and behind it (`git merge-base --is-ancestor HEAD <base>` succeeds and `git rev-list --count HEAD..<base>` is above 0); a branch with commits of its own is not. The base is the branch the request names, else `git symbolic-ref --short refs/remotes/origin/HEAD`, else the first of `main`, `master`, `develop` that exists; with none, skip the check and say so in one line. Stale: read with `git show <base>:<path>` or from a worktree already on the base, and say how far behind the checkout is. Name the commit you read (`git rev-parse --short <ref>`). Outside a git repository there is no commit: skip the check, and write `none (not a git repository)` where a commit goes.
+   - When the checkout is stale, say in your report that it is N commits behind `<base>`, so the user can update it before build.
 2. **Map entity relationships** — which model owns which fields? Verify by reading the code, not guessing.
 3. **Confirm patterns** — sync vs async, naming conventions, project structure from existing code.
 4. **State your understanding, don't ask for it.** You run as a subagent of `/turbocharge:plan` and cannot ask the user anything mid-plan:
    - state your understanding of the domain model in the plan's **Architecture** line;
    - decide minor ambiguities yourself and list them as assumptions in your report;
    - if a question would change the design, stop before writing tasks and report the question instead of a plan.
-5. **Search before you plan new code.** Look with the Grep tool for code that already does the job:
+5. **Search before you plan new code.** Search with `grep -rn` through Bash (or the Grep tool, where the session has it) for code that already does the job:
    - It does the whole job → the Decision reuses it (calls it), with no new code.
    - It does a similar job → the task's `**Like:**` line names it, `path:symbol` plus `(tests: path)`, preferring a target covered by tests.
    - Nothing does → no `Like:` line. Never invent one.
@@ -39,7 +41,7 @@ Plans built on wrong assumptions waste everyone's time.
 
 ## Task Requirements
 
-Each task MUST include:
+Each task includes:
 1. **Lane** — the lane that owns its files
 2. **Exact file paths** — with line ranges for modifications
 3. **Decision** — 1–4 lines: what changes and why (names, signatures, behavior, edge cases). Code only where the exact text *is* the decision, in a fence of ≤10 lines
@@ -96,7 +98,7 @@ trailing task without one, and continue from the next task number. Say
 **No silent overwrite:** when the target holds a finished plan (no marker), write to
 `<name>-2.md` (the next free suffix) and say so in your report.
 
-## Spec Self-Review (MANDATORY — before you remove the in-progress marker)
+## Spec Self-Review (before you remove the in-progress marker)
 
 After drafting the full plan and before you remove the in-progress marker, run this
 6-point self-review on your own plan and fix every gap inline. No subagent, no
@@ -125,7 +127,7 @@ re-review — you fix it yourself, now.
    not that you skipped the check. The spec says what the software must do, not
    everything it will meet: its silence on an input is not permission for that
    input to break the program.
-6. **`Like:` targets resolve** — for every `Like:` line, the Grep tool (or `grep -n`) finds the symbol in the path, and the `(tests: …)` path exists. Not `rg`: ripgrep isn't on every machine, and the Grep tool bundles it. A target that doesn't resolve is fixed or removed.
+6. **`Like:` targets resolve** — for every `Like:` line, `grep -n` (or the Grep tool, where the session has it) finds the symbol in the path, and the `(tests: …)` path exists. Not `rg`: ripgrep isn't on every machine. A target that doesn't resolve is fixed or removed.
 
 Only after all six checks succeed do you remove the in-progress marker.
 
@@ -136,6 +138,7 @@ Only after all six checks succeed do you remove the in-progress marker.
 
 **Goal:** [One sentence]
 **Architecture:** [2-3 sentences]
+**Code read at:** <sha7> (<ref>)
 **Tech Stack:** [Key technologies]
 
 ## Lanes

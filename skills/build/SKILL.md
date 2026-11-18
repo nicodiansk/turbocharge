@@ -12,10 +12,7 @@ Execute an implementation plan lane by lane: mechanical lanes inline, real logic
 
 ## The Iron Law
 
-```
-NO TASK COMPLETE WITHOUT ITS TEST PASSING
-NO BUILD COMPLETE WITHOUT THE FULL SUITE GREEN AT THE JOIN
-```
+A task is done when its test passes, and the build is done only when the full suite passes at the join: each lane ran only its own tests, so the join is the first run that sees every lane together.
 
 ## Step 1: Load and Review Plan
 
@@ -85,7 +82,7 @@ Builders run in the background (Claude Code 2.1.198+): the Agent call returns as
 
 > **Builder isolation (design decision):** the builder agent intentionally does NOT set `isolation: worktree`. A worktree branches from the **default branch**, not the parent session's HEAD, and is auto-cleaned only when no changes are made — which would break the `$BEFORE_SHA..HEAD` diff model in Step 6 (the reviewer would diff the wrong base) and leave a populated worktree for ship/cleanup to manage. Lanes share one tree and stay apart by owning disjoint files and committing by pathspec.
 
-If a builder reports `Blocked on: context` (Step 5), dispatch the researcher with `@ATLAS.md @CLAUDE.md` prefixed — or `@ATLAS.md @AGENTS.md` if the project has no CLAUDE.md. `.claude/CLAUDE.md` counts as a CLAUDE.md: if the project keeps it there, use `@.claude/CLAUDE.md`. Subagents do not inherit parent history — `@ATLAS.md` must ride on the dispatch prompt itself.
+If a builder reports `Blocked on: context` (Step 5), dispatch the researcher with `@ATLAS.md @CLAUDE.md` prefixed — or `@ATLAS.md @AGENTS.md` if the project has no CLAUDE.md. `.claude/CLAUDE.md` counts as a CLAUDE.md: if the project keeps it there, use `@.claude/CLAUDE.md`. Subagents don't inherit parent history, and an `@` path in a dispatch prompt names the file without attaching it, so the researcher reads the files the prefix names unless they're already in its context.
 
 ## Step 4: Run Inline Lanes
 
@@ -134,7 +131,7 @@ Inline lanes run no mutation and no join checks: they are exact-text edits, and 
 - Fix rounds count toward Step 5c's max 2 per lane. After a round, rerun all four checks. Lanes that name this one in `After` wait until the checks pass.
 - Cost: three git commands and one `Verify` per task, touching only the lane's tests, so it is safe during overlap.
 
-**Check 3: no test shortcuts.** Grep the lane's added lines, and list any file it deleted:
+**Check 3: no test shortcuts.** Search the lane's added lines with `git diff` and `grep` through Bash (the Grep tool is absent by default on macOS, Linux and WSL), and list any file it deleted:
 ```bash
 SHORTCUT_RE='skip\(|skipIf|skipUnless|mark\.skip|xfail|expectedFailure|\.only\(|[^[:alnum:]_]xit\(|xdescribe\(|fdescribe\(|\.Skipf?\(|#\[ignore\]|@Disabled|@Ignore|sys\.exit\(0\)|process\.exit\(0\)|os\.Exit\(0\)'
 git diff $LANE_SHA..HEAD -- <lane paths> | grep -E '^[+]' | grep -vE '^[+]{3} ' | grep -E "$SHORTCUT_RE"

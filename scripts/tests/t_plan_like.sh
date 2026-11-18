@@ -27,7 +27,7 @@ has "plan Rules" "$RULES" "**Name it, don't describe it.**"
 P="$PLUGIN_DIR/agents/planner.md"
 assert_file "$P" || exit 1
 VDU=$(sec "$P" '### Verify Domain Understanding First' '## ')
-for p in '5. **Search before you plan new code.**' 'Grep tool' 'the Decision reuses it' 'covered by tests' 'Never invent one'; do
+for p in '5. **Search before you plan new code.**' '`grep -rn` through Bash' 'Grep tool' 'the Decision reuses it' 'covered by tests' 'Never invent one'; do
     has "planner Verify Domain Understanding First" "$VDU" "$p"
 done
 PF=$(sec "$P" '## Plan Format' '## Quality Checklist')
@@ -44,10 +44,13 @@ SSR=$(sec "$P" '## Spec Self-Review' '## ')
 for p in '6. **`Like:` targets resolve**' 'Grep tool' 'grep -n' 'fixed or removed'; do
     has "planner Spec Self-Review" "$SSR" "$p"
 done
+printf '%s\n' "$SSR" | grep -qF -- 'the Grep tool bundles it' && { echo "    planner Spec Self-Review must not say: the Grep tool bundles it"; rc=1; }
 grep -nE '(^|[[:space:](])rg -' "$P" >/dev/null && { echo "    planner.md must not name rg"; rc=1; }
 has "planner Quality Checklist" "$(sec "$P" '## Quality Checklist' '## ')" 'Every `Like:` target resolves'
 CHECK=$(grep -F 'Check the saved plan' "$S" | head -1)
 has "plan Check the saved plan line" "$CHECK" 'every `Like:` target resolves'
+has "plan Check the saved plan line" "$CHECK" '`grep -n` finds the symbol'
+printf '%s\n' "$CHECK" | grep -qF -- 'the Grep tool finds' && { echo "    plan Check the saved plan line must not say: the Grep tool finds"; rc=1; }
 NOAGENT=$(grep -F '**No agent here:**' "$S" | head -1)
 has "plan No agent here line" "$NOAGENT" '`Like:` targets resolve'
 

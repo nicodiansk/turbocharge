@@ -52,7 +52,7 @@ Scan `.claude/commands/` (project level) for commands that overlap with turbocha
 
 Read `~/.claude/rules/common/agents.md` (if exists):
 - Does it reference turbocharge as the primary system? **Good.**
-- Does it list phantom agents (agents not in `~/.claude/agents/`)? **Bad — offer to rewrite.**
+- Does it list phantom agents? An agent is phantom only when no source provides it: `~/.claude/agents/`, the project's `.claude/agents/`, or an enabled plugin's `agents/` (from `claude plugin list --json`). A plugin's agents, turbocharge's own included, are not phantom. **Phantom is bad — offer to rewrite.**
 - Does it reference both turbocharge AND other agent systems? **Bad — offer to consolidate.**
 
 **Action:** If agents.md doesn't point to turbocharge, offer to replace it with the turbocharge-aware version:
@@ -61,6 +61,16 @@ Read `~/.claude/rules/common/agents.md` (if exists):
 ## Primary System: Turbocharge Plugin
 All orchestration goes through the turbocharge plugin...
 ```
+
+When agents.md holds a table of turbocharge's agents, rebuild it with one row per `${CLAUDE_PLUGIN_ROOT}/agents/*.md`:
+- its `name`, from the frontmatter, read with `\r` stripped;
+- under "Dispatched by", the skills whose SKILL.md names `turbocharge:<name>`;
+- its role, from the description's first sentence.
+<!-- repo-only -->
+- Also add one row per file in `${CLAUDE_PLUGIN_ROOT}/workflows/` (the review swarm, which review launches on the user's opt-in).
+<!-- /repo-only -->
+
+Show the diff and write only on a yes. Keep the file's line endings: a CRLF file stays CRLF.
 
 ### 4. Check for Plugin Conflicts
 
@@ -102,7 +112,19 @@ Scan `~/.claude/rules/common/` for files that duplicate what turbocharge skills 
 
 **Action:** For each overlap found, show the user what's duplicated and offer to trim. Don't delete files — trim the overlapping sections and keep unique content.
 
-**Why this matters:** Every global rule file is loaded into context on every turn (~4 bytes/token). Duplicate instructions between rules and turbocharge skills waste ~2,000 tokens per session and can cause conflicting guidance.
+**Why this matters:** A rule file without `paths:` frontmatter loads at every session start, with the same priority as CLAUDE.md, and loads again after compaction; one with `paths:` loads when Claude reads a matching file. Instructions duplicated between rules and turbocharge skills cost context in every session and can give conflicting guidance.
+
+### 8. Check Rule and Skill Files for Stale Lines
+
+Scan every `~/.claude/rules/**/*.md` and every `~/.claude/skills/*/SKILL.md`, not only agents.md. Report each hit as `file:line`, a quote and the proposed fix, and edit only what the user picks.
+
+1. **Not installed:** a name used as a skill (`/name`, `name skill`, `plugin:name`) or as an agent (`name agent`, `subagent_type`) that is none of these: a built-in command (`/init`, `/doctor`, `/config`), a skill in `~/.claude/skills/` or `.claude/skills/`, a command in `.claude/commands/`, an agent in `~/.claude/agents/` or `.claude/agents/`, or anything an enabled plugin ships. Examples: `python-testing`, `security-reviewer`, `build-error-resolver`.
+2. **Retired model advice:** a model name with a version number (an older Opus, Sonnet or Haiku release) → suggest the alias (`opus`, `sonnet`, `haiku`) or no model at all. A thinking budget (`MAX_THINKING_TOKENS`, or a token count such as `31,999`) → current models always think, and depth follows the effort setting.
+3. **Tools a session may lack:** `TodoWrite` (off by default since v2.1.268, and the Task tools that replace it aren't on by default on the newest models) and the Grep or Glob tools (absent by default on macOS, Linux and WSL) → reword to "the task tools, where the session has them" and "grep or find through Bash".
+4. **Language rules without `paths:`:** a rule outside `common/` (for example `~/.claude/rules/python/`, `typescript/`) whose frontmatter has no `paths:` loads in every project. Propose `paths: ["**/*.py"]` for python, `paths: ["**/*.{ts,tsx,js,jsx}"]` for typescript, and the language's extensions for others. Before the user picks, state the trade-off: a `paths:` rule loads only when Claude reads, writes or edits a matching file, and after `/compact` it's gone until one is touched again.
+5. **Conflicts with this project:** a user rule that contradicts the project's CLAUDE.md (for example "80% coverage, TDD always" against "no new unit tests") → suggest the rule add "unless the project's CLAUDE.md says otherwise".
+
+Every check strips `\r` before it reads frontmatter or lines, because many rule files are CRLF and a naive read of `---\r` reports a `paths:` missing that is there. Every edit keeps the file's line endings: a CRLF file stays CRLF.
 
 ## CLAUDE.md Phase
 
@@ -141,10 +163,10 @@ Read `${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE-turbocharge.md`. Substitute answers
 
 CLAUDE.md here means `./CLAUDE.md`, or `./.claude/CLAUDE.md` when the project keeps it there — edit the one that exists, never create a second. Imports resolve relative to the file that contains them, so inside `.claude/CLAUDE.md` the import is `@../AGENTS.md`: write that form wherever the bullets below say `@AGENTS.md`, and treat either form as the import already being present.
 
-- If CLAUDE.md exists, `AGENTS.md` also exists, and CLAUDE.md has no `@AGENTS.md` line → offer to add `@AGENTS.md` as its first line. Claude Code ignores AGENTS.md whenever a CLAUDE.md exists, so without the import its instructions never load. Leave the file unchanged if the user declines.
+- If CLAUDE.md exists, `AGENTS.md` also exists, and CLAUDE.md has no `@AGENTS.md` line → offer to add `@AGENTS.md` as its first line. By default (the Project instructions setting in `/config`), Claude Code reads AGENTS.md only when no CLAUDE.md or CLAUDE.local.md exists, and before v2.1.277 it never reads AGENTS.md on its own, so without the import its instructions don't load; a user who set that option to `claude-md-and-agents-md` already loads both. Leave the file unchanged if the user declines.
 - If CLAUDE.md exists and contains a block with the same marker → replace between markers, leave surrounding content untouched.
 - If CLAUDE.md exists and does not contain that block → append to end of file.
-- If CLAUDE.md does not exist but `AGENTS.md` does → create CLAUDE.md with `@AGENTS.md` as its first line, then append the rendered blocks below it. Claude Code reads AGENTS.md only while no CLAUDE.md exists, so this import is what keeps AGENTS.md loading once CLAUDE.md is created.
+- If CLAUDE.md does not exist but `AGENTS.md` does → create CLAUDE.md with `@AGENTS.md` as its first line, then append the rendered blocks below it. Under the default setting AGENTS.md stops loading once a CLAUDE.md exists, so this import is what keeps it loading.
 - If neither CLAUDE.md nor AGENTS.md exists → suggest `/init` first, do not create a bare CLAUDE.md from the template alone.
 
 ### 4. Show Diff, Confirm, Write
@@ -189,6 +211,7 @@ Apply fixes? [list specific changes, ask for confirmation]
 Offer to chain:
 - `/turbocharge:brainstorm` if user has an idea to explore
 - `/turbocharge:plan` if user has requirements ready
+- `/doctor prompt-audit` (Claude Code v2.1.283 or later) checks instruction files for lines written for older models, references to things that don't exist, and contradictions. Worth rerunning after a model upgrade.
 - Nothing if user just wanted the audit
 
 ## Red Flags

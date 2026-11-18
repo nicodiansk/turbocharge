@@ -9,25 +9,19 @@ description: Use when encountering any bug, test failure, or unexpected behavior
 
 Random fixes waste time and create new bugs. Quick patches mask underlying issues.
 
-**Core principle:** ALWAYS find root cause before attempting fixes. Symptom fixes are failure.
-
-**Violating the letter of this process is violating the spirit of debugging.**
+**Core principle:** find the root cause before attempting a fix. A fix aimed at the symptom leaves the cause in place to fail again.
 
 ## The Iron Law
 
-```
-NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
-```
-
-If you haven't completed Phase 1, you cannot propose fixes.
+Propose a fix only after Phase 1 has found the root cause: before that, a fix is a guess, and each guess that misses leaves one more change to undo.
 
 ## The Four Phases
 
-You MUST complete each phase before proceeding to the next.
+Complete each phase before moving to the next: each one supplies what the next one needs.
 
 ### Phase 1: Root Cause Investigation
 
-**BEFORE attempting ANY fix:**
+**Before attempting any fix:**
 
 1. **Read Error Messages Carefully**
    - Don't skip past errors or warnings
@@ -61,6 +55,12 @@ You MUST complete each phase before proceeding to the next.
    - What called this with bad value?
    - Keep tracing up until you find the source
    - Fix at source, not at symptom
+
+6. **Shell traps (zsh)**
+   - The Bash tool runs zsh when `$SHELL` is zsh (`CLAUDE_CODE_SHELL` overrides it), and zsh breaks scripts that bash runs fine
+   - `command not found: git` right after a script set `path=…`: zsh ties `path` to `PATH`, so rename the variable
+   - A loop over `$files` that runs once with every path: zsh doesn't split unquoted variables. Use an array: `files=(a b)`, then `"${files[@]}"`
+   - `status` is read-only and `argv` is the argument list, so neither works as a variable name
 
 ### Phase 2: Pattern Analysis
 

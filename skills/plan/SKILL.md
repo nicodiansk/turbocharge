@@ -12,7 +12,7 @@ Turn the requirements at $ARGUMENTS into a lean implementation plan. The planner
 
 Dispatch `turbocharge:planner` through the Agent tool. Its prompt holds the context prefix (Context Gathering, below), the requirements path, and the plan path when the request names one. Wait for its result before you report: if it runs in the background, that is its completion notification. Never write the plan in this session while the planner can be dispatched.
 
-Check the saved plan against this contract before you relay it: a Lanes table with full paths and no file in two lanes, no builder→builder chain link and at most 3 overlapping builder lanes, every builder lane's Model is `sonnet` or `opus · <reason>` with one of the four reasons and every inline lane's `—`, Review Focus lines pinned to a task, every `Like:` target resolves (the Grep tool finds the symbol in the path, and its tests path exists), and a Decision, Test and Verify in every task. Name any gap in your report, then relay the planner's report (Save, below). If the planner fails or stops partway, say so: a rerun resumes from the partial file.
+Check the saved plan against this contract before you relay it: a Lanes table with full paths and no file in two lanes, no builder→builder chain link and at most 3 overlapping builder lanes, every builder lane's Model is `sonnet` or `opus · <reason>` with one of the four reasons and every inline lane's `—`, Review Focus lines pinned to a task, every `Like:` target resolves (`grep -n` finds the symbol in the path, and its tests path exists), and a Decision, Test and Verify in every task. Name any gap in your report, then relay the planner's report (Save, below). If the planner fails or stops partway, say so: a rerun resumes from the partial file.
 
 **No agent here:** if the Agent tool is missing, or `turbocharge:planner` is not registered (some surfaces load skills without agents), write the plan in this session to the contract below. Follow the Save section yourself, and run the Spec Self-Review (spec coverage, completeness, lane disjointness (no builder→builder chain link, at most 3 overlapping builder lanes, every builder lane's Model is `sonnet` or `opus · <reason>` with one of the four reasons, every inline lane's `—`), type consistency, Review Focus, `Like:` targets resolve) before you remove the in-progress marker. Say so in one line.
 
@@ -25,6 +25,7 @@ Every plan MUST start with:
 
 **Goal:** [One sentence]
 **Architecture:** [2-3 sentences about approach]
+**Code read at:** <sha7> (<ref>)
 **Tech Stack:** [Key technologies]
 
 ## Lanes
@@ -61,7 +62,7 @@ Before planning, preload domain context. When dispatching the planner agent, pre
 @CLAUDE.md (conventions, rules, domain vocabulary)
 ```
 
-If either file does not exist, omit the corresponding `@` reference. Exception: if CLAUDE.md is missing but `AGENTS.md` exists, use `@AGENTS.md` in its place. `.claude/CLAUDE.md` counts as a CLAUDE.md: if the project keeps it there, use `@.claude/CLAUDE.md`. `@` references auto-read on dispatch so the subagent receives them in context; subagents do NOT inherit parent conversation history.
+If either file does not exist, omit the corresponding `@` reference. Exception: if CLAUDE.md is missing but `AGENTS.md` exists, use `@AGENTS.md` in its place. `.claude/CLAUDE.md` counts as a CLAUDE.md: if the project keeps it there, use `@.claude/CLAUDE.md`. The planner uses those files first, reading any whose contents didn't reach its context; subagents do NOT inherit parent conversation history.
 
 **Token discipline:** Do NOT paste file contents or summaries into the dispatch prompt — send task description, file paths, and line ranges only. The planner reads actual files in its own context. Duplicating content in the dispatch wastes tokens (same pattern as build skill).
 

@@ -15,9 +15,7 @@ When the user opts in, five lens reviewers find defects instead, then verifier a
 
 ## The Iron Law
 
-```
-NO MERGE WITHOUT CODE REVIEW
-```
+Review a branch before it merges: passing tests show the code does what they check, and the review checks it against what the plan asked.
 
 ## Context
 
@@ -78,7 +76,7 @@ Then go to **After the review**.
 <!-- repo-only -->
 Reached on no opt-in (Step 2), when there is no Workflow tool (workflows are off), or when the swarm's launch was declined or failed (Step 3).
 <!-- /repo-only -->
-Dispatch `turbocharge:code-reviewer`, with this prefix so the subagent sees the navigation index (subagents do not inherit parent history):
+Dispatch `turbocharge:code-reviewer`, with this prefix, which names the files it uses first (subagents do not inherit parent history):
 
 ```
 @ATLAS.md (navigation index — use Module Map + Key Symbols to locate touched modules)
@@ -114,7 +112,7 @@ Offer: "Ready to ship?" → chains to `/turbocharge:ship`
 
 ## Red Flags — Rationalizations That Mean You're Doing a Shallow Review
 
-If you catch yourself thinking any of these, **STOP — you are about to deliver exactly the kind of review that wastes everyone's time:**
+If you catch yourself thinking any of these, stop: each one leads to a review that misses what it was run to find.
 
 | Thought | Why It's Wrong |
 |---------|----------------|

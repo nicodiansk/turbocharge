@@ -84,7 +84,7 @@ emit_head() {
         awk '/^## Where to Look/{found=1} found && /^## [^W]/{exit} {print}' "ATLAS.md" \
             | cap_section "$ATLAS_CAP" "Read ATLAS.md"
         echo ""
-        echo "(Full ATLAS.md available via Read — contains Module Map, Key Symbols, Integration Points, Conventions & Gotchas)"
+        echo "(Full ATLAS.md available via Read — contains Entry Points, Key Flows, Module Map, Key Symbols, Integration Points, Conventions & Gotchas)"
         echo "--- end ATLAS.md ---"
     else
         echo ""

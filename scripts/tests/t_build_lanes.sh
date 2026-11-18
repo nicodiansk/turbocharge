@@ -22,7 +22,13 @@ done
 # Per-lane review: the pathspec isolates one lane even though other lanes' commits interleave.
 grep -qF 'git diff $BEFORE_SHA..HEAD -- <lane paths>' "$PLUGIN_DIR/skills/build/references/reviewed-mode.md" 2>/dev/null \
     || { echo "    reviewer must diff the lane by pathspec (reviewed-mode.md)"; rc=1; }
-grep -qF 'NO BUILD COMPLETE WITHOUT THE FULL SUITE GREEN AT THE JOIN' "$F" || { echo "    Iron Law must gate on the join"; rc=1; }
+grep -qF 'the build is done only when the full suite passes at the join' "$F" || { echo "    Iron Law must gate on the join"; rc=1; }
+# 3.8.0 handed over from D: F25 normal volume, C8 no Grep tool, F36 @ files are named, not attached.
+for p in 'NO BUILD COMPLETE' 'NO TASK COMPLETE' 'Grep the lane' 'must ride on the dispatch prompt'; do
+    grep -qF -- "$p" "$F" && { echo "    build still has: $p"; rc=1; }
+done
+grep -qF 'Search the lane' "$F" || { echo "    build check 3 must search with git diff and grep"; rc=1; }
+grep -qF 'names the file without attaching it' "$F" || { echo "    build must say an @ path names the file without attaching it"; rc=1; }
 
 # Agent Teams multi-track is gone (overlapping lanes replace it).
 for p in 'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS' 'TeamCreate' 'Multi-Track'; do
